@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>backend/fetch_rt.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl kwa">from</span> time <span class="hl kwa">import</span> time
+<span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> MySQLdb
+<span class="hl kwa">import</span> logging
+<span class="hl kwa">import</span> datetime
+
+<span class="hl kwa">from</span> rt_settings <span class="hl kwa">import</span> <span class="hl opt">*</span>
+
+<span class="hl kwa">class</span> RTStats<span class="hl opt">:</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>username <span class="hl opt">=</span> RT_USERNAME
+        self<span class="hl opt">.</span>password <span class="hl opt">=</span> RT_PASSWORD
+        self<span class="hl opt">.</span>database <span class="hl opt">=</span> RT_DATABASE
+        self<span class="hl opt">.</span>_db <span class="hl opt">=</span> <span class="hl kwa">None</span>
+
+    <span class="hl kwb">&#64;property</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">db</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">if</span> self<span class="hl opt">.</span>_db <span class="hl kwa">is None</span><span class="hl opt">:</span>
+            self<span class="hl opt">.</span>_db <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">connect</span><span class="hl opt">()</span>
+        <span class="hl kwa">return</span> self<span class="hl opt">.</span>_db
+
+    <span class="hl kwa">def</span> <span class="hl kwd">connect</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">return</span> MySQLdb<span class="hl opt">.</span><span class="hl kwd">connect</span><span class="hl opt">(</span>passwd<span class="hl opt">=</span>self<span class="hl opt">.</span>password<span class="hl opt">,</span> db<span class="hl opt">=</span>self<span class="hl opt">.</span>database<span class="hl opt">,</span> user<span class="hl opt">=</span>self<span class="hl opt">.</span>username<span class="hl opt">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">disconnect</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">pass</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">send_data</span><span class="hl opt">(</span>self<span class="hl opt">,</span> name<span class="hl opt">,</span> data<span class="hl opt">):</span>
+        data_dump <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">:</span> name<span class="hl opt">,</span> <span class="hl str">&quot;data&quot;</span><span class="hl opt">:</span> data<span class="hl opt">},</span> sort_keys<span class="hl opt">=</span><span class="hl kwa">True</span><span class="hl opt">,</span> indent<span class="hl opt">=</span><span class="hl num">4</span><span class="hl opt">)</span>
+        <span class="hl kwb">open</span><span class="hl opt">(</span>name<span class="hl opt">+</span><span class="hl str">&quot;.data.json&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">).</span><span class="hl kwd">write</span><span class="hl opt">(</span>data_dump<span class="hl opt">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">run</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        self<span class="hl opt">.</span><span class="hl kwd">get_ticket_stats</span><span class="hl opt">()</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_ticket_stats</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">def</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span>query<span class="hl opt">):</span>
+            c <span class="hl opt">=</span> self<span class="hl opt">.</span>db<span class="hl opt">.</span><span class="hl kwd">cursor</span><span class="hl opt">()</span>
+            c<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span>query<span class="hl opt">)</span>
+            <span class="hl opt">(</span>count<span class="hl opt">,) =</span> c<span class="hl opt">.</span><span class="hl kwd">fetchone</span><span class="hl opt">()</span>
+            <span class="hl kwa">return</span> count
+
+        <span class="hl kwa">def</span> <span class="hl kwd">get_two</span><span class="hl opt">(</span>query<span class="hl opt">):</span>
+            c <span class="hl opt">=</span> self<span class="hl opt">.</span>db<span class="hl opt">.</span><span class="hl kwd">cursor</span><span class="hl opt">()</span>
+            c<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span>query<span class="hl opt">)</span>
+            <span class="hl opt">(</span>name<span class="hl opt">,</span> count<span class="hl opt">) =</span> c<span class="hl opt">.</span><span class="hl kwd">fetchone</span><span class="hl opt">()</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">:</span> name<span class="hl opt">,</span> <span class="hl str">&quot;count&quot;</span><span class="hl opt">:</span> count<span class="hl opt">}</span>
+
+        <span class="hl kwa">def</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span>query<span class="hl opt">):</span>
+            c <span class="hl opt">=</span> self<span class="hl opt">.</span>db<span class="hl opt">.</span><span class="hl kwd">cursor</span><span class="hl opt">()</span>
+            c<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span>query<span class="hl opt">)</span>
+            items <span class="hl opt">=</span> c<span class="hl opt">.</span><span class="hl kwd">fetchall</span><span class="hl opt">()</span>
+            ret <span class="hl opt">= {}</span>
+            <span class="hl kwa">for</span> name<span class="hl opt">,</span> count <span class="hl kwa">in</span> items<span class="hl opt">:</span>
+                ret<span class="hl opt">[</span>name<span class="hl opt">] =</span> count
+            
+            <span class="hl kwa">return</span> ret
+            
+
+        data <span class="hl opt">= {}</span>
+        <span class="hl slc"># total number of tickets, including automatic</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;all_tickets&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(*) as c from Tickets;&quot;</span><span class="hl opt">)</span>
+        <span class="hl slc"># total number of tickets with unique subject</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;all_tickets_unique&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(DISTINCT Subject) as c from Tickets;&quot;</span><span class="hl opt">)</span>
+
+        dates <span class="hl opt">= [</span><span class="hl str">&quot;Mon&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Tue&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Wed&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Thu&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Fri&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Sat&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Sun&quot;</span><span class="hl opt">]</span>
+        xtitles <span class="hl opt">= [</span>a <span class="hl kwa">for</span> a <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> <span class="hl num">24</span><span class="hl opt">)]</span>
+
+        dates_stats <span class="hl opt">= {}</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">] = {}</span>
+
+        <span class="hl kwa">for</span> item<span class="hl opt">,</span> query <span class="hl kwa">in</span> <span class="hl opt">[(</span><span class="hl str">&quot;all&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;select DATE_FORMAT(Created, '%%H') as timestamp, count(*) as c from Tickets where DATE_FORMAT(Created, '%%a')='%s' group by timestamp;&quot;</span><span class="hl opt">),</span> 
+                          <span class="hl opt">(</span><span class="hl str">&quot;manual&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;select DATE_FORMAT(Created, '%%H') as timestamp, count(*) as c from Tickets where Queue=1 and DATE_FORMAT(Created, '%%a')='%s' group by timestamp;&quot;</span><span class="hl opt">),</span> 
+                    <span class="hl opt">(</span><span class="hl str">&quot;all_resolved&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;select DATE_FORMAT(Resolved, '%%H') as timestamp, count(*) as c from Tickets where DATE_FORMAT(Resolved, '%%a')='%s' group by timestamp;&quot;</span><span class="hl opt">),</span>
+                 <span class="hl opt">(</span><span class="hl str">&quot;manual_resolved&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;select DATE_FORMAT(Resolved, '%%H') as timestamp, count(*) as c from Tickets where Queue=1 and DATE_FORMAT(Resolved, '%%a')='%s' group by timestamp;&quot;</span><span class="hl opt">)]:</span>
+            data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">] = {}</span>
+            data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;ytitles&quot;</span><span class="hl opt">] =</span> dates
+            data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;xtitles&quot;</span><span class="hl opt">] = []</span>
+
+            <span class="hl kwa">for</span> hour <span class="hl kwa">in</span> xtitles<span class="hl opt">:</span>
+                tmp3 <span class="hl opt">=</span> <span class="hl kwb">str</span><span class="hl opt">(</span>hour<span class="hl opt">).</span><span class="hl kwd">strip</span><span class="hl opt">()</span>
+                <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>tmp3<span class="hl opt">) ==</span> <span class="hl num">1</span><span class="hl opt">:</span>
+                    tmp3 <span class="hl opt">=</span> <span class="hl str">&quot;0&quot;</span><span class="hl opt">+</span>tmp3
+                data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;xtitles&quot;</span><span class="hl opt">].</span><span class="hl kwd">append</span><span class="hl opt">(</span>tmp3<span class="hl opt">)</span>
+            data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;date_stats&quot;</span><span class="hl opt">] = []</span>
+
+            <span class="hl kwa">for</span> day <span class="hl kwa">in</span> dates<span class="hl opt">:</span>
+                tmp <span class="hl opt">=</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span>query <span class="hl opt">%</span> day<span class="hl opt">)</span>
+                <span class="hl kwa">for</span> xtitle <span class="hl kwa">in</span> xtitles<span class="hl opt">:</span>
+                    tmp3 <span class="hl opt">=</span> <span class="hl kwb">str</span><span class="hl opt">(</span>xtitle<span class="hl opt">).</span><span class="hl kwd">strip</span><span class="hl opt">()</span>
+                    <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>tmp3<span class="hl opt">) ==</span> <span class="hl num">1</span><span class="hl opt">:</span>
+                        tmp3 <span class="hl opt">=</span> <span class="hl str">&quot;0&quot;</span><span class="hl opt">+</span>tmp3
+                    data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;date_stats&quot;</span><span class="hl opt">].</span><span class="hl kwd">append</span><span class="hl opt">(</span>tmp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>tmp3<span class="hl opt">,</span> <span class="hl kwa">None</span><span class="hl opt">))</span>
+            data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;date_stats&quot;</span><span class="hl opt">] =</span> data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;date_stats&quot;</span><span class="hl opt">][-</span><span class="hl num">3</span><span class="hl opt">:] +</span> data<span class="hl opt">[</span><span class="hl str">&quot;dots&quot;</span><span class="hl opt">][</span>item<span class="hl opt">][</span><span class="hl str">&quot;date_stats&quot;</span><span class="hl opt">][:-</span><span class="hl num">3</span><span class="hl opt">]</span>
+
+        <span class="hl slc"># number of unique subjects</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;unique_manual&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(distinct(Subject)) as c from Tickets where Queue=1;&quot;</span><span class="hl opt">)</span>
+        <span class="hl slc"># new tickets during last 7 days</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;unique_manual_7d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(DISTINCT Subject) as c from Tickets where Created &gt;= date_sub(current_date, INTERVAL 7 day) and Queue=1;&quot;</span><span class="hl opt">)</span>
+        <span class="hl slc"># new tickets during last 30 days</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;unique_manual_30d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(DISTINCT Subject) as c from Tickets where Created &gt;= date_sub(current_date, INTERVAL 30 day) and Queue=1;&quot;</span><span class="hl opt">)</span>
+        <span class="hl slc"># new tickets during last 365 days</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;unique_manual_365d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(DISTINCT Subject) as c from Tickets where Created &gt;= date_sub(current_date, INTERVAL 365 day) and Queue=1;&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl slc"># general tickets per day</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_day&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_day_7d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Created &gt;= date_sub(current_date, INTERVAL 7 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_day_30d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Created &gt;= date_sub(current_date, INTERVAL 30 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_day_365d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Created &gt;= date_sub(current_date, INTERVAL 365 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl slc"># general tickets per hour</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_hour&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_hour_7d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Created &gt;= date_sub(current_date, INTERVAL 7 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_hour_30d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Created &gt;= date_sub(current_date, INTERVAL 30 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;created_per_hour_365d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Created &gt;= date_sub(current_date, INTERVAL 365 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl slc"># general tickets per day</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_day&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_day_7d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved &gt;= date_sub(current_date, INTERVAL 7 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_day_30d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved &gt;= date_sub(current_date, INTERVAL 30 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_day_365d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved &gt;= date_sub(current_date, INTERVAL 365 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl slc"># general tickets per hour</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_hour&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_hour_7d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved &gt;= date_sub(current_date, INTERVAL 7 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_hour_30d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved &gt;= date_sub(current_date, INTERVAL 30 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;resolved_per_hour_365d&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved &gt;= date_sub(current_date, INTERVAL 365 day) group by timestamp;&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl slc"># general tickets per day</span>
+        dictlist <span class="hl opt">= [(</span><span class="hl str">&quot;created_futu&quot;</span><span class="hl opt">,</span> 
+		<span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Tickets.Created, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Created &gt;= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress like '%.%&#64;futurice.com' and Users.EmailAddress not in ('phaser&#64;futurice.com', 'mailman&#64;futurice.com', 'noreply&#64;futurice.com', 'zabbix&#64;futurice.com') group by timestamp;&quot;</span><span class="hl opt">)</span>
+         <span class="hl opt">), (</span><span class="hl str">&quot;created_other&quot;</span><span class="hl opt">,</span>
+ 		<span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Tickets.Created, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Created &gt;= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress not like '%&#64;%futurice.com' group by timestamp;&quot;</span><span class="hl opt">)</span>
+         <span class="hl opt">), (</span><span class="hl str">&quot;created_machine&quot;</span><span class="hl opt">,</span>
+ 		<span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Tickets.Created, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Created &gt;= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and (Users.EmailAddress like '%&#64;%.futurice.com' or Users.EmailAddress in ('zabbix&#64;futurice.com', 'mailman&#64;futurice.com', 'noreply&#64;futurice.com')) group by timestamp;&quot;</span><span class="hl opt">)</span>
+         <span class="hl opt">), (</span><span class="hl str">&quot;resolved_futu&quot;</span><span class="hl opt">,</span>
+ 		<span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Tickets.Resolved, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Resolved &gt;= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress like '%.%&#64;futurice.com' and Users.EmailAddress not in ('phaser&#64;futurice.com', 'mailman&#64;futurice.com', 'noreply&#64;futurice.com', 'zabbix&#64;futurice.com') group by timestamp;&quot;</span><span class="hl opt">)</span>
+         <span class="hl opt">), (</span><span class="hl str">&quot;resolved_other&quot;</span><span class="hl opt">,</span>
+ 		<span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Tickets.Resolved, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Resolved &gt;= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress not like '%&#64;%futurice.com' group by timestamp;&quot;</span><span class="hl opt">)</span>
+         <span class="hl opt">), (</span><span class="hl str">&quot;resolved_machine&quot;</span><span class="hl opt">,</span>
+ 		<span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select DATE_FORMAT(Tickets.Resolved, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Resolved &gt;= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and (Users.EmailAddress like '%&#64;%.futurice.com' or Users.EmailAddress in ('zabbix&#64;futurice.com', 'mailman&#64;futurice.com', 'noreply&#64;futurice.com')) group by timestamp;&quot;</span><span class="hl opt">)</span>
+        <span class="hl opt">)]</span>
+
+        final_workflow <span class="hl opt">= {</span><span class="hl str">&quot;max&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;buckets&quot;</span><span class="hl opt">: [],</span> <span class="hl str">&quot;authors&quot;</span><span class="hl opt">: {</span>
+						<span class="hl str">&quot;0&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;n&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;Created by employees&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;u&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">},</span>
+						<span class="hl str">&quot;1&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;n&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;Created by external&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;u&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">},</span>
+						<span class="hl str">&quot;2&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;n&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;Created by machine&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;u&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">},</span>
+						<span class="hl str">&quot;3&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;n&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;Employee ticket resolved&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;u&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">},</span>
+						<span class="hl str">&quot;4&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;n&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;External ticket resolved&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;u&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">},</span>
+						<span class="hl str">&quot;5&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;n&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;Machine ticket resolved&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;u&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">}</span>
+			<span class="hl opt">}}</span>
+        date_translations <span class="hl opt">= {}</span>
+        current_date <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>datetime<span class="hl opt">.</span>date<span class="hl opt">.</span><span class="hl kwd">today</span><span class="hl opt">().</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%j&quot;</span><span class="hl opt">))</span>
+        date_translations<span class="hl opt">[</span>current_date<span class="hl opt">] =</span> <span class="hl num">0</span>
+        count <span class="hl opt">=</span> <span class="hl num">0</span>
+	counttemp <span class="hl opt">=</span> <span class="hl num">0</span>
+        <span class="hl kwa">for</span> numbers <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl opt">(</span>current_date<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">, -</span><span class="hl num">1</span><span class="hl opt">):</span>
+             counttemp <span class="hl opt">+=</span> <span class="hl num">1</span>
+             <span class="hl kwa">if</span> counttemp <span class="hl opt">%</span> <span class="hl num">7</span> <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">:</span>
+                 count <span class="hl opt">=</span> count <span class="hl opt">-</span> <span class="hl num">1</span>
+             date_translations<span class="hl opt">[</span>numbers<span class="hl opt">] =</span> count
+        <span class="hl kwa">for</span> numbers <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl opt">(</span><span class="hl num">366</span><span class="hl opt">,</span> current_date<span class="hl opt">, -</span><span class="hl num">1</span><span class="hl opt">):</span>
+             counttemp <span class="hl opt">+=</span> <span class="hl num">1</span>
+             <span class="hl kwa">if</span> counttemp <span class="hl opt">%</span> <span class="hl num">7</span> <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">:</span>
+                 count <span class="hl opt">=</span> count <span class="hl opt">-</span> <span class="hl num">1</span>
+             date_translations<span class="hl opt">[</span>numbers<span class="hl opt">] =</span> count
+
+        list_temp <span class="hl opt">= {}</span>
+        value_counters <span class="hl opt">= [</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">]</span>
+        name_value_table <span class="hl opt">= {</span><span class="hl str">&quot;created_futu&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;created_other&quot;</span><span class="hl opt">:</span> <span class="hl num">1</span><span class="hl opt">,</span> <span class="hl str">&quot;created_machine&quot;</span><span class="hl opt">:</span> <span class="hl num">2</span><span class="hl opt">,</span> <span class="hl str">&quot;resolved_futu&quot;</span><span class="hl opt">:</span> <span class="hl num">3</span><span class="hl opt">,</span> <span class="hl str">&quot;resolved_other&quot;</span><span class="hl opt">:</span> <span class="hl num">4</span><span class="hl opt">,</span> <span class="hl str">&quot;resolved_machine&quot;</span><span class="hl opt">:</span> <span class="hl num">5</span><span class="hl opt">}</span>
+        <span class="hl kwa">for</span> <span class="hl opt">(</span>name<span class="hl opt">,</span> items<span class="hl opt">)</span> <span class="hl kwa">in</span> dictlist<span class="hl opt">:</span>
+		<span class="hl kwa">for</span> item <span class="hl kwa">in</span> items<span class="hl opt">:</span>
+			itemnum <span class="hl opt">=</span> date_translations<span class="hl opt">[</span><span class="hl kwb">int</span><span class="hl opt">(</span>item<span class="hl opt">)]</span>
+			<span class="hl kwa">if not</span> list_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>itemnum<span class="hl opt">):</span>
+				list_temp<span class="hl opt">[</span>itemnum<span class="hl opt">] = {}</span>
+			<span class="hl kwa">if not</span> list_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>itemnum<span class="hl opt">).</span><span class="hl kwd">get</span><span class="hl opt">(</span>name<span class="hl opt">):</span>
+				list_temp<span class="hl opt">[</span>itemnum<span class="hl opt">][</span>name<span class="hl opt">] =</span> <span class="hl num">0</span>
+			list_temp<span class="hl opt">[</span>itemnum<span class="hl opt">][</span>name<span class="hl opt">] +=</span> items<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>item<span class="hl opt">)</span>
+			value_counters<span class="hl opt">[</span>name_value_table<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>name<span class="hl opt">)] +=</span> items<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>item<span class="hl opt">)</span>
+        <span class="hl kwa">for</span> key <span class="hl kwa">in</span> <span class="hl kwb">sorted</span><span class="hl opt">(</span>list_temp<span class="hl opt">.</span><span class="hl kwd">iterkeys</span><span class="hl opt">()):</span>
+             total <span class="hl opt">=</span> <span class="hl num">0</span>
+             values_temp <span class="hl opt">=</span> list_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>key<span class="hl opt">)</span>
+             values <span class="hl opt">= []</span>
+             <span class="hl kwa">for</span> item <span class="hl kwa">in</span> values_temp<span class="hl opt">:</span>
+                 <span class="hl kwa">if</span> values_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>item<span class="hl opt">) &gt;</span> final_workflow<span class="hl opt">[</span><span class="hl str">&quot;max&quot;</span><span class="hl opt">]:</span>
+                     final_workflow<span class="hl opt">[</span><span class="hl str">&quot;max&quot;</span><span class="hl opt">] =</span> values_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>item<span class="hl opt">)</span>
+                 values<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">([</span>name_value_table<span class="hl opt">[</span>item<span class="hl opt">],</span> values_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>item<span class="hl opt">)])</span>
+                 total <span class="hl opt">+=</span> values_temp<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>item<span class="hl opt">)</span>
+             <span class="hl slc"># sort values from highest to lowest</span>
+             values<span class="hl opt">.</span><span class="hl kwd">sort</span><span class="hl opt">(</span>key<span class="hl opt">=</span><span class="hl kwa">lambda</span> x<span class="hl opt">:</span> x<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">])</span>
+             final_workflow<span class="hl opt">[</span><span class="hl str">&quot;buckets&quot;</span><span class="hl opt">].</span><span class="hl kwd">append</span><span class="hl opt">({</span><span class="hl str">&quot;d&quot;</span><span class="hl opt">:</span> <span class="hl kwb">int</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">() +</span> <span class="hl num">7</span> <span class="hl opt">*</span> <span class="hl num">86400</span> <span class="hl opt">* (</span><span class="hl num">1</span> <span class="hl opt">+</span> key<span class="hl opt">)),</span> <span class="hl str">&quot;i&quot;</span><span class="hl opt">:</span> values<span class="hl opt">})</span>
+
+        c <span class="hl opt">=</span> <span class="hl num">0</span>
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> value_counters<span class="hl opt">:</span>
+           final_workflow<span class="hl opt">[</span><span class="hl str">&quot;authors&quot;</span><span class="hl opt">][</span><span class="hl kwb">str</span><span class="hl opt">(</span>c<span class="hl opt">)][</span><span class="hl str">&quot;c&quot;</span><span class="hl opt">] =</span> item
+           c <span class="hl opt">+=</span> <span class="hl num">1</span>
+
+        <span class="hl slc"># distribution of subject occurance</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;subject_occurance&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_two_all</span><span class="hl opt">(</span><span class="hl str">&quot;select c as occurance, count(*) as count from (select count(*) as c from Tickets where Queue=1 group by Subject) as Subjects group by c;&quot;</span><span class="hl opt">)</span>
+
+        data<span class="hl opt">[</span><span class="hl str">&quot;workflow&quot;</span><span class="hl opt">] =</span> final_workflow
+
+        data<span class="hl opt">[</span><span class="hl str">&quot;open_tickets&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(*) as c from Tickets where (status='open' and (Queue=1 and Type!='reminder'));&quot;</span><span class="hl opt">)</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;new_tickets&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">get_one</span><span class="hl opt">(</span><span class="hl str">&quot;select count(*) as c from Tickets where (status='new' and (Queue=1 and Type!='reminder'));&quot;</span><span class="hl opt">)</span>
+
+        c <span class="hl opt">=</span> self<span class="hl opt">.</span>db<span class="hl opt">.</span><span class="hl kwd">cursor</span><span class="hl opt">()</span>
+        c<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl str">&quot;select count(*) as c from Users where EmailAddress like '%.%&#64;futurice.com';&quot;</span><span class="hl opt">)</span>
+        <span class="hl opt">(</span>futurice_users<span class="hl opt">, ) =</span> c<span class="hl opt">.</span><span class="hl kwd">fetchone</span><span class="hl opt">()</span>
+        c<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl str">&quot;select count(*) as c from Users where EmailAddress not like '%.%&#64;futurice.com';&quot;</span><span class="hl opt">)</span>
+        <span class="hl opt">(</span>other_users<span class="hl opt">, ) =</span> c<span class="hl opt">.</span><span class="hl kwd">fetchone</span><span class="hl opt">()</span>
+        data<span class="hl opt">[</span><span class="hl str">&quot;other_users&quot;</span><span class="hl opt">] =</span> other_users
+        data<span class="hl opt">[</span><span class="hl str">&quot;futurice_users&quot;</span><span class="hl opt">] =</span> futurice_users
+        c<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">()</span>
+        self<span class="hl opt">.</span><span class="hl kwd">send_data</span><span class="hl opt">(</span><span class="hl str">&quot;tickets&quot;</span><span class="hl opt">,</span> data<span class="hl opt">)</span>
+
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>
+    a <span class="hl opt">=</span> <span class="hl kwd">RTStats</span><span class="hl opt">()</span>
+    a<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">()</span>
+
+<span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
+    <span class="hl kwd">main</span><span class="hl opt">()</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.8, http://www.andre-simon.de/-->
