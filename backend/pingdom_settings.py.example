@@ -1,0 +1,14 @@
+WEBSITES=[113366,113370,511953,511994,512763]
+
+VIRTUALIZATION_PLATFORMS=[512800,512801,512802,512803,512804,512807,512808,519430]
+
+NETWORKS=[511934,511935,511936,511937]
+
+UPTIME_CLASSES={"websites": {"id": WEBSITES, "down": 0, "up": 0},
+  "virtualization_platforms": {"id": VIRTUALIZATION_PLATFORMS, "down": 0, "up": 0},
+  "networks": {"id": NETWORKS, "down": 0, "up": 0}}
+
+PINGDOM_USERNAME="your_pingdom_username@example.com"
+PINGDOM_PASSWORD="your_pingdom_password"
+# Register your application here: https://pp.pingdom.com/index.php/member/api
+PINGDOM_APPKEY="your_pingdom_app_key"
