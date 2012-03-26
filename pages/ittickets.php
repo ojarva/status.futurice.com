@@ -60,6 +60,11 @@ include("tickets.data.json");
 ticketdata = ticketdata.data;
 
 $(document).ready(function() {
+ $("#total-tickets-popover").data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
+ $("#total-tickets-popover").data("original-title", "What?")
+ $("#total-tickets-popover").data("placement", "top");
+ $("#total-tickets-popover").attr("rel", "popover");
+ $("#total-tickets-popover").popover();
  for (key in ticketdata) {
   if ($("#"+key) != null) {
     $("#"+key).html(ticketdata[key])
@@ -137,7 +142,7 @@ Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emai
 		<h2><small>Open tickets</small></h2>
 		<h2 id="open_tickets"></h2>
 	</div>
-	<div class="span3" rel="popover" data-original-title="What?" data-content="This is the total number of tickets since March 2010, including automatic messages" data-placement="top">
+	<div class="span3" id="total-tickets-popover">
 		<h2><small>Total number of tickets</small></h2>
 		<h2 id="all_tickets"></h2>
 	</div>
