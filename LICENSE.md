@@ -1,4 +1,5 @@
 Copyright (c) 2012, Futurice Ltd, Olli Jarva <olli@jarva.fi>
+
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
