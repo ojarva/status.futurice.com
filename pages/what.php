@@ -3,17 +3,17 @@
 <h1>What and why?</h1>
 
 <p>Many things improve only with small steps. And many things require great amount of work, money and goodwill. Also, many small things bring in greater advantages. If this site inspires
-even few others to share, it's already good start.</p>
+even few others to share, it's already a good start.</p>
 </div>
 
 <div class="row">
 	<div class="span4">
 		<h3>Transparency</h3>
-		<p>One of central themes at Futurice is transparency. We can't build the best workplace in the Finland by not being open and honest. It really counts.</p>
+		<p>One of the central themes at Futurice is transparency. We can't build the best workplace in the Finland by not being open and honest. It really counts.</p>
 	</div>
 	<div class="span4">
 		<h3>Relevant information</h3>
-		<p>Information shared here is relevant for employees and clients. For others, it shows way to be a little bit more open.</p>
+		<p>Information shared here is relevant for employees and clients. For others, it might be interesting. And it shows a way to be a little bit more open.</p>
 	</div>
 	<div class="span4">
 		<h3>Do new things</h3>
