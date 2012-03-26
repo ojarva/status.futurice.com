@@ -11,9 +11,10 @@
 <tr><td><span class="label label-warning">Medium</span> <span class="label label-">tech</span>   </td><td>  <s>Services tooltips (amount of uptime)</s></td></tr>
 <tr><td><span class="label label-warning">Medium</span> <span class="label label-">design</span> <span class="label label-">tech</span> </td><td> Services details page (for example <a href="http://status.futurice.com/511994">this from pingdom</a>)</td></tr>
 <tr><td><span class="label label-info">Minor</span> <span class="label label-">write</span> </td><td> <s>Better how&why page</s></td></tr>
-<tr><td><span class="label label-info">Minor</span> <span class="label label-">write</span> </td><td> Services table legend</td></tr>
+<tr><td><span class="label label-info">Minor</span> <span class="label label-">write</span> </td><td> <s>Services table legend</s></td></tr>
 <tr><td><span class="label label-info">Minor</span> <span class="label label-">write</span> </td><td> Grammar/spelling fixes</td></tr>
-<tr><td><span class="label label-info">Minor</span> <span class="label label-">tech</span> </td><td> Top bar "active" highlight</td></tr>
+<tr><td><span class="label label-info">Minor</span> <span class="label label-">design</span> </td><td> Better icons for services page</td></tr>
+<tr><td><span class="label label-info">Minor</span> <span class="label label-">tech</span> </td><td> <s>Top bar "active" highlight</s></td></tr>
 <tr><td><span class="label label-info">Minor</span> <span class="label label-">design</span> </td><td> post to yammer (<a href="http://blog.yammer.com/blog/2009/08/send-to-yammer-directly-from-google-reader.html">linking howto</a>)</td></tr>
 <tr><td><span class="label label-info">Minor</span> <span class="label label-">write</span> </td><td> Get rid of this page</td></tr>
 </table>
