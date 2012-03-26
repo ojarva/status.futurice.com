@@ -6,6 +6,12 @@ if (isset($_GET["page"])) {
   $pagename = $temp;
  }
 }
+$pages = [["main", "Home"],
+	["services", "Services"],
+	["netmap", "Network map"],
+	["ittickets", "IT tickets"],
+	["what", "What?"],
+	["todo", "TODO"]];
 ?>
 
 <!DOCTYPE html>
@@ -37,11 +43,11 @@ if (isset($_GET["page"])) {
           <a class="brand" href="?page=main">status</a>
           <div class="nav-collapse">
             <ul class="nav">
-              <li class="active"><a href="?page=main">Home</a></li>
-              <li><a href="?page=services">Services</a></li>
-              <li><a href="?page=netmap">Network map</a></li>
-              <li><a href="?page=ittickets">IT tickets</a></li>
-              <li><a href="?page=todo">todo</a></li>
+<?
+ foreach ($pages as $k => $v) {
+  ?><li<?if ($v[0] == $pagename) {?> class="active"<?}?>><a href="?page=<?=$v[0];?>"><?=$v[1];?></a></li><?
+ }
+?>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
