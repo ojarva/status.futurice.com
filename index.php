@@ -17,47 +17,11 @@ if (isset($_GET["page"])) {
     <meta name="description" content="Futurice IT status">
     <meta name="author" content="Olli Jarva">
 
-    <link href="css/combined.css" rel="stylesheet">
-    <style type="text/css">
-      body {
-        padding-top: 60px;
-        padding-bottom: 40px;
-      }
-    </style>
-
+    <link href="css/combined.min.css" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-<?/*
-    <script src="js/jquery.js"></script>
-    <script src="js/bootstrap-transition.js"></script>
-    <script src="js/bootstrap-alert.js"></script>
-    <script src="js/bootstrap-modal.js"></script>
-    <script src="js/bootstrap-dropdown.js"></script>
-    <script src="js/bootstrap-scrollspy.js"></script>
-    <script src="js/bootstrap-tab.js"></script>
-    <script src="js/bootstrap-tooltip.js"></script>
-    <script src="js/bootstrap-popover.js"></script>
-    <script src="js/bootstrap-button.js"></script>
-    <script src="js/bootstrap-collapse.js"></script>
-    <script src="js/bootstrap-carousel.js"></script>
-<!--    <script src="js/bootstrap-typeahead.js"></script> -->
-    <script src="js/underscore.js"></script>
-    <script src="js/raphael.js"></script>
-    <script src="js/raphael-sparkline.js"></script>
-*/?>
     <script src="js/combined.min.js"></script>
-<script type="text/javascript">
-
-$(document).ready(function() {
-$("[rel=popover]")
-      .popover()
-/*      .click(function(e) {
-        e.preventDefault()
-      })*/
-});
-</script>
-
   </head>
 
   <body>
