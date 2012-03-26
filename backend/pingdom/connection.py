@@ -138,7 +138,6 @@ class PingdomConnection(object):
         limit = int(kwargs.get("limit", 25000))
         offset = int(kwargs.get("offset", 0))
         response = PingdomRequest(self, 'checks?limit=%s&offset=%s' % (limit, offset)).fetch()
-        print response
         result = response.content
         pingdom_checks = []
         if check_names:
