@@ -6,14 +6,6 @@ import os
 import sys
 import pickle
 
-# Fill in your checkid's
-WEBSITES=[]
-VIRTUALIZATION_PLATFORMS=[]
-NETWORKS=[]
-UPTIME_CLASSES={"websites": {"id": WEBSITES, "down": 0, "up": 0}, 
-  "virtualization_platforms": {"id": VIRTUALIZATION_PLATFORMS, "down": 0, "up": 0},
-  "networks": {"id": NETWORKS, "down": 0, "up": 0}}
-
 from pingdom_settings import *
 
 class Pingdomrun:
