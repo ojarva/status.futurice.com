@@ -58,9 +58,9 @@ class RTStats:
 
         data = {}
         # total number of tickets, including automatic
-        data["all_tickets"] = get_one("select count(*) as c from Tickets;")
+        data["all_tickets"] = get_one("SELECT COUNT(*) AS c FROM Tickets;")
         # total number of tickets with unique subject
-        data["all_tickets_unique"] = get_one("select count(DISTINCT Subject) as c from Tickets;")
+        data["all_tickets_unique"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets;")
 
         dates = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         xtitles = [a for a in range(0, 24)]
@@ -68,10 +68,10 @@ class RTStats:
         dates_stats = {}
         data["dots"] = {}
 
-        for item, query in [("all", "select DATE_FORMAT(Created, '%%H') as timestamp, count(*) as c from Tickets where DATE_FORMAT(Created, '%%a')='%s' group by timestamp;"), 
-                          ("manual", "select DATE_FORMAT(Created, '%%H') as timestamp, count(*) as c from Tickets where Queue=1 and DATE_FORMAT(Created, '%%a')='%s' group by timestamp;"), 
-                    ("all_resolved", "select DATE_FORMAT(Resolved, '%%H') as timestamp, count(*) as c from Tickets where DATE_FORMAT(Resolved, '%%a')='%s' group by timestamp;"),
-                 ("manual_resolved", "select DATE_FORMAT(Resolved, '%%H') as timestamp, count(*) as c from Tickets where Queue=1 and DATE_FORMAT(Resolved, '%%a')='%s' group by timestamp;")]:
+        for item, query in [("all", "SELECT DATE_FORMAT(Created, '%%H') AS timestamp, COUNT(*) AS c FROM Tickets WHERE DATE_FORMAT(Created, '%%a')='%s' GROUP BY timestamp;"), 
+                          ("manual", "SELECT DATE_FORMAT(Created, '%%H') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 AND DATE_FORMAT(Created, '%%a')='%s' GROUP BY timestamp;"), 
+                    ("all_resolved", "SELECT DATE_FORMAT(Resolved, '%%H') AS timestamp, COUNT(*) AS c FROM Tickets WHERE DATE_FORMAT(Resolved, '%%a')='%s' GROUP BY timestamp;"),
+                 ("manual_resolved", "SELECT DATE_FORMAT(Resolved, '%%H') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 AND DATE_FORMAT(Resolved, '%%a')='%s' GROUP BY timestamp;")]:
             data["dots"][item] = {}
             data["dots"][item]["ytitles"] = dates
             data["dots"][item]["xtitles"] = []
@@ -93,51 +93,36 @@ class RTStats:
             data["dots"][item]["date_stats"] = data["dots"][item]["date_stats"][-3:] + data["dots"][item]["date_stats"][:-3]
 
         # number of unique subjects
-        data["unique_manual"] = get_one("select count(distinct(Subject)) as c from Tickets where Queue=1;")
+        data["unique_manual"] = get_one("SELECT COUNT(distinct(Subject)) AS c FROM Tickets WHERE Queue=1;")
         # new tickets during last 7 days
-        data["unique_manual_7d"] = get_one("select count(DISTINCT Subject) as c from Tickets where Created >= date_sub(current_date, INTERVAL 7 day) and Queue=1;")
+        data["unique_manual_7d"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL 7 day) AND Queue=1;")
         # new tickets during last 30 days
-        data["unique_manual_30d"] = get_one("select count(DISTINCT Subject) as c from Tickets where Created >= date_sub(current_date, INTERVAL 30 day) and Queue=1;")
+        data["unique_manual_30d"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL 30 day) AND Queue=1;")
         # new tickets during last 365 days
-        data["unique_manual_365d"] = get_one("select count(DISTINCT Subject) as c from Tickets where Created >= date_sub(current_date, INTERVAL 365 day) and Queue=1;")
+        data["unique_manual_365d"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL 365 day) AND Queue=1;")
 
-        # general tickets per day
-        data["created_per_day"] = get_two_all("select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;")
-        data["created_per_day_7d"] = get_two_all("select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Created >= date_sub(current_date, INTERVAL 7 day) group by timestamp;")
-        data["created_per_day_30d"] = get_two_all("select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Created >= date_sub(current_date, INTERVAL 30 day) group by timestamp;")
-        data["created_per_day_365d"] = get_two_all("select DATE_FORMAT(Created, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Created >= date_sub(current_date, INTERVAL 365 day) group by timestamp;")
-
-        # general tickets per hour
-        data["created_per_hour"] = get_two_all("select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;")
-        data["created_per_hour_7d"] = get_two_all("select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Created >= date_sub(current_date, INTERVAL 7 day) group by timestamp;")
-        data["created_per_hour_30d"] = get_two_all("select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Created >= date_sub(current_date, INTERVAL 30 day) group by timestamp;")
-        data["created_per_hour_365d"] = get_two_all("select DATE_FORMAT(Created, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Created >= date_sub(current_date, INTERVAL 365 day) group by timestamp;")
-
-        # general tickets per day
-        data["resolved_per_day"] = get_two_all("select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;")
-        data["resolved_per_day_7d"] = get_two_all("select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved >= date_sub(current_date, INTERVAL 7 day) group by timestamp;")
-        data["resolved_per_day_30d"] = get_two_all("select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved >= date_sub(current_date, INTERVAL 30 day) group by timestamp;")
-        data["resolved_per_day_365d"] = get_two_all("select DATE_FORMAT(Resolved, '%a') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved >= date_sub(current_date, INTERVAL 365 day) group by timestamp;")
-
-        # general tickets per hour
-        data["resolved_per_hour"] = get_two_all("select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 group by timestamp;")
-        data["resolved_per_hour_7d"] = get_two_all("select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved >= date_sub(current_date, INTERVAL 7 day) group by timestamp;")
-        data["resolved_per_hour_30d"] = get_two_all("select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved >= date_sub(current_date, INTERVAL 30 day) group by timestamp;")
-        data["resolved_per_hour_365d"] = get_two_all("select DATE_FORMAT(Resolved, '%H') as timestamp, count(*) as c from Tickets where Queue=1 and Resolved >= date_sub(current_date, INTERVAL 365 day) group by timestamp;")
+        dayranges = ["7", "30", "365"]
+        datenames = ["Created", "Resolved"]
+        variable_name = [("hour", "%H"), ("day", "%a")]
+        for datename in datenames:
+            for (vbn, vbn_f) in variable_name:
+                data["%s_per_%s" % (datename.lower(), vbn)] = get_two_all("SELECT DATE_FORMAT(%s, '%%s') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 GROUP BY timestamp;" % (datename, vbn_f)
+                for dayrange in dayranges:
+                    data["%s_per_%s_%sd" % (datename.lower(), vbn, dayrange)] = get_two_all("SELECT DATE_FORMAT(%s, '%%s') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 AND %s >= DATE_SUB(current_date, INTERVAL %s day) GROUP BY timestamp;" % (datename, vbn_f, datename, dayrange))
 
         # general tickets per day
         dictlist = [("created_futu", 
-		get_two_all("select DATE_FORMAT(Tickets.Created, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Created >= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress like '%.%@futurice.com' and Users.EmailAddress not in ('phaser@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com', 'zabbix@futurice.com') group by timestamp;")
+		get_two_all("SELECT DATE_FORMAT(Tickets.Created, '%j') AS timestamp, COUNT(*) AS c FROM Tickets, Users WHERE Tickets.Created >= DATE_SUB(current_date, INTERVAL 120 day) AND Tickets.Creator=Users.id AND Users.EmailAddress like '%.%@futurice.com' AND Users.EmailAddress not in ('phaser@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com', 'zabbix@futurice.com') GROUP BY timestamp;")
          ), ("created_other",
- 		get_two_all("select DATE_FORMAT(Tickets.Created, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Created >= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress not like '%@%futurice.com' group by timestamp;")
+ 		get_two_all("SELECT DATE_FORMAT(Tickets.Created, '%j') AS timestamp, COUNT(*) AS c FROM Tickets, Users WHERE Tickets.Created >= DATE_SUB(current_date, INTERVAL 120 day) AND Tickets.Creator=Users.id AND Users.EmailAddress not like '%@%futurice.com' GROUP BY timestamp;")
          ), ("created_machine",
- 		get_two_all("select DATE_FORMAT(Tickets.Created, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Created >= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and (Users.EmailAddress like '%@%.futurice.com' or Users.EmailAddress in ('zabbix@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com')) group by timestamp;")
+ 		get_two_all("SELECT DATE_FORMAT(Tickets.Created, '%j') AS timestamp, COUNT(*) AS c FROM Tickets, Users WHERE Tickets.Created >= DATE_SUB(current_date, INTERVAL 120 day) AND Tickets.Creator=Users.id AND (Users.EmailAddress like '%@%.futurice.com' or Users.EmailAddress in ('zabbix@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com')) GROUP BY timestamp;")
          ), ("resolved_futu",
- 		get_two_all("select DATE_FORMAT(Tickets.Resolved, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Resolved >= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress like '%.%@futurice.com' and Users.EmailAddress not in ('phaser@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com', 'zabbix@futurice.com') group by timestamp;")
+ 		get_two_all("SELECT DATE_FORMAT(Tickets.Resolved, '%j') AS timestamp, COUNT(*) AS c FROM Tickets, Users WHERE Tickets.Resolved >= DATE_SUB(current_date, INTERVAL 120 day) AND Tickets.Creator=Users.id AND Users.EmailAddress like '%.%@futurice.com' AND Users.EmailAddress not in ('phaser@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com', 'zabbix@futurice.com') GROUP BY timestamp;")
          ), ("resolved_other",
- 		get_two_all("select DATE_FORMAT(Tickets.Resolved, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Resolved >= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and Users.EmailAddress not like '%@%futurice.com' group by timestamp;")
+ 		get_two_all("SELECT DATE_FORMAT(Tickets.Resolved, '%j') AS timestamp, COUNT(*) AS c FROM Tickets, Users WHERE Tickets.Resolved >= DATE_SUB(current_date, INTERVAL 120 day) AND Tickets.Creator=Users.id AND Users.EmailAddress not like '%@%futurice.com' GROUP BY timestamp;")
          ), ("resolved_machine",
- 		get_two_all("select DATE_FORMAT(Tickets.Resolved, '%j') as timestamp, count(*) as c from Tickets, Users where Tickets.Resolved >= date_sub(current_date, INTERVAL 120 day) and Tickets.Creator=Users.id and (Users.EmailAddress like '%@%.futurice.com' or Users.EmailAddress in ('zabbix@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com')) group by timestamp;")
+ 		get_two_all("SELECT DATE_FORMAT(Tickets.Resolved, '%j') AS timestamp, COUNT(*) AS c FROM Tickets, Users WHERE Tickets.Resolved >= DATE_SUB(current_date, INTERVAL 120 day) AND Tickets.Creator=Users.id AND (Users.EmailAddress like '%@%.futurice.com' or Users.EmailAddress in ('zabbix@futurice.com', 'mailman@futurice.com', 'noreply@futurice.com')) GROUP BY timestamp;")
         )]
 
         final_workflow = {"max": 0, "buckets": [], "authors": {
@@ -195,17 +180,17 @@ class RTStats:
            c += 1
 
         # distribution of subject occurance
-        data["subject_occurance"] = get_two_all("select c as occurance, count(*) as count from (select count(*) as c from Tickets where Queue=1 group by Subject) as Subjects group by c;")
+        data["subject_occurance"] = get_two_all("SELECT c AS occurance, COUNT(*) AS count FROM (select COUNT(*) AS c FROM Tickets WHERE Queue=1 GROUP BY Subject) AS Subjects GROUP BY c;")
 
         data["workflow"] = final_workflow
 
-        data["open_tickets"] = get_one("select count(*) as c from Tickets where (status='open' and (Queue=1 and Type!='reminder'));")
-        data["new_tickets"] = get_one("select count(*) as c from Tickets where (status='new' and (Queue=1 and Type!='reminder'));")
+        data["open_tickets"] = get_one("SELECT COUNT(*) AS c FROM Tickets WHERE (status='open' AND (Queue=1 AND Type!='reminder'));")
+        data["new_tickets"] = get_one("SELECT COUNT(*) AS c FROM Tickets WHERE (status='new' AND (Queue=1 AND Type!='reminder'));")
 
         c = self.db.cursor()
-        c.execute("select count(*) as c from Users where EmailAddress like '%.%@futurice.com';")
+        c.execute("SELECT COUNT(*) AS c FROM Users WHERE EmailAddress like '%.%@futurice.com';")
         (futurice_users, ) = c.fetchone()
-        c.execute("select count(*) as c from Users where EmailAddress not like '%.%@futurice.com';")
+        c.execute("SELECT COUNT(*) AS c FROM Users WHERE EmailAddress not like '%.%@futurice.com';")
         (other_users, ) = c.fetchone()
         data["other_users"] = other_users
         data["futurice_users"] = futurice_users
