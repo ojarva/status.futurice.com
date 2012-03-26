@@ -91,4 +91,11 @@ use even in smaller organizations. Using ticket tracking system doesn't necessar
 			<li><a href="http://oss.oetiker.ch/mrtg/">MRTG</a></li>
 		</ul>
 	</div>
+	<div class="span4">
+		<h3>Source code</h3>
+
+		<p>There's no need to keep <a href="https://github.com/ojarva/status.futurice.com">source code</a> of this service secret. You need your own backend services and credentials, though. Many parts are quick 
+first versions, and there's always better way to do it. Feel free to fork, make improvements and create pull request. We're more than happy to merge improvements and cleanups.</p>
+
+	</div>
 </div>
