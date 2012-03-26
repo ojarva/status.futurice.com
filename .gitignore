@@ -1,0 +1,4 @@
+*.json
+backend/cache/*
+*settings.py
+*.pyc

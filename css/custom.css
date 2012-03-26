@@ -1,0 +1,36 @@
+.dt .status {
+ display: inline-block;
+ width: 24px;
+ height: 24px;
+}
+
+span.icon {
+ display: inline-block;
+ text-indent: -999em;
+ font-size: 0;
+ width: 24px;
+ height: 24px;
+}
+
+span.icon.green {
+ background-image: url(../img/green.png);
+}
+
+span.icon.yellow {
+ background-image: url(../img/yellow.png);
+}
+
+span.icon.grey {
+ background-image: url(../img/unknown.png);
+}
+
+.dt .status.up {
+ background-image: url(../img/up.png);
+}
+.dt .status.paused {
+ background-image: url(../img/paused.png);
+}
+
+.dt .status.down {
+ background-image: url(../img/down.png);
+}
