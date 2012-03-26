@@ -11003,3 +11003,7 @@ Raphael.fn.pieChart = function (cx, cy, r, values, labels, stroke) {
   
     };
 })( jQuery );
+$(document).ready(function() {
+$("[rel=popover]")
+      .popover()
+});
