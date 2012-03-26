@@ -94,12 +94,8 @@ class RTStats:
 
         # number of unique subjects
         data["unique_manual"] = get_one("SELECT COUNT(distinct(Subject)) AS c FROM Tickets WHERE Queue=1;")
-        # new tickets during last 7 days
-        data["unique_manual_7d"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL 7 day) AND Queue=1;")
-        # new tickets during last 30 days
-        data["unique_manual_30d"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL 30 day) AND Queue=1;")
-        # new tickets during last 365 days
-        data["unique_manual_365d"] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL 365 day) AND Queue=1;")
+        for daterange in ["7", "30", "365"]:
+            data["unique_manual_%sd" % daterange] = get_one("SELECT COUNT(DISTINCT Subject) AS c FROM Tickets WHERE Created >= DATE_SUB(current_date, INTERVAL %s day) AND Queue=1;" % daterange)
 
         dayranges = ["7", "30", "365"]
         datenames = ["Created", "Resolved"]
