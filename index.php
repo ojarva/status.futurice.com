@@ -1,7 +1,7 @@
 <?
 $pagename = "main";
 if (isset($_GET["page"])) {
- $temp = $_GET["page"];
+ $temp = basename($_GET["page"]);
  if (file_exists("pages/$temp.php")) {
   $pagename = $temp;
  }
