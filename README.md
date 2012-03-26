@@ -15,12 +15,12 @@ Some parts are licensed with GPL, for example [icon set by Alexandra Wolska](htt
 How to install
 --------------
 
+* Modify *pages/what.php* to match with your ideologies and technologies used.
 * Start using Pingdom
 * Install and configure RT (if you want to use "IT tickets" page)
 * Install python and php. Configure apache2.
-* Move backend/pingdom_settings.py.example to backend/pingdom_settings.py and configure relevant variables.
-* Move backend/rt_settings.py.example to backend/rt_settings.py and configure relevant variables
-* Add backend/fetch_pingdom.py to crontab
-* Add backend/rt_settings.py to crontab (preferrably on separate server running RT)
-* Modify pages/what.php to match with your ideologies and technologies used.
+* Move *backend/pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
+* Move *backend/rt_settings.py.example* to *backend/rt_settings.py* and configure relevant variables
+* Add *backend/fetch_pingdom.py* to crontab
+* Add *backend/rt_settings.py* to crontab (preferrably on separate server running RT)
 * Configure [network weathermap](http://www.network-weathermap.com/)
