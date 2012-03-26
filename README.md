@@ -18,7 +18,7 @@ How to install
 * Start using Pingdom
 * Install and configure RT (if you want to use "IT tickets" page)
 * Install python and php. Configure apache2.
-* Add backend/pingdom_settings.py and configure relevant variables (*PINGDOM_USERNAME*, *PINGDOM_PASSWORD*, *PINGDOM_APPKEY*)
+* Move backend/pingdom_settings.py.example to backend/pingdom_settings.py and configure relevant variables.
 * Add backend/fetch_pingdom.py to crontab
 * Modify pages/what.php to match with your ideologies and technologies used.
 * Configure [network weathermap](http://www.network-weathermap.com/)
