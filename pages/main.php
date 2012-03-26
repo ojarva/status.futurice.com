@@ -2,7 +2,7 @@
       <div class="hero-unit">
         <h1>Status information from Futurice</h1>
         <p>This site shows some information from <a href="http://www.futurice.com/">Futurice</a> IT services. We try to promote transparency in everything we do, and publishing our server and network status is part of that.</p>
-        <p><a class="btn btn-primary btn-large">Learn more &raquo;</a></p>
+        <p><a class="btn btn-primary btn-large" href="?page=what">Learn more &raquo;</a></p>
       </div>
 
 <div class="row">
