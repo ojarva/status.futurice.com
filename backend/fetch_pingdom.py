@@ -24,7 +24,6 @@ class Pingdomrun:
     def get_cache(self, what):
         if os.path.exists("cache/%s" % what):
             return pickle.loads(open("cache/%s" % what).read())
-        print "Miss: %s" % what
         return False
 
     def set_cache(self, what, data):
@@ -149,9 +148,6 @@ class Pingdomrun:
         data["overall"] = str(round(100*(float(uptime_total) - float(downtime_total)) / float(uptime_total), 3))+"%"
         data["timestamp"] = {"unix": time.time(), "human": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         data["outages_per_day"] = outages_per_day
-        print data
-        print cdata
-
         open("../services.json", "w").write(json.dumps({"overall": data, "per_service": cdata}))
 
 def main():
