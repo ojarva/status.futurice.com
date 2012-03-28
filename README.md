@@ -12,6 +12,18 @@ Want to use this?
 Feel free to! All code provided by us is licensed with BSD license. See LICENSE.md for more information.
 Some parts are licensed with GPL, for example [icon set by Alexandra Wolska](http://handdrawing.olawolska.com/).
 
+
+Our setup
+---------
+
+Our public status information server runs in Amazon EC2 - there's no point on running it on our own 
+network. Small python script posts network map from our internal statistics server to public one. 
+Similarly RT runs on separate server. RT server sends statistics regularly with *backend/fetch_rt.py*. 
+Both network map and RT statistics come in through *upload.php*. Public server fetches Pingdom statistics 
+directly. That's the only time critical page - if everything something is broken on our end, network map 
+and RT statistics are not working, but [services status page](http://status.futurice.com/page/services) 
+shows up-to-date information.
+
 How to install
 --------------
 
