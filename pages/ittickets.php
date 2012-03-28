@@ -39,19 +39,7 @@
                 color: #666;
                 font-style: normal;
             }
-            form {
-                margin: 0;
-                padding: 0;
-            }
-            fieldset {
-                margin: 0;
-                padding: 0;
-                border: none;
-            }
         </style>
-<script src="/js/pie.js"></script>
-<script src="/js/impact.js"></script>
-<script src="/js/dots.js"></script>
 <script type="text/javascript">
 ticketdata = <?
 include("ittickets.json");
