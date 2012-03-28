@@ -1,4 +1,6 @@
 *.json
 backend/cache/*
 *settings.py
+*settings.php
 *.pyc
+upload/*
