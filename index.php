@@ -1,4 +1,5 @@
 <?php
+Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";
 if (isset($_GET["page"])) {
  $temp = basename($_GET["page"]);
