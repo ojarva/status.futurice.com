@@ -2,8 +2,10 @@
 <div class="hero-unit">
 <h1>What and why?</h1>
 
-<p>Many things improve only with small steps. And many things require great amount of work, money and goodwill. Also, many small things bring in greater advantages. If this site inspires
-even few others to share, it's already a good start.</p>
+<p>Many things improve only with small steps. And many things require great amount of work, money and 
+goodwill. Also, many small things bring in greater advantages. If this site inspires even few others to 
+share, it's already a good start.</p>
+
 </div>
 
 <div class="row">
@@ -18,8 +20,9 @@ even few others to share, it's already a good start.</p>
 	<div class="span4">
 		<h3>Do new things</h3>
 
-		<p>Too many things are being done certaing way just because "that's how it has always been done". That's not how we can improve our work, our results and our environment. It's easier to be proud of 
-something if you can show it to others, send link to your friends, customers or elsewhere.</p>
+		<p>Too many things are being done certaing way just because "that's how it has always 
+been done". That's not how we can improve our work, our results and our environment. It's easier to be 
+proud of something if you can show it to others, send link to your friends, customers or elsewhere.</p>
 
 	</div>
 </div>
@@ -30,33 +33,49 @@ something if you can show it to others, send link to your friends, customers or 
 	<div class="span4">
 		<h3>Services</h3>
 
-		<p>Services are monitored using <a href="http://pingdom.com">Pingdom</a>. In addition to Pingdom, we use <a href="http://www.zabbix.com/">Zabbix</a> internally. Pingdom provides public information pages, 
-but those are rather limited, so we are using <a href="http://pingdom.com/services/api-documentation-rest/">API</a> to fetch information to our local database (powered by Django and MySQL). Tooltips are provided by <a 
-href="http://twitter.github.com/bootstrap/javascript.html#tooltips">Bootstrap plugin</a>. If we are doing a good job with keeping our services up, we can be proud of it, and if not, we need to improve.</p>
+		<p>Services are monitored using <a href="http://pingdom.com">Pingdom</a>. In addition to 
+Pingdom, we use <a href="http://www.zabbix.com/">Zabbix</a> internally. Pingdom provides public 
+information pages, but those are rather limited, so we are using <a 
+href="http://pingdom.com/services/api-documentation-rest/">API</a> to fetch information to local copy 
+(JSON files in the disk). Tooltips are provided by <a 
+href="http://twitter.github.com/bootstrap/javascript.html#tooltips">Bootstrap plugin</a>. If we are doing 
+a good job with keeping our services up, we can be proud of it, and if not, we need to improve.</p>
 
-		<p>Traditionally monitoring and uptime information is secret, but we didn't find any reason to continue this tradition. Security can't depend on secret hostnames or other details, so releasing status 
-information is not a problem. Actually, we are not using split-horizon DNS at all. But we restrict all access to important internal servers (for example LDAP) and services (user management and so on) with firewalls.</p>
+		<p>Traditionally monitoring and uptime information is secret, but we didn't find any 
+reason to continue this tradition. Security can't depend on secret hostnames or other details, so 
+releasing status information is not a problem. Actually, we are not using split-horizon DNS at all. But 
+we restrict all access to important internal servers (for example LDAP) and services (user management and 
+so on) with firewalls.</p>
 
 	</div>
 	<div class="span4">
 		<h3>Network map</h3>
 
-		<p>Network map generation is handled by <a href="http://www.network-weathermap.com/">Network weathermap</a>. It's not actively maintained, but mature enough for our use - and we couldn't find anything
-better. Traffic data is collected using <a href="http://oss.oetiker.ch/mrtg/">MRTG</a>. Our internal server collects traffic data, generates image and posts it to this server. Data is not realtime, and doesn't include
-for example security related backup links or networks.</p>
+		<p>Network map generation is handled by <a 
+href="http://www.network-weathermap.com/">Network weathermap</a>. It's not actively maintained, but 
+mature enough for our use - and we couldn't find anything better. Traffic data is collected using <a 
+href="http://oss.oetiker.ch/mrtg/">MRTG</a>. Our internal server collects traffic data, generates image 
+and posts it to this server. Data is not realtime, and doesn't include for example security related 
+backup links or networks.</p>
 
-		<p>We had discussions about releasing network structure and services information - main argument against was that all additional information might have surprising effects when collected together. We 
-tried to release as much as possible without giving out anything too specific - all you can see here is available using normal network scanning tools.</p>
+		<p>We had discussions about releasing network structure and services information - main 
+argument against was that all additional information might have surprising effects when collected 
+together. We tried to release as much as possible without giving out anything too specific - all you can 
+see here is available using normal network scanning tools.</p>
 
 	</div>
 	<div class="span4">
 		<h3>IT tickets</h3>
 
-		<p>Our IT team uses <a href="http://bestpractical.com/rt/">RT</a> for tracking incoming emails. RT API wasn't good enough (we are not fan of Perl), so currently small program runs queries directly to
-MySQL database, fetches information, calculates aggregates and posts resulting data to this server. No access is allowed other way around.</p>
+		<p>Our IT team uses <a href="http://bestpractical.com/rt/">RT</a> for tracking incoming 
+emails. RT API wasn't good enough (we are not fan of Perl), so currently small program runs queries 
+directly to MySQL database, fetches information, calculates aggregates and posts resulting data to this 
+server. No access is allowed other way around.</p>
 
-		<p>When Futurice was smaller, we had just mailing list, and all emails went to all three members of IT team. Nowadays that's not feasible anymore. We highly recommend taking ticket tracking system into 
-use even in smaller organizations. Using ticket tracking system doesn't necessarily mean adding complex process to handling incoming emails.</p>
+		<p>When Futurice was smaller, we had just mailing list, and all emails went to all three 
+members of IT team. Nowadays that's not feasible anymore. We highly recommend taking ticket tracking 
+system into use even in smaller organizations. Using ticket tracking system doesn't necessarily mean 
+adding complex process to handling incoming emails.</p>
 
 	</div>
 </div>
