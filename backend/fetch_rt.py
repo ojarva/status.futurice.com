@@ -3,6 +3,9 @@ import json
 import MySQLdb
 import logging
 import datetime
+from poster.encode import multipart_encode
+from poster.streaminghttp import register_openers
+import urllib2
 
 from rt_settings import *
 
@@ -12,6 +15,7 @@ class RTStats:
         self.password = RT_PASSWORD
         self.database = RT_DATABASE
         self._db = None
+        register_openers()
 
     @property
     def db(self):
@@ -26,8 +30,10 @@ class RTStats:
         pass
 
     def send_data(self, name, data):
-        data_dump = json.dumps({"name": name, "data": data}, sort_keys=True, indent=4)
+        data_dump = json.dumps({"name": name, "data": data})
         open(name+".data.json", "w").write(data_dump)
+        datagen, headers = multipart_encode({"data": open(name+".data.json", "rb"), "password": UPLOAD_PASSWORD, "what": name+".json"})
+        request = urllib2.Request(UPLOAD_URL, datagen, headers)
 
     def run(self):
         self.get_ticket_stats()
@@ -102,9 +108,9 @@ class RTStats:
         variable_name = [("hour", "%H"), ("day", "%a")]
         for datename in datenames:
             for (vbn, vbn_f) in variable_name:
-                data["%s_per_%s" % (datename.lower(), vbn)] = get_two_all("SELECT DATE_FORMAT(%s, '%%s') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 GROUP BY timestamp;" % (datename, vbn_f)
+                data["%s_per_%s" % (datename.lower(), vbn)] = get_two_all("SELECT DATE_FORMAT(%s, '%%%s') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 GROUP BY timestamp;" % (datename, vbn_f))
                 for dayrange in dayranges:
-                    data["%s_per_%s_%sd" % (datename.lower(), vbn, dayrange)] = get_two_all("SELECT DATE_FORMAT(%s, '%%s') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 AND %s >= DATE_SUB(current_date, INTERVAL %s day) GROUP BY timestamp;" % (datename, vbn_f, datename, dayrange))
+                    data["%s_per_%s_%sd" % (datename.lower(), vbn, dayrange)] = get_two_all("SELECT DATE_FORMAT(%s, '%%%s') AS timestamp, COUNT(*) AS c FROM Tickets WHERE Queue=1 AND %s >= DATE_SUB(current_date, INTERVAL %s day) GROUP BY timestamp;" % (datename, vbn_f, datename, dayrange))
 
         # general tickets per day
         dictlist = [("created_futu", 
@@ -191,7 +197,7 @@ class RTStats:
         data["other_users"] = other_users
         data["futurice_users"] = futurice_users
         c.close()
-        self.send_data("tickets", data)
+        self.send_data("ittickets", data)
 
 
 def main():
