@@ -11,9 +11,13 @@ if (!in_array($_POST["what"], $what_allowed)) {
  exit(0);
 }
 
-$filename = "upload/".$_POST["what"];
+$filename = "upload/".$_POST["what"]; // Already validated
 if (move_uploaded_file($_FILES["data"]["tmp_name"], $filename)) {
  echo "Upload succeeded";
+ $ext = pathinfo($filename, PATHINFO_EXTENSION);
+ if ($ext == "png") {
+  exec("advpng -z1 \"$filename\"");
+ }
 } else {
  echo "File upload failed: $filename\n";
  var_dump($_FILES);
