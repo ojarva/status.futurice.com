@@ -61,7 +61,7 @@ class Pingdomrun:
             days_timeranges.append((new_start_time, new_end_time, datetime.datetime.fromtimestamp(new_start_time).strftime("%d.%m.")))
 	days_timeranges.append((today_night, today_last, datetime.datetime.fromtimestamp(today_last).strftime("%d.%m. %H:%M")))
 
-        data = {"overall": 0, "outages_today": 0, "outages_week": 0, "networks": 0, "virtualization_platforms": 0, "websites": 0, "day_titles": days_timeranges, "uptime_per_day": [], "outages_per_day": []}
+        data = {"overall": 0, "outages_today": 0, "outages_week": 0, "networks": 0, "virtualization_platforms": 0, "websites": 0, "day_titles": days_timeranges, "uptime_per_day": [], "outages_per_day": [], "services_up": 0, "services_down": 0, "services_unknown": 0}
         cdata = {}
 
         up_per_day = [0,0,0,0,0,0,0]
@@ -77,6 +77,12 @@ class Pingdomrun:
                     cdata[check.id][keyword] = getattr(check, keyword)
                 except AttributeError:
                     pass
+            if check.status == "up":
+                data["services_up"] += 1
+            elif check.status == "down":
+                data["services_down"] += 1
+            else:
+                data["services_unknown"] += 1
 
             counter = 0
             for (timefrom, timeto, datename) in days_timeranges:
