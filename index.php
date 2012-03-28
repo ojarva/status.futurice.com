@@ -1,4 +1,4 @@
-<?
+<?php
 $pagename = "main";
 if (isset($_GET["page"])) {
  $temp = basename($_GET["page"]);
@@ -6,12 +6,12 @@ if (isset($_GET["page"])) {
   $pagename = $temp;
  }
 }
-$pages = [["main", "Home"],
-	["services", "Services"],
-	["netmap", "Network map"],
-	["ittickets", "IT tickets"],
-	["what", "What?"],
-	["todo", "TODO"]];
+$pages = array(array("main", "Home"),
+	array("services", "Services"),
+	array("netmap", "Network map"),
+	array("ittickets", "IT tickets"),
+	array("what", "What?"),
+	array("todo", "TODO"));
 ?>
 
 <!DOCTYPE html>
