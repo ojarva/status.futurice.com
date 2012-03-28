@@ -24,11 +24,11 @@ $pages = array(array("main", "Home"),
     <meta name="description" content="Futurice IT status">
     <meta name="author" content="Olli Jarva">
 
-    <link href="css/combined.min.css" rel="stylesheet">
+    <link href="/css/combined.min.css" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script src="js/combined.min.js"></script>
+    <script src="/js/combined.min.js"></script>
   </head>
 
   <body>
@@ -41,12 +41,12 @@ $pages = array(array("main", "Home"),
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="?page=main">status</a>
+          <a class="brand" href="/page/main">status</a>
           <div class="nav-collapse">
             <ul class="nav">
 <?
  foreach ($pages as $k => $v) {
-  ?><li<?if ($v[0] == $pagename) {?> class="active"<?}?>><a href="?page=<?=$v[0];?>"><?=$v[1];?></a></li><?
+  ?><li<?if ($v[0] == $pagename) {?> class="active"<?}?>><a href="/page/<?=$v[0];?>"><?=$v[1];?></a></li><?
  }
 ?>
             </ul>

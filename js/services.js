@@ -135,7 +135,7 @@ function update_data() {
  $("#progress-indicator").show();
  $("#update_now_button").addClass("disabled");
  clearTimeout(update_data_timeout);
- $.getJSON("services.json?timestamp="+((new Date()).getTime()), function(data) {
+ $.getJSON("/services.json?timestamp="+((new Date()).getTime()), function(data) {
   services_data = data;
   process_data();
   update_data_timeout = setTimeout("update_data();", 1000*60*15); // fetch data every 15 minutes
