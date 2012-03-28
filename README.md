@@ -27,12 +27,25 @@ shows up-to-date information.
 How to install
 --------------
 
-* Modify *pages/what.php* to match with your ideologies and technologies used.
-* Start using Pingdom
+External systems:
+
+* Configure Pingdom
 * Install and configure RT (if you want to use "IT tickets" page)
-* Install python and php. Configure apache2.
-* Move *backend/pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
-* Move *backend/rt_settings.py.example* to *backend/rt_settings.py* and configure relevant variables
-* Add *backend/fetch_pingdom.py* to crontab
-* Add *backend/rt_settings.py* to crontab (preferrably on separate server running RT)
 * Configure [network weathermap](http://www.network-weathermap.com/)
+
+On server running this site:
+
+* Install python and php. Configure apache2.
+* Install yui-compressor (after making changes to css/js, run compress.sh to create minified versions)
+
+On your RT server:
+
+* Move *backend/rt_settings.py.example* to *backend/rt_settings.py* and configure relevant variables
+* Add *backend/fetch_rt.py* to crontab (preferrably on separate server running RT)
+
+To this code:
+
+* Modify *pages/what.php* to match with your ideologies and technologies used.
+* Move *backend/pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
+* Add *backend/fetch_pingdom.py* to crontab
+* Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
