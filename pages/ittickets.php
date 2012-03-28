@@ -54,7 +54,7 @@
 <script src="js/dots.js"></script>
 <script type="text/javascript">
 ticketdata = <?
-include("tickets.data.json");
+include("ittickets.json");
 ?>
 
 ticketdata = ticketdata.data;
