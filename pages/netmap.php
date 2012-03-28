@@ -6,6 +6,6 @@ This map shows status of various networks at Futurice. Not all details and backu
 </div>
 <div class="row" style="padding-top:1em">
 <div class="span12">
-<img src="img/futuricepublic.png">
+<img src="img/netmap.png">
 </div>
 </div>
