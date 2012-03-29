@@ -13,11 +13,13 @@ function update_next_reload(next_reload) {
 }
 
 function refresh_popovers() {
- var counter = 0;
- popover_contents = new Array();
+ var counter = 0, 
+     popover_contents = new Array(), 
+     last_error_time,
+     last_check_time;
  for (service in services_data.per_service) {
   counter += 1;
-  ts = services_data.per_service[service];
+  var ts = services_data.per_service[service];
   if (ts.lasterrortime > 0) {
    last_error_time = moment(ts.lasterrortime*1000).fromNow();
   } else {
@@ -36,7 +38,9 @@ function refresh_popovers() {
  });
 }
 function process_data() {
- for (key in services_data.overall) {
+ var counter = 0,
+     broken_services = 0;
+ for (var key in services_data.overall) {
   if ($("#"+key) != null) {
     $("#"+key).html(services_data.overall[key]);
   }
@@ -47,14 +51,14 @@ function process_data() {
  clearInterval(status_timestamp_interval);
  status_timestamp_interval = setInterval('$("#status-timestamp").html(moment(services_data.overall.timestamp.unix*1000).fromNow()+".");', 1000);
  update_next_reload((new Date()).getTime() + 15 * 60 * 1000);
- broken_services = 0;
- var counter = 0;
  for (service in services_data.per_service) {
   counter += 1;
-  ts = services_data.per_service[service];
-  daystatus = ""
-  for (a in ts.dates) {
-   da = ts.dates[a];
+  var ts = services_data.per_service[service],
+      daystatus = "";
+  for (var a in ts.dates) {
+    var color = "",
+        popover_content = "",
+        da = ts.dates[a];
    if (da.u > 0.999) {
      color = "green";
    } else if (da.u > 0.98) {
@@ -89,8 +93,8 @@ function process_data() {
  }
 
  $(".uptime-sparkline").each(function(index) {
-   paper = Raphael.fromJquery($(this));
-   var data = [];
+   var paper = Raphael.fromJquery($(this)),
+       data = [];
    $.each(services_data.per_service[$(this).data('check-id')].dates, function (index, item) {
     data.push(item.u);
    });
@@ -101,16 +105,16 @@ function process_data() {
     add_popover($(this), "Uptime", popover_content);
  });
  $(".response-sparkline").each(function(index) {
-    paper = Raphael.fromJquery($(this));
-    var data = services_data.per_service[$(this).data('check-id')].avgms;
+    var paper = Raphael.fromJquery($(this)),
+        data = services_data.per_service[$(this).data('check-id')].avgms;
     paper.sparkline(data);
     var min = Math.min.apply(Math, data),
         max = Math.max.apply(Math, data);
-    popover_content = "Highest response time: "+max+"ms<br>Lowest response time: "+min+"ms";
+    var popover_content = "Highest response time: "+max+"ms<br>Lowest response time: "+min+"ms";
     add_popover($(this), "Response times", popover_content);
  });
  $(".check-day-title").each(function(index) {
-  popover_content = "Uptime: "+services_data.overall.uptime_per_day[index]+"%";
+  var popover_content = "Uptime: "+services_data.overall.uptime_per_day[index]+"%";
   if (services_data.overall.outages_per_day[index] > 0) {
    popover_content += "<br>Number of outages: "+services_data.overall.outages_per_day[index]+" (even short ones count)";
   }
@@ -135,7 +139,7 @@ function update_data() {
  $("#progress-indicator").show();
  $("#update_now_button").addClass("disabled");
  clearTimeout(update_data_timeout);
- $.getJSON("/services.json?timestamp="+((new Date()).getTime()), function(data) {
+ $.getJSON("/services.json?timestamp="+((new Date()).getTime()/10), function(data) {
   services_data = data;
   process_data();
   update_data_timeout = setTimeout("update_data();", 1000*60*15); // fetch data every 15 minutes

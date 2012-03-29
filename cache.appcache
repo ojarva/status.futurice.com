@@ -1,5 +1,5 @@
 CACHE MANIFEST
-#2012-03-29 007
+#2012-03-29 013
 /
 /page/what
 /page/todo
@@ -8,6 +8,7 @@ CACHE MANIFEST
 /js/main.min.js
 /js/services.min.js
 /js/combined.min.js
+/js/combined.raphael.min.js
 /css/combined.min.css
 
 /img/down.png

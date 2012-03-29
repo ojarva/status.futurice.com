@@ -11,6 +11,7 @@ var process = function (json) {
         lgnd2 = $("#legend2")[0],
         usrnm2 = $("#username2")[0],
         plchldr = $("#placeholder")[0];
+
     function finishes() {
         for (var i in json.authors) {
             var start, end;
@@ -60,8 +61,8 @@ var process = function (json) {
                 p.b.unshift([x, h += Math.max(Math.round(Math.log(users[i][1]) * 5), 1)]);
                 h += 2;
             }
-            var dt = new Date(json.buckets[j].d * 1000);
-            var dtext = dt.getDate() + " " + ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][dt.getMonth()] + " " + dt.getFullYear();
+            var dt = new Date(json.buckets[j].d * 1000),
+                dtext = dt.getDate() + " " + ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][dt.getMonth()] + " " + dt.getFullYear();
             r.text(x + 25, h + 10, dtext).attr({"font": '9px "Arial"', stroke: "none", fill: "#aaa"});
             x += 100;
         }

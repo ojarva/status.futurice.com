@@ -1,3 +1,5 @@
+<script src="/js/combined.raphael.min.js"></script>
+
 <h1>IT tickets</h1>
 <style type="text/css" media="screen">
             #dotschart, #workflowchart {
