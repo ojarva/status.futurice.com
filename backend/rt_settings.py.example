@@ -1,6 +1,7 @@
-RT_USERNAME="your_rt_db_username"
-RT_PASSWORD="your_rt_db_password"
-RT_DATABASE="your_rt_db_name"
-UPLOAD_PASSWORD="password from upload_settings.php"
-UPLOAD_URL="http://your_domain.example.com/upload.php"
+""" These are settings for fetch_rt.py"""
+RT_USERNAME = "your_rt_db_username"
+RT_PASSWORD = "your_rt_db_password"
+RT_DATABASE = "your_rt_db_name"
+UPLOAD_PASSWORD = "password from upload_settings.php"
+UPLOAD_URL = "http://your_domain.example.com/upload.php"
 
