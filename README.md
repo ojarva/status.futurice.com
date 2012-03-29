@@ -36,7 +36,8 @@ External systems:
 On server running this site:
 
 * Install python and php. Configure apache2.
-* Install yui-compressor (after making changes to css/js, run compress.sh to create minified versions)
+* Install highlight (Debian/Ubuntu package "highlight")
+* Install yui-compressor (after making changes to css/js, run make on top directory to create minified versions)
 
 On your RT server:
 
