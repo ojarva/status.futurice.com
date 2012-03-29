@@ -18,6 +18,11 @@ RewriteRule ^/page/([a-z-]+)$ /index.php?page=$1 [QSA,L]
 AddDefaultCharset UTF-8
 AddCharset UTF-8 .html
 
+AddType text/cache-manifest .appcache
+AddType "application/json" json
+
+
+
 <IfModule mod_expires.c>
 	ExpiresActive on
 	ExpiresByType image/jpeg "access plus 8 days"

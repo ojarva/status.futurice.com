@@ -8,6 +8,7 @@ share, it's already a good start.</p>
 
 </div>
 
+
 <div class="row">
 	<div class="span4">
 		<h3>Transparency</h3>
@@ -26,7 +27,37 @@ proud of something if you can show it to others, send link to your friends, cust
 
 	</div>
 </div>
-<hr>
+
+<?
+$images = glob("img/carousel/*.jpg");
+if ($images != false && count($images) > 0) {
+?>
+<div class="row">
+	<div class="span12">
+		<div id="carousel" class="carousel">
+			<div class="carousel-inner">
+<?
+$chosen = array_rand($images, 10);
+foreach ($chosen as $k => $v) {
+?><div class="<?if ($k == 0) {?>active <?}?>item"><img src="/<?=$images[$v];?>"></img></div><?
+}
+?>
+			</div>
+			<a class="carousel-control left" href="#carousel" data-slide="prev">&lsaquo;</a>
+			<a class="carousel-control right" href="#carousel" data-slide="next">&rsaquo;</a>
+		</div>
+	</div>
+</div>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+$("#carousel").carousel();
+});
+</script>
+
+<?}?>
+
 <h2>For nerds</h2>
 
 <div class="row">

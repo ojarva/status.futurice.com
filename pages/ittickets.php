@@ -41,13 +41,16 @@
             }
         </style>
 <script type="text/javascript">
-ticketdata = <?
-include("ittickets.json");
-?>
-
-ticketdata = ticketdata.data;
+var ticketdata;
 
 $(document).ready(function() {
+ $.get("/ittickets.json", function(data) {
+  ticketdata = data.data;
+  update_data();
+ });
+});
+
+function update_data() {
  $("#total-tickets-popover").data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
  $("#total-tickets-popover").data("original-title", "What?")
  $("#total-tickets-popover").data("placement", "top");
@@ -97,7 +100,7 @@ $("#change_graph").click(function() {
 emailpie_values = [ticketdata.other_users, ticketdata.futurice_users];
 emailpie_labels = ["External", "Internal"];
 Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emailpie_labels, "#fff");
-});
+}
 </script>
 <div class="row">
 	<div class="span12">

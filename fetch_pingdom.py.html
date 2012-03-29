@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>backend/fetch_pingdom.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl str">&quot;&quot;&quot; This script fetches statistics from Pingdom. Requires</span>
+<span class="hl str">pingdom_settings.py with correct PINGDOM_USER, PINGDOM_PASSWORD,</span>
+<span class="hl str">PINGDOM_APPKEY and UPTIME_CLASSES &quot;&quot;&quot;</span>
+
+<span class="hl kwa">import</span> pingdom
+<span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> datetime
+<span class="hl kwa">import</span> time
+<span class="hl kwa">import</span> os
+<span class="hl kwa">import</span> logging
+
+<span class="hl kwa">try</span><span class="hl sym">:</span>
+    <span class="hl slc"># cPickle is much faster than pickle</span>
+    <span class="hl kwa">import</span> cPickle <span class="hl kwa">as</span> pickle
+<span class="hl kwa">except</span> <span class="hl kwc">ImportError</span><span class="hl sym">:</span>
+    <span class="hl kwa">import</span> pickle
+
+<span class="hl kwa">import</span> pingdom_settings
+
+<span class="hl kwa">class</span> Pingdomrun<span class="hl sym">:</span>
+    <span class="hl str">&quot;&quot;&quot; Fetch data from pingdom, calculate basic metrics like number of</span>
+<span class="hl str">        outages, uptime percentages and save data as json &quot;&quot;&quot;</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl sym">(</span>self<span class="hl sym">):</span>
+        self<span class="hl sym">.</span>uptime_classes <span class="hl sym">=</span> pingdom_settings<span class="hl sym">.</span>UPTIME_CLASSES
+        self<span class="hl sym">.</span>connection <span class="hl sym">=</span> pingdom<span class="hl sym">.</span><span class="hl kwd">PingdomConnection</span><span class="hl sym">(</span>
+                          pingdom_settings<span class="hl sym">.</span>PINGDOM_USERNAME<span class="hl sym">,</span>
+                          pingdom_settings<span class="hl sym">.</span>PINGDOM_PASSWORD<span class="hl sym">,</span>
+                          pingdom_settings<span class="hl sym">.</span>PINGDOM_APPKEY<span class="hl sym">)</span>
+        self<span class="hl sym">.</span>cache_directory <span class="hl sym">=</span> <span class="hl str">&quot;cache/&quot;</span>
+        self<span class="hl sym">.</span>data <span class="hl sym">=</span> <span class="hl kwa">None</span>
+        self<span class="hl sym">.</span>cdata <span class="hl sym">=</span> <span class="hl kwa">None</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_cache</span><span class="hl sym">(</span>self<span class="hl sym">,</span> what<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get pickled data from cache &quot;&quot;&quot;</span>
+        filename <span class="hl sym">=</span> <span class="hl str">&quot;%s%s&quot;</span> <span class="hl sym">% (</span>self<span class="hl sym">.</span>cache_directory<span class="hl sym">,</span> what<span class="hl sym">)</span>
+        <span class="hl kwa">if</span> os<span class="hl sym">.</span>path<span class="hl sym">.</span><span class="hl kwd">exists</span><span class="hl sym">(</span>filename<span class="hl sym">):</span>
+            logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Cache hit: %s&quot;</span><span class="hl sym">,</span> what<span class="hl sym">)</span>
+            <span class="hl kwa">return</span> pickle<span class="hl sym">.</span><span class="hl kwd">load</span><span class="hl sym">(</span><span class="hl kwb">open</span><span class="hl sym">(</span>filename<span class="hl sym">))</span>
+        logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Cache miss: %s&quot;</span><span class="hl sym">,</span> what<span class="hl sym">)</span>
+        <span class="hl kwa">return False</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">set_cache</span><span class="hl sym">(</span>self<span class="hl sym">,</span> what<span class="hl sym">,</span> data<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Set (pickled) data to cache &quot;&quot;&quot;</span>
+        filename <span class="hl sym">=</span> <span class="hl str">&quot;%s%s&quot;</span> <span class="hl sym">% (</span>self<span class="hl sym">.</span>cache_directory<span class="hl sym">,</span> what<span class="hl sym">)</span>
+        pickle<span class="hl sym">.</span><span class="hl kwd">dump</span><span class="hl sym">(</span>data<span class="hl sym">,</span> <span class="hl kwb">open</span><span class="hl sym">(</span>filename<span class="hl sym">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl sym">))</span>
+        logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Cache set: %s&quot;</span><span class="hl sym">,</span> what<span class="hl sym">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_checks</span><span class="hl sym">(</span>self<span class="hl sym">, **</span>kwargs<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get list of checks and check details (status, last check</span>
+<span class="hl str">          time, name etc.) &quot;&quot;&quot;</span>
+
+        <span class="hl kwa">if not</span> kwargs<span class="hl sym">.</span><span class="hl kwd">get</span><span class="hl sym">(</span><span class="hl str">&quot;nocache&quot;</span><span class="hl sym">,</span> <span class="hl kwa">False</span><span class="hl sym">):</span>
+            cached <span class="hl sym">=</span> self<span class="hl sym">.</span><span class="hl kwd">get_cache</span><span class="hl sym">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl sym">)</span>
+            <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl sym">:</span>
+                logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Cache hit for checks&quot;</span><span class="hl sym">)</span>
+                <span class="hl kwa">return</span> cached
+            logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Cache miss for checks&quot;</span><span class="hl sym">)</span>
+        <span class="hl kwa">else</span><span class="hl sym">:</span>
+            logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;nocache was specified. Not checking cache&quot;</span><span class="hl sym">)</span>
+        checks <span class="hl sym">=</span> self<span class="hl sym">.</span>connection<span class="hl sym">.</span><span class="hl kwd">get_all_checks</span><span class="hl sym">()</span>
+        self<span class="hl sym">.</span><span class="hl kwd">set_cache</span><span class="hl sym">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl sym">,</span> checks<span class="hl sym">)</span>
+        <span class="hl kwa">return</span> checks
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_averages</span><span class="hl sym">(</span>self<span class="hl sym">,</span> checkid<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get averages for single check and single timeframe &quot;&quot;&quot;</span>
+        keyname <span class="hl sym">=</span> <span class="hl str">&quot;averages-%s-%s-%s&quot;</span> <span class="hl sym">% (</span>checkid<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">)</span>
+        cached <span class="hl sym">=</span> self<span class="hl sym">.</span><span class="hl kwd">get_cache</span><span class="hl sym">(</span>keyname<span class="hl sym">)</span>
+        <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl sym">:</span>
+            <span class="hl kwa">return</span> cached
+        averages <span class="hl sym">=</span> self<span class="hl sym">.</span>connection<span class="hl sym">.</span><span class="hl kwd">get_check_averages</span><span class="hl sym">(</span>checkid<span class="hl sym">,</span>
+                               timefrom<span class="hl sym">=</span>timefrom<span class="hl sym">,</span> timeto<span class="hl sym">=</span>timeto<span class="hl sym">)</span>
+        self<span class="hl sym">.</span><span class="hl kwd">set_cache</span><span class="hl sym">(</span>keyname<span class="hl sym">,</span> averages<span class="hl sym">)</span>
+        logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Averages fetched for range %s-%s, check %s&quot;</span><span class="hl sym">,</span>
+                             timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> checkid<span class="hl sym">)</span>
+        <span class="hl kwa">return</span> averages
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_outages</span><span class="hl sym">(</span>self<span class="hl sym">,</span> checkid<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get outages for single check &quot;&quot;&quot;</span>
+        keyname <span class="hl sym">=</span> <span class="hl str">&quot;outages-%s-%s-%s&quot;</span> <span class="hl sym">% (</span>checkid<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">)</span>
+        cached <span class="hl sym">=</span> self<span class="hl sym">.</span><span class="hl kwd">get_cache</span><span class="hl sym">(</span>keyname<span class="hl sym">)</span>
+        <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl sym">:</span>
+            <span class="hl kwa">return</span> cached
+        outages <span class="hl sym">=</span> self<span class="hl sym">.</span>connection<span class="hl sym">.</span><span class="hl kwd">get_outages</span><span class="hl sym">(</span>checkid<span class="hl sym">,</span>
+                              timefrom<span class="hl sym">=</span>timefrom<span class="hl sym">,</span> timeto<span class="hl sym">=</span>timeto<span class="hl sym">)</span>
+        self<span class="hl sym">.</span><span class="hl kwd">set_cache</span><span class="hl sym">(</span>keyname<span class="hl sym">,</span> outages<span class="hl sym">)</span>
+        logging<span class="hl sym">.</span><span class="hl kwd">debug</span><span class="hl sym">(</span><span class="hl str">&quot;Outages fetched for range %s-%s, check %s&quot;</span><span class="hl sym">,</span>
+                               timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> checkid<span class="hl sym">)</span>
+        <span class="hl kwa">return</span> outages
+
+    <span class="hl sym">&#64;</span><span class="hl kwb">staticmethod</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">gen_daterange</span><span class="hl sym">(</span>today_night<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Returns list of tuples containing start of day (unix</span>
+<span class="hl str">            timestamp), end of day (unix timestamp) and human readable</span>
+<span class="hl str">            name for day &quot;&quot;&quot;</span>
+        today_last <span class="hl sym">=</span> <span class="hl kwb">int</span><span class="hl sym">(</span>time<span class="hl sym">.</span><span class="hl kwd">mktime</span><span class="hl sym">(</span>datetime<span class="hl sym">.</span>datetime<span class="hl sym">.</span><span class="hl kwd">now</span><span class="hl sym">().</span><span class="hl kwd">timetuple</span><span class="hl sym">()) /</span> <span class="hl num">1000</span> <span class="hl sym">) *</span> <span class="hl num">1000</span>
+        days_timeranges <span class="hl sym">= []</span>
+
+        <span class="hl kwa">for</span> day <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl sym">(</span><span class="hl num">5</span><span class="hl sym">, -</span><span class="hl num">1</span><span class="hl sym">, -</span><span class="hl num">1</span><span class="hl sym">):</span>
+            new_end_time <span class="hl sym">=</span> today_night <span class="hl sym">-</span> <span class="hl num">86400</span> <span class="hl sym">*</span> day
+            new_start_time <span class="hl sym">=</span> today_night <span class="hl sym">-</span> <span class="hl num">86400</span> <span class="hl sym">* (</span>day <span class="hl sym">+</span> <span class="hl num">1</span><span class="hl sym">)</span>
+            days_timeranges<span class="hl sym">.</span><span class="hl kwd">append</span><span class="hl sym">((</span>new_start_time<span class="hl sym">,</span> new_end_time<span class="hl sym">,</span> datetime<span class="hl sym">.</span>datetime<span class="hl sym">.</span><span class="hl kwd">fromtimestamp</span><span class="hl sym">(</span>new_start_time<span class="hl sym">).</span><span class="hl kwd">strftime</span><span class="hl sym">(</span><span class="hl str">&quot;%d.%m.&quot;</span><span class="hl sym">)))</span>
+        days_timeranges<span class="hl sym">.</span><span class="hl kwd">append</span><span class="hl sym">((</span>today_night<span class="hl sym">,</span> today_last<span class="hl sym">,</span> datetime<span class="hl sym">.</span>datetime<span class="hl sym">.</span><span class="hl kwd">fromtimestamp</span><span class="hl sym">(</span>today_last<span class="hl sym">).</span><span class="hl kwd">strftime</span><span class="hl sym">(</span><span class="hl str">&quot;%d.%m. %H:%M&quot;</span><span class="hl sym">)))</span>
+        <span class="hl kwa">return</span> days_timeranges
+
+    <span class="hl kwa">def</span> <span class="hl kwd">populate_check_keywords</span><span class="hl sym">(</span>self<span class="hl sym">,</span> check<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Populate cdata with basic check keywords - some might be</span>
+<span class="hl str">            missing, for example if check never failed &quot;&quot;&quot;</span>
+        check_keywords <span class="hl sym">= [</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;name&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;type&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;resolution&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;lasterrortime&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;lastresponsetime&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;lasttesttime&quot;</span><span class="hl sym">]</span>
+        <span class="hl kwa">for</span> keyword <span class="hl kwa">in</span> check_keywords<span class="hl sym">:</span>
+            <span class="hl kwa">try</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">][</span>keyword<span class="hl sym">] =</span> <span class="hl kwb">getattr</span><span class="hl sym">(</span>check<span class="hl sym">,</span> keyword<span class="hl sym">)</span>
+            <span class="hl kwa">except</span> <span class="hl kwc">AttributeError</span><span class="hl sym">:</span>
+                <span class="hl kwa">pass</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_check_averages</span><span class="hl sym">(</span>self<span class="hl sym">,</span> check<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> counter<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get averages and calculate necessary data &quot;&quot;&quot;</span>
+        averages <span class="hl sym">=</span> self<span class="hl sym">.</span><span class="hl kwd">get_averages</span><span class="hl sym">(</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">)</span>
+        avgresponse <span class="hl sym">=</span> <span class="hl num">0</span>
+        avgcounter <span class="hl sym">=</span> <span class="hl num">0</span>
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;responsetime&quot;</span><span class="hl sym">][</span><span class="hl str">'avgresponse'</span><span class="hl sym">]:</span>
+            avgcounter <span class="hl sym">+=</span> <span class="hl num">1</span>
+            avgresponse <span class="hl sym">+=</span> item<span class="hl sym">[</span><span class="hl str">'avgresponse'</span><span class="hl sym">]</span>
+        <span class="hl kwa">if</span> avgcounter <span class="hl sym">&gt;</span> <span class="hl num">0</span><span class="hl sym">:</span>
+            avgresponse <span class="hl sym">=</span> <span class="hl kwb">round</span><span class="hl sym">(</span><span class="hl kwb">float</span><span class="hl sym">(</span>avgresponse<span class="hl sym">) /</span> avgcounter<span class="hl sym">)</span>
+        self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">][</span><span class="hl str">&quot;avgms&quot;</span><span class="hl sym">] += [</span>avgresponse<span class="hl sym">]</span>
+        self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;down&quot;</span><span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl sym">]</span>
+        self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">]</span>
+        self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;up_per_day&quot;</span><span class="hl sym">][</span>counter<span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">]</span>
+        self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;down_per_day&quot;</span><span class="hl sym">][</span>counter<span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl sym">]</span>
+        <span class="hl kwa">if</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">] ==</span> <span class="hl num">0</span><span class="hl sym">:</span>
+            uptime <span class="hl sym">=</span> <span class="hl num">0</span>
+        <span class="hl kwa">else</span><span class="hl sym">:</span>
+            uptime <span class="hl sym">=</span> <span class="hl kwb">round</span><span class="hl sym">((</span><span class="hl kwb">float</span><span class="hl sym">(</span>averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">]) -</span> <span class="hl kwb">float</span><span class="hl sym">(</span>averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl sym">])) /</span> <span class="hl kwb">float</span><span class="hl sym">(</span>averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">]),</span> <span class="hl num">6</span><span class="hl sym">)</span>
+        self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">][</span><span class="hl str">&quot;dates&quot;</span><span class="hl sym">].</span><span class="hl kwd">append</span><span class="hl sym">({</span><span class="hl str">&quot;down&quot;</span><span class="hl sym">:</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl sym">],</span> <span class="hl str">&quot;up&quot;</span><span class="hl sym">:</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">],</span> <span class="hl str">&quot;u&quot;</span><span class="hl sym">:</span> uptime<span class="hl sym">})</span>
+
+        self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;downtime_total&quot;</span><span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl sym">]</span>
+        self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;uptime_total&quot;</span><span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">]</span>
+        <span class="hl kwa">for</span> classkey <span class="hl kwa">in</span> self<span class="hl sym">.</span>uptime_classes<span class="hl sym">:</span>
+            <span class="hl kwa">if</span> check<span class="hl sym">.</span><span class="hl kwb">id</span> <span class="hl kwa">in</span> self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>classkey<span class="hl sym">][</span><span class="hl str">'id'</span><span class="hl sym">]:</span>
+                self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>classkey<span class="hl sym">][</span><span class="hl str">'down'</span><span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl sym">]</span>
+                self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>classkey<span class="hl sym">][</span><span class="hl str">'up'</span><span class="hl sym">] +=</span> averages<span class="hl sym">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl sym">]</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_check_outages</span><span class="hl sym">(</span>self<span class="hl sym">,</span> check<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> today_night<span class="hl sym">,</span> counter<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get outages information for specific check &quot;&quot;&quot;</span>
+        outages <span class="hl sym">=</span> self<span class="hl sym">.</span><span class="hl kwd">get_outages</span><span class="hl sym">(</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">)</span>
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> outages<span class="hl sym">[</span><span class="hl str">'states'</span><span class="hl sym">]:</span>
+            <span class="hl kwa">if</span> item<span class="hl sym">[</span><span class="hl str">&quot;status&quot;</span><span class="hl sym">] ==</span> <span class="hl str">&quot;down&quot;</span><span class="hl sym">:</span>
+                <span class="hl kwa">if</span> item<span class="hl sym">[</span><span class="hl str">&quot;timefrom&quot;</span><span class="hl sym">] &gt;</span> today_night<span class="hl sym">:</span>
+                    self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;outages_today&quot;</span><span class="hl sym">] +=</span> <span class="hl num">1</span>
+                <span class="hl kwa">if</span> item<span class="hl sym">[</span><span class="hl str">&quot;timefrom&quot;</span><span class="hl sym">] &gt;</span> today_night<span class="hl sym">-</span><span class="hl num">7</span><span class="hl sym">*</span><span class="hl num">86400</span><span class="hl sym">:</span>
+                    self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;outages_week&quot;</span><span class="hl sym">] +=</span> <span class="hl num">1</span>
+                self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;outages_per_day&quot;</span><span class="hl sym">][</span>counter<span class="hl sym">] +=</span> <span class="hl num">1</span>
+
+
+
+    <span class="hl kwa">def</span> <span class="hl kwd">calculate_uptime_data</span><span class="hl sym">(</span>self<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Calculate final statistics: uptime class values and per day</span>
+<span class="hl str">            uptimes&quot;&quot;&quot;</span>
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> self<span class="hl sym">.</span>uptime_classes<span class="hl sym">:</span>
+            <span class="hl kwa">if</span> self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">] ==</span> <span class="hl num">0</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>data<span class="hl sym">[</span>item<span class="hl sym">] =</span> <span class="hl num">0</span>
+            <span class="hl kwa">else</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>data<span class="hl sym">[</span>item<span class="hl sym">] =</span> <span class="hl kwb">str</span><span class="hl sym">(</span><span class="hl kwb">round</span><span class="hl sym">(</span><span class="hl num">100</span> <span class="hl sym">* (</span><span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">]) -</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;down&quot;</span><span class="hl sym">])) /</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>uptime_classes<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">]),</span> <span class="hl num">3</span><span class="hl sym">))+</span><span class="hl str">&quot;%&quot;</span>
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> self<span class="hl sym">.</span>cdata<span class="hl sym">:</span>
+            <span class="hl kwa">if</span> self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">] ==</span> <span class="hl num">0</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;u&quot;</span><span class="hl sym">] =</span> <span class="hl num">0</span>
+            <span class="hl kwa">else</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;u&quot;</span><span class="hl sym">] =</span> <span class="hl kwb">round</span><span class="hl sym">((</span><span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">]) -</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;down&quot;</span><span class="hl sym">])) /</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">]),</span> <span class="hl num">6</span><span class="hl sym">)</span>
+            <span class="hl kwa">del</span> self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;up&quot;</span><span class="hl sym">]</span>
+            <span class="hl kwa">del</span> self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>item<span class="hl sym">][</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">][</span><span class="hl str">&quot;down&quot;</span><span class="hl sym">]</span>
+
+        <span class="hl kwa">for</span> i <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl sym">(</span><span class="hl num">0</span><span class="hl sym">,</span> <span class="hl kwb">len</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;up_per_day&quot;</span><span class="hl sym">])):</span>
+            <span class="hl kwa">if</span> self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;up_per_day&quot;</span><span class="hl sym">][</span>i<span class="hl sym">] ==</span> <span class="hl num">0</span><span class="hl sym">:</span>
+                t_uptime <span class="hl sym">=</span> <span class="hl num">0</span>
+            <span class="hl kwa">else</span><span class="hl sym">:</span>
+                t_uptime <span class="hl sym">=</span> <span class="hl kwb">str</span><span class="hl sym">(</span><span class="hl kwb">round</span><span class="hl sym">(</span><span class="hl num">100</span><span class="hl sym">*(</span><span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;up_per_day&quot;</span><span class="hl sym">][</span>i<span class="hl sym">]) -</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;down_per_day&quot;</span><span class="hl sym">][</span>i<span class="hl sym">])) /</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;up_per_day&quot;</span><span class="hl sym">][</span>i<span class="hl sym">]),</span> <span class="hl num">3</span><span class="hl sym">))</span>
+            self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;uptime_per_day&quot;</span><span class="hl sym">].</span><span class="hl kwd">append</span><span class="hl sym">(</span>t_uptime<span class="hl sym">)</span>
+        self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;overall&quot;</span><span class="hl sym">] =</span> <span class="hl kwb">str</span><span class="hl sym">(</span><span class="hl kwb">round</span><span class="hl sym">(</span><span class="hl num">100</span><span class="hl sym">*(</span><span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;uptime_total&quot;</span><span class="hl sym">]) -</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;downtime_total&quot;</span><span class="hl sym">])) /</span> <span class="hl kwb">float</span><span class="hl sym">(</span>self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;uptime_total&quot;</span><span class="hl sym">]),</span> <span class="hl num">3</span><span class="hl sym">))+</span><span class="hl str">&quot;%&quot;</span>
+
+
+    <span class="hl kwa">def</span> <span class="hl kwd">run</span><span class="hl sym">(</span>self<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Get all data. Run save() to save it &quot;&quot;&quot;</span>
+        checks <span class="hl sym">=</span> self<span class="hl sym">.</span><span class="hl kwd">get_checks</span><span class="hl sym">(</span>nocache<span class="hl sym">=</span><span class="hl kwa">True</span><span class="hl sym">)</span>
+
+        today_night <span class="hl sym">=</span> time<span class="hl sym">.</span><span class="hl kwd">mktime</span><span class="hl sym">(</span>datetime<span class="hl sym">.</span>date<span class="hl sym">.</span><span class="hl kwd">today</span><span class="hl sym">().</span><span class="hl kwd">timetuple</span><span class="hl sym">())</span>
+        days_timeranges <span class="hl sym">=</span> Pingdomrun<span class="hl sym">.</span><span class="hl kwd">gen_daterange</span><span class="hl sym">(</span>today_night<span class="hl sym">)</span>
+
+        self<span class="hl sym">.</span>cdata <span class="hl sym">= {}</span>
+        self<span class="hl sym">.</span>data <span class="hl sym">= {</span><span class="hl str">&quot;overall&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;outages_today&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;outages_week&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;networks&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;virtualization_platforms&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;websites&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;day_titles&quot;</span><span class="hl sym">:</span> days_timeranges<span class="hl sym">,</span>
+                     <span class="hl str">&quot;uptime_per_day&quot;</span><span class="hl sym">: [],</span>
+                     <span class="hl str">&quot;outages_per_day&quot;</span><span class="hl sym">: [</span><span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">],</span>
+                     <span class="hl str">&quot;services_up&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;services_down&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;services_unknown&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;up_per_day&quot;</span><span class="hl sym">: [</span><span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">],</span>
+                     <span class="hl str">&quot;down_per_day&quot;</span><span class="hl sym">: [</span><span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl num">0</span><span class="hl sym">],</span>
+                     <span class="hl str">&quot;uptime_total&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span>
+                     <span class="hl str">&quot;downtime_total&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">}</span>
+
+        <span class="hl kwa">for</span> check <span class="hl kwa">in</span> checks<span class="hl sym">:</span>
+
+            self<span class="hl sym">.</span>cdata<span class="hl sym">[</span>check<span class="hl sym">.</span><span class="hl kwb">id</span><span class="hl sym">] = {</span><span class="hl str">&quot;data&quot;</span><span class="hl sym">: {</span><span class="hl str">&quot;down&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">,</span> <span class="hl str">&quot;up&quot;</span><span class="hl sym">:</span> <span class="hl num">0</span><span class="hl sym">},</span>
+                                    <span class="hl str">&quot;dates&quot;</span><span class="hl sym">: [],</span>
+                                    <span class="hl str">&quot;avgms&quot;</span><span class="hl sym">: []}</span>
+
+            self<span class="hl sym">.</span><span class="hl kwd">populate_check_keywords</span><span class="hl sym">(</span>check<span class="hl sym">)</span>
+
+            <span class="hl kwa">if</span> check<span class="hl sym">.</span>status <span class="hl sym">==</span> <span class="hl str">&quot;up&quot;</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;services_up&quot;</span><span class="hl sym">] +=</span> <span class="hl num">1</span>
+            <span class="hl kwa">elif</span> check<span class="hl sym">.</span>status <span class="hl sym">==</span> <span class="hl str">&quot;down&quot;</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;services_down&quot;</span><span class="hl sym">] +=</span> <span class="hl num">1</span>
+            <span class="hl kwa">else</span><span class="hl sym">:</span>
+                self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;services_unknown&quot;</span><span class="hl sym">] +=</span> <span class="hl num">1</span>
+
+            counter <span class="hl sym">=</span> <span class="hl num">0</span>
+            <span class="hl kwa">for</span> <span class="hl sym">(</span>timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> _<span class="hl sym">)</span> <span class="hl kwa">in</span> days_timeranges<span class="hl sym">:</span>
+                self<span class="hl sym">.</span><span class="hl kwd">get_check_averages</span><span class="hl sym">(</span>check<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> counter<span class="hl sym">)</span>
+                self<span class="hl sym">.</span><span class="hl kwd">get_check_outages</span><span class="hl sym">(</span>check<span class="hl sym">,</span> timefrom<span class="hl sym">,</span> timeto<span class="hl sym">,</span> today_night<span class="hl sym">,</span> counter<span class="hl sym">)</span>
+                counter <span class="hl sym">+=</span> <span class="hl num">1</span>
+
+        self<span class="hl sym">.</span><span class="hl kwd">calculate_uptime_data</span><span class="hl sym">()</span>
+
+        self<span class="hl sym">.</span>data<span class="hl sym">[</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl sym">] = {</span><span class="hl str">&quot;unix&quot;</span><span class="hl sym">:</span> time<span class="hl sym">.</span><span class="hl kwd">time</span><span class="hl sym">(),</span>
+             <span class="hl str">&quot;human&quot;</span><span class="hl sym">:</span> datetime<span class="hl sym">.</span>datetime<span class="hl sym">.</span><span class="hl kwd">now</span><span class="hl sym">().</span><span class="hl kwd">strftime</span><span class="hl sym">(</span><span class="hl str">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="hl sym">)}</span>
+
+
+    <span class="hl kwa">def</span> <span class="hl kwd">save</span><span class="hl sym">(</span>self<span class="hl sym">):</span>
+        <span class="hl str">&quot;&quot;&quot; Save data to services.json &quot;&quot;&quot;</span>
+        <span class="hl kwb">open</span><span class="hl sym">(</span><span class="hl str">&quot;../services.json&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl sym">).</span><span class="hl kwd">write</span><span class="hl sym">(</span>json<span class="hl sym">.</span><span class="hl kwd">dumps</span><span class="hl sym">({</span><span class="hl str">&quot;overall&quot;</span><span class="hl sym">:</span> self<span class="hl sym">.</span>data<span class="hl sym">,</span> <span class="hl str">&quot;per_service&quot;</span><span class="hl sym">:</span> self<span class="hl sym">.</span>cdata<span class="hl sym">}))</span>
+
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl sym">():</span>
+    <span class="hl str">&quot;&quot;&quot; Run pingdom statistics &quot;&quot;&quot;</span>
+    pingdomstats <span class="hl sym">=</span> <span class="hl kwd">Pingdomrun</span><span class="hl sym">()</span>
+    pingdomstats<span class="hl sym">.</span><span class="hl kwd">run</span><span class="hl sym">()</span>
+    pingdomstats<span class="hl sym">.</span><span class="hl kwd">save</span><span class="hl sym">()</span>
+
+<span class="hl kwa">if</span> __name__ <span class="hl sym">==</span> <span class="hl str">'__main__'</span><span class="hl sym">:</span>
+    <span class="hl kwd">main</span><span class="hl sym">()</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 2.12, http://www.andre-simon.de/-->

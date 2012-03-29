@@ -50,3 +50,4 @@ To this code:
 * Move *backend/pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
 * Add *backend/fetch_pingdom.py* to crontab
 * Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
+* Add carousel (on what? page) images to *img/carousel/*. We recommend 1200x400, but you can use whatever resolution you want. UI doesn't scale images.

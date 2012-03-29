@@ -1,22 +1,26 @@
-all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js
+all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js
 
 css/combined.min.css: css/combined.css
-	yui-compress css/combined.css > css/combined.min.css
+	yui-compressor css/combined.css > css/combined.min.css
 	chmod 644 css/combined.min.css
 
-css/combined.css:
+css/combined.css: css/bootstrap.min.css css/bootstrap-responsive.min.css css/custom.css
 	cat css/bootstrap.min.css css/bootstrap-responsive.min.css css/custom.css > css/combined.css
 	chmod 644 css/combined.css
 
 js/services.min.js: js/services.js
-	yui-compress js/services.js > js/services.min.js
+	yui-compressor js/services.js > js/services.min.js
 	chmod 644 js/services.min.js
 
+js/main.min.js: js/main.js
+	yui-compressor js/main.js > js/main.min.js
+	chmod 644 js/main.min.js
+
 js/combined.min.js: js/combined.js
-	yui-compress js/combined.js > js/combined.min.js
+	yui-compressor js/combined.js > js/combined.min.js
 	chmod 644 js/combined.min.js
 
-js/combined.js:
+js/combined.js: js/000-jquery.js js/100-bootstrap.js js/110-bootstrap-alert.js js/110-bootstrap-button.js js/110-bootstrap-carousel.js js/110-bootstrap-collapse.js js/110-bootstrap-dropdown.js js/110-bootstrap-modal.js js/110-bootstrap-popover.js js/110-bootstrap-scrollspy.js js/110-bootstrap-tab.js js/110-bootstrap-tooltip.js js/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/800-raphael.js js/801-raphael-sparkline.js js/802-raphael-impact.js js/803-raphael-pie.js js/804-raphael-dots.js js/999-custom.js
 	cat js/???-*.js > js/combined.js
 	chmod 644 js/combined.js
 

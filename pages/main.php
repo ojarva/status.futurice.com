@@ -1,11 +1,5 @@
-<?
-$tickets_json = json_decode(file_get_contents("ittickets.json"), true);
-$unique_7d = $tickets_json["data"]["unique_manual_7d"];
-$services_json = json_decode(file_get_contents("services.json"), true);
-$services_up = $services_json["overall"]["services_up"];
-$services_unknown = $services_json["overall"]["services_unknown"];
-$services_down = $services_json["overall"]["services_down"];
-?>
+<script src="/js/main.min.js"></script>
+
       <div class="hero-unit">
         <h1>Status information from Futurice</h1>
         <p>This site shows some information from <a href="http://www.futurice.com/">Futurice</a> IT services. We try to promote transparency in everything we do, and publishing our server and network status is part of that.</p>
@@ -30,14 +24,19 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
 </div>
 */?>
 
+<div class="row">
+	<div class="span12">
+		<div id="notify-box"></div>
+	</div>
+</div>
 
       <div class="row">
         <div class="span4">
           <h2>Services</h2>
 	<p>
-<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be down. Service might be down for maintenance, or monitoring might be broken."><span class="badge badge-error"><?=$services_down;?></span></a>
-<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that might be down. We can't detect everything with automatic monitoring, and sometimes monitoring system isn't sure."><span class="badge badge-warning"><?=$services_unknown;?></span></a>
-<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be up. Sometimes automatic monitoring doesn't catch all errors, so service might be inaccessible in fact."><span class="badge badge-success"><?=$services_up;?></span></a>
+<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be down. Service might be down for maintenance, or monitoring might be broken."><span class="badge badge-error" id="services_down"><img src="/img/loading-inline-micro.gif"></span></a>
+<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that might be down. We can't detect everything with automatic monitoring, and sometimes monitoring system isn't sure."><span class="badge badge-warning" id="services_unknown"><img src="/img/loading-inline-micro.gif"></span></a>
+<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be up. Sometimes automatic monitoring doesn't catch all errors, so service might be inaccessible in fact."><span class="badge badge-success" id="services_up"><img src="/img/loading-inline-micro.gif"></span></a>
 </p>
            <p>We are monitoring IT services and servers using Pingdom. Also, we have an internal Zabbix server, but unfortunately it contains great deal of confidential client information, so it's not available here.</p>
           <p><a class="btn" href="/page/services">View status &raquo;</a>
@@ -55,7 +54,7 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
         <div class="span4">
           <h2>IT tickets</h2>
 	<p>
-<a href="/page/ittickets" rel="popover" data-original-title="What?" data-content="This is the number of tickets received by IT team during last 7 days. Automatic tickets are excluded from this number."><span class="badge badge-info"><?=$unique_7d;?></span></a>
+<a href="/page/ittickets" rel="popover" data-original-title="What?" data-content="This is the number of tickets received by IT team during last 7 days. Automatic tickets are excluded from this number."><span class="badge badge-info" id="unique_7d"><img src="/img/loading-inline-micro.gif"></span></a>
  tickets during previous 7 days.</p>
           <p>Our IT team handles tasks and resolves all kind of problems from employees and clients. For that, we are using RT. We can't tell who sends messages and we don't have classifications for ticket complexity, but best we can do is to publish amount of handled tickets.</p>
           <p><a class="btn" href="/page/ittickets">View statistics &raquo;</a>

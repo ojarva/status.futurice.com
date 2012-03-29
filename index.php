@@ -20,7 +20,7 @@ $pages = array(array("/", "Home"),
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" manifest="/cache.appcache">
   <head>
     <meta charset="utf-8">
     <title>status.futurice.com</title>
@@ -66,10 +66,10 @@ require_once("pages/$pagename.php");
 ?>
 
 
-      <hr>
+      <hr style="padding-top: 5em">
 
-      <footer>
-        <p>&copy; Futurice 2012</p>
+      <footer id="twitter_footer">
+
       </footer>
 
     </div> <!-- /container -->
