@@ -3,10 +3,10 @@ Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";
 if (isset($_GET["page"])) {
  $temp = basename($_GET["page"]);
- $temp = str_replace("-", "", $temp);
  if ($temp == "network-map") {
   $pagename = "netmap";
  }
+ $temp = str_replace("-", "", $temp);
  if (file_exists("pages/$temp.php")) {
   $pagename = $temp;
  }
