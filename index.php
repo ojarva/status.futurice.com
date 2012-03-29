@@ -11,12 +11,12 @@ if (isset($_GET["page"])) {
   $pagename = $temp;
  }
 }
-$pages = array(array("main", "Home"),
-	array("services", "Services"),
-	array("network-map", "Network map"),
-	array("it-tickets", "IT tickets"),
-	array("what", "What?"),
-	array("todo", "TODO"));
+$pages = array(array("/", "Home"),
+	array("/page/services", "Services"),
+	array("/page/network-map", "Network map"),
+	array("/page/it-tickets", "IT tickets"),
+	array("/page/what", "What?"),
+	array("/page/todo", "TODO"));
 ?>
 
 <!DOCTYPE html>
@@ -45,12 +45,12 @@ $pages = array(array("main", "Home"),
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="/page/main">status</a>
+          <a class="brand" href="/">status</a>
           <div class="nav-collapse">
             <ul class="nav">
 <?
  foreach ($pages as $k => $v) {
-  ?><li<?if ($v[0] == $pagename) {?> class="active"<?}?>><a href="/page/<?=$v[0];?>"><?=$v[1];?></a></li><?
+  ?><li<?if ($v[0] == $pagename) {?> class="active"<?}?>><a href="<?=$v[0];?>"><?=$v[1];?></a></li><?
  }
 ?>
             </ul>
