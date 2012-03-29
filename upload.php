@@ -13,6 +13,7 @@ $what_allowed = array("ittickets.json", "netmap.png");
 header('Cache-Control: no-cache, no-store, max-age=0, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 header('Pragma: no-cache');
+header("content-type: application/json");
 
 function response($success, $status) {
  return json_encode(array("success" => $success, "status" => $status));
