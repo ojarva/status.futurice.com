@@ -7,8 +7,9 @@ This folder includes backend components for updating relevant data. These are no
 What to do with these?
 ----------------------
 
-* *fetch_rt.py* - this script fetches ["IT tickets" page](http://status.futurice.com/page/ittickets) data directly from RT database. RT API wasn't good enough, and using database directly seemed like a good idea.
+* *fetch_rt.py* - this script fetches ["IT tickets" page](http://status.futurice.com/page/it-tickets) data directly from RT database. RT API wasn't good enough, and using database directly seemed like a good idea.
 * *fetch_pingdom.py* - fetches Pingdom data through rather good Pingdom API.
+* *fetch_twitter.py* - fetches information from Twitter. Give twitter username as first argument (*python fetch_twitter.py futurice*). Add this to crontab.
 * *cache/* - cached JSON files from *fetch_pingdom.py*
 * *../upload.php* receiver script for network map images and *fetch_rt.py* script.
 
