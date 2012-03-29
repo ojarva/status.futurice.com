@@ -9,9 +9,9 @@ improve public status pages, so we decided to make our own.
 Want to use this?
 -----------------
 
-Feel free to! All code provided by us is licensed with BSD license. See LICENSE.md for more information.
-Some parts are licensed with GPL, for example [icon set by Alexandra Wolska](http://handdrawing.olawolska.com/).
-
+Feel free to! All code provided by us is licensed with BSD license. See 
+LICENSE.md for more information. Some parts have other licenses, MIT and
+Apache license and CC (commercial usage allowed). 
 
 Our setup
 ---------
