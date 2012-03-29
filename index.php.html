@@ -7,6 +7,7 @@
 </head>
 <body class="hl">
 <pre class="hl"><span class="hl sym">&lt;</span>?php
+<span class="hl kwd">Header</span><span class="hl sym">(</span><span class="hl str">&quot;Content-Type: text/html; charset=utf-8&quot;</span><span class="hl sym">);</span>
 <span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl str">&quot;main&quot;</span><span class="hl sym">;</span>
 <span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwa">isset</span><span class="hl sym">(</span><span class="hl kwc">$_GET</span><span class="hl sym">[</span><span class="hl str">&quot;page&quot;</span><span class="hl sym">])) {</span>
  <span class="hl kwc">$temp</span> <span class="hl sym">=</span> <span class="hl kwd">basename</span><span class="hl sym">(</span><span class="hl kwc">$_GET</span><span class="hl sym">[</span><span class="hl str">&quot;page&quot;</span><span class="hl sym">]);</span>
@@ -31,11 +32,11 @@
     <span class="hl sym">&lt;</span>meta name<span class="hl sym">=</span><span class="hl str">&quot;description&quot;</span> content<span class="hl sym">=</span><span class="hl str">&quot;Futurice IT status&quot;</span><span class="hl sym">&gt;</span>
     <span class="hl sym">&lt;</span>meta name<span class="hl sym">=</span><span class="hl str">&quot;author&quot;</span> content<span class="hl sym">=</span><span class="hl str">&quot;Olli Jarva&quot;</span><span class="hl sym">&gt;</span>
 
-    <span class="hl sym">&lt;</span>link href<span class="hl sym">=</span><span class="hl str">&quot;css/combined.min.css&quot;</span> rel<span class="hl sym">=</span><span class="hl str">&quot;stylesheet&quot;</span><span class="hl sym">&gt;</span>
+    <span class="hl sym">&lt;</span>link href<span class="hl sym">=</span><span class="hl str">&quot;/css/combined.min.css&quot;</span> rel<span class="hl sym">=</span><span class="hl str">&quot;stylesheet&quot;</span><span class="hl sym">&gt;</span>
     <span class="hl sym">&lt;!--[</span><span class="hl kwa">if</span> lt IE <span class="hl num">9</span><span class="hl sym">]&gt;</span>
       <span class="hl sym">&lt;</span>script src<span class="hl sym">=</span><span class="hl str">&quot;http://html5shim.googlecode.com/svn/trunk/html5.js&quot;</span><span class="hl sym">&gt;&lt;/</span>script<span class="hl sym">&gt;</span>
     <span class="hl sym">&lt;![</span><span class="hl kwa">endif</span><span class="hl sym">]--&gt;</span>
-    <span class="hl sym">&lt;</span>script src<span class="hl sym">=</span><span class="hl str">&quot;js/combined.min.js&quot;</span><span class="hl sym">&gt;&lt;/</span>script<span class="hl sym">&gt;</span>
+    <span class="hl sym">&lt;</span>script src<span class="hl sym">=</span><span class="hl str">&quot;/js/combined.min.js&quot;</span><span class="hl sym">&gt;&lt;/</span>script<span class="hl sym">&gt;</span>
   <span class="hl sym">&lt;/</span>head<span class="hl sym">&gt;</span>
 
   <span class="hl sym">&lt;</span>body<span class="hl sym">&gt;</span>
@@ -48,12 +49,12 @@
             <span class="hl sym">&lt;</span>span <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl sym">&gt;&lt;/</span>span<span class="hl sym">&gt;</span>
             <span class="hl sym">&lt;</span>span <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl sym">&gt;&lt;/</span>span<span class="hl sym">&gt;</span>
           <span class="hl sym">&lt;/</span>a<span class="hl sym">&gt;</span>
-          <span class="hl sym">&lt;</span>a <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;brand&quot;</span> href<span class="hl sym">=</span><span class="hl str">&quot;?page=main&quot;</span><span class="hl sym">&gt;</span>status<span class="hl sym">&lt;/</span>a<span class="hl sym">&gt;</span>
+          <span class="hl sym">&lt;</span>a <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;brand&quot;</span> href<span class="hl sym">=</span><span class="hl str">&quot;/page/main&quot;</span><span class="hl sym">&gt;</span>status<span class="hl sym">&lt;/</span>a<span class="hl sym">&gt;</span>
           <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;nav-collapse&quot;</span><span class="hl sym">&gt;</span>
             <span class="hl sym">&lt;</span>ul <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;nav&quot;</span><span class="hl sym">&gt;</span>
 <span class="hl sym">&lt;</span>?
  <span class="hl kwa">foreach</span> <span class="hl sym">(</span><span class="hl kwc">$pages</span> <span class="hl kwa">as</span> <span class="hl kwc">$k</span> <span class="hl sym">=&gt;</span> <span class="hl kwc">$v</span><span class="hl sym">) {</span>
-  ?<span class="hl sym">&gt;&lt;</span>li<span class="hl sym">&lt;</span>?<span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwc">$v</span><span class="hl sym">[</span><span class="hl num">0</span><span class="hl sym">] ==</span> <span class="hl kwc">$pagename</span><span class="hl sym">) {</span>?<span class="hl sym">&gt;</span> <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;active&quot;</span><span class="hl sym">&lt;</span>?<span class="hl sym">}</span>?<span class="hl sym">&gt;&gt;&lt;</span>a href<span class="hl sym">=</span><span class="hl str">&quot;?page=&lt;?=$v[0];?&gt;&quot;</span><span class="hl sym">&gt;&lt;</span>?<span class="hl sym">=</span><span class="hl kwc">$v</span><span class="hl sym">[</span><span class="hl num">1</span><span class="hl sym">];</span>?<span class="hl sym">&gt;&lt;/</span>a<span class="hl sym">&gt;&lt;/</span>li<span class="hl sym">&gt;&lt;</span>?
+  ?<span class="hl sym">&gt;&lt;</span>li<span class="hl sym">&lt;</span>?<span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwc">$v</span><span class="hl sym">[</span><span class="hl num">0</span><span class="hl sym">] ==</span> <span class="hl kwc">$pagename</span><span class="hl sym">) {</span>?<span class="hl sym">&gt;</span> <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;active&quot;</span><span class="hl sym">&lt;</span>?<span class="hl sym">}</span>?<span class="hl sym">&gt;&gt;&lt;</span>a href<span class="hl sym">=</span><span class="hl str">&quot;/page/&lt;?=$v[0];?&gt;&quot;</span><span class="hl sym">&gt;&lt;</span>?<span class="hl sym">=</span><span class="hl kwc">$v</span><span class="hl sym">[</span><span class="hl num">1</span><span class="hl sym">];</span>?<span class="hl sym">&gt;&lt;/</span>a<span class="hl sym">&gt;&lt;/</span>li<span class="hl sym">&gt;&lt;</span>?
  <span class="hl sym">}</span>
 ?<span class="hl sym">&gt;</span>
             <span class="hl sym">&lt;/</span>ul<span class="hl sym">&gt;</span>
