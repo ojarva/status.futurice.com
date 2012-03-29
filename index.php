@@ -3,14 +3,18 @@ Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";
 if (isset($_GET["page"])) {
  $temp = basename($_GET["page"]);
+ $temp = str_replace("-", "", $temp);
+ if ($temp == "network-map") {
+  $pagename = "netmap";
+ }
  if (file_exists("pages/$temp.php")) {
   $pagename = $temp;
  }
 }
 $pages = array(array("main", "Home"),
 	array("services", "Services"),
-	array("netmap", "Network map"),
-	array("ittickets", "IT tickets"),
+	array("network-map", "Network map"),
+	array("it-tickets", "IT tickets"),
 	array("what", "What?"),
 	array("todo", "TODO"));
 ?>

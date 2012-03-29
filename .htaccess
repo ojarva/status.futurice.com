@@ -13,6 +13,7 @@
 
 RewriteEngine On
 RewriteRule ^/page/([a-z]+)$ /index.php?page=$1 [QSA,L]
+RewriteRule ^/page/([a-z-]+)$ /index.php?page=$1 [QSA,L]
 
 AddDefaultCharset UTF-8
 AddCharset UTF-8 .html
