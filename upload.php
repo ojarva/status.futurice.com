@@ -8,11 +8,18 @@ require_once("upload_settings.php");
 (typically apache, httpd or www-data) is allowed to write to these files */
 $what_allowed = array("ittickets.json", "netmap.png");
 
+
+// Do not cache
+header('Cache-Control: no-cache, no-store, max-age=0, must-revalidate');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header('Pragma: no-cache');
+
 function response($success, $status) {
  return json_encode(array("success" => $success, "status" => $status));
 }
 
 if ($_POST["password"] != $password) {
+ Header('HTTP/1.1 403 Forbidden');
  echo response(false, "Wrong password");
  exit(0);
 }
