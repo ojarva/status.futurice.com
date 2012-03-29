@@ -11,14 +11,18 @@
 <span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl str">&quot;main&quot;</span><span class="hl sym">;</span>
 <span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwa">isset</span><span class="hl sym">(</span><span class="hl kwc">$_GET</span><span class="hl sym">[</span><span class="hl str">&quot;page&quot;</span><span class="hl sym">])) {</span>
  <span class="hl kwc">$temp</span> <span class="hl sym">=</span> <span class="hl kwd">basename</span><span class="hl sym">(</span><span class="hl kwc">$_GET</span><span class="hl sym">[</span><span class="hl str">&quot;page&quot;</span><span class="hl sym">]);</span>
+ <span class="hl kwc">$temp</span> <span class="hl sym">=</span> <span class="hl kwd">str_replace</span><span class="hl sym">(</span><span class="hl str">&quot;-&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;&quot;</span><span class="hl sym">,</span> <span class="hl kwc">$temp</span><span class="hl sym">);</span>
+ <span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwc">$temp</span> <span class="hl sym">==</span> <span class="hl str">&quot;network-map&quot;</span><span class="hl sym">) {</span>
+  <span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl str">&quot;netmap&quot;</span><span class="hl sym">;</span>
+ <span class="hl sym">}</span>
  <span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwd">file_exists</span><span class="hl sym">(</span><span class="hl str">&quot;pages/$temp.php&quot;</span><span class="hl sym">)) {</span>
   <span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl kwc">$temp</span><span class="hl sym">;</span>
  <span class="hl sym">}</span>
 <span class="hl sym">}</span>
 <span class="hl kwc">$pages</span> <span class="hl sym">=</span> <span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;main&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Home&quot;</span><span class="hl sym">),</span>
 	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;services&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Services&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;netmap&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Network map&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;ittickets&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;IT tickets&quot;</span><span class="hl sym">),</span>
+	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;network-map&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Network map&quot;</span><span class="hl sym">),</span>
+	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;it-tickets&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;IT tickets&quot;</span><span class="hl sym">),</span>
 	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;what&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;What?&quot;</span><span class="hl sym">),</span>
 	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;todo&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;TODO&quot;</span><span class="hl sym">));</span>
 ?<span class="hl sym">&gt;</span>
