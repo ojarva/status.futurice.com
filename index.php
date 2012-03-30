@@ -17,6 +17,15 @@ $pages = array(array("/", "Home"),
 	array("/page/it-tickets", "IT tickets"),
 	array("/page/what", "What?"),
 	array("/page/todo", "TODO"));
+
+function callback($buffer) {
+ $buffer = str_replace("\r\n", " ", $buffer);
+ $buffer = str_replace("\n", " ", $buffer);
+ $buffer = str_replace("\t", " ", $buffer);
+ $buffer = preg_replace( '/\s+/', ' ', $buffer);
+ return $buffer;
+}
+ob_start("callback");
 ?>
 
 <!DOCTYPE html>
@@ -45,7 +54,7 @@ $pages = array(array("/", "Home"),
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="/">status</a>
+          <a class="brand" href="/">Status</a>
           <div class="nav-collapse">
             <ul class="nav">
 <?
@@ -67,6 +76,9 @@ $pages = array(array("/", "Home"),
 </div>
 
 <?
+ob_end_flush();
+
+ob_start("callback");
 require_once("pages/$pagename.php");
 ?>
 
@@ -81,4 +93,6 @@ require_once("pages/$pagename.php");
 
   </body>
 </html>
-
+<?
+ob_end_flush();
+?>
