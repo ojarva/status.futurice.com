@@ -4875,38 +4875,44 @@ $(document).ready(function () {
 // Check if a new cache is available on page load.
 window.addEventListener('load', function(e) {
 
-  window.applicationCache.addEventListener('updateready', function(e) {
-    if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-      // Browser downloaded a new app cache.
-      // Swap it in and reload the page to get the new hotness.
-      window.applicationCache.swapCache();
-      $("#cache-status").show();
-      $("#reload-button").html("New version available");
-      $("#reload-button").data("action", "reload");
-      if (confirm('A new version of this site is available. Load it?')) {
-        window.location.reload();
-      }
-    } else {
-      // Manifest didn't changed. Nothing new to server.
-    }
-  }, false);
+    window.applicationCache.addEventListener('updateready', function(e) {
+        if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+            // Browser downloaded a new app cache.
+            // Swap it in and reload the page
+            window.applicationCache.swapCache();
+            $("#cache-status").show();
+            $("#reload-button").html("New version available");
+            $("#reload-button").data("action", "reload");
+            if (confirm('A new version of this site is available. Load it?')) {
+                window.location.reload();
+            }
+        } else {
+            // Manifest didn't changed. Nothing new to server.
+        }
+    }, false);
 }, false);
 
 
 try {
- window.applicationCache.addEventListener("progress", function(e) {
-    $("#reload-button").html("Downloading...");
-    $("#cache-update-status").show();
-    $("#cache-update-status > .progress > .bar").css("width", (e.loaded / e.total*100)+"%");
-    if (e.loaded == e.total) {
-      $("#cache-update-status").hide();
-    }
- }, false);
- applicationCache;
- setInterval("applicationCache.update();", 1000*60*60);
+    window.applicationCache.addEventListener("progress", function(e) {
+        $("#reload-button").html("Downloading...");
+        $("#cache-update-status").show();
+        $("#cache-update-status > .progress > .bar").css("width", (e.loaded / e.total*100)+"%");
+        if (e.loaded == e.total) {
+            $("#cache-update-status").hide();
+        }
+    }, false);
+
+    window.applicationCache.addEventListener("cached", function(e) {
+        $("#reload-button").html("Page cached");
+    }, false);
+
+    applicationCache;
+    setInterval("applicationCache.update();", 1000*60*60);
+
 } catch(e) {
- $("#cache-update-status").hide();
- $("#cache-status").hide();
+    $("#cache-update-status").hide();
+    $("#cache-status").hide();
 }
 
 jQuery.fn.urlize = function() {

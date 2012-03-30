@@ -1,4 +1,4 @@
-all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js
+all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js
 
 css/combined.min.css: css/combined.css
 	yui-compressor css/combined.css > css/combined.min.css
@@ -20,6 +20,16 @@ js/combined.raphael.js: js/r-800-raphael.js js/r-801-raphael-sparkline.js js/r-8
 js/services.min.js: js/services.js
 	yui-compressor js/services.js > js/services.min.js
 	chmod 644 js/services.min.js
+
+js/netmap.min.js: js/netmap.js
+	yui-compressor js/netmap.js > js/netmap.min.js
+	chmod 644 js/netmap.min.js
+
+js/ittickets.min.js: js/ittickets.js
+	yui-compressor js/ittickets.js > js/ittickets.min.js
+	chmod 644 js/ittickets.min.js
+
+
 
 js/main.min.js: js/main.js
 	yui-compressor js/main.js > js/main.min.js

@@ -1,6 +1,3 @@
-<script src="/js/combined.raphael.min.js"></script>
-
-<h1>IT tickets</h1>
 <style type="text/css" media="screen">
             #dotschart, #workflowchart {
                 width: 100%;
@@ -41,69 +38,13 @@
                 color: #666;
                 font-style: normal;
             }
-        </style>
-<script type="text/javascript">
-var ticketdata;
+</style>
 
-$(document).ready(function() {
- $.get("/ittickets.json", function(data) {
-  ticketdata = data.data;
-  update_data();
- });
-});
+<script src="/js/combined.raphael.min.js"></script>
+<script src="/js/ittickets.min.js"></script>
 
-function update_data() {
- $("#total-tickets-popover").data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
- $("#total-tickets-popover").data("original-title", "What?")
- $("#total-tickets-popover").data("placement", "top");
- $("#total-tickets-popover").attr("rel", "popover");
- $("#total-tickets-popover").popover();
- for (key in ticketdata) {
-  if ($("#"+key) != null) {
-    $("#"+key).html(ticketdata[key])
-  }
- }
+<h1>IT tickets <small><span id="status-timestamp"></span> <span id="next-reload"></span></small> <button class="btn btn-small" id="update_now_button">Update now <span id="progress-indicator"><img src="/img/loading-mini.gif"></span></button></h1>
 
-$("#workflowchart").slideUp();
-
-$("#dots_all").addClass("btn-info");
-$("#dotschart").dotsgraph({"data": ticketdata.dots.all});
-$("#dotschart").dotsgraph("update");
-
-
-$(".dots-btn").click(function() {
- if ($(this).hasClass("btn-info")) {
-  return;
- }
- $("#dotschart").slideDown();
- $("#workflowchart").slideUp();
- dictname = $(this).data("name");
- $("#dotschart").dotsgraph({"data": ticketdata["dots"][dictname]});
- $("#dotschart").dotsgraph("update");
- $(".dots-btn").removeClass("btn-info");
- $("#change_graph").removeClass("btn-info");
- $(this).addClass("btn-info");
- $("#placeholder").html("mouse over the circles for more details");
- $("#placeholder").removeClass("hidden");
- $("#name2").addClass("hidden");
-});
-
-$("#change_graph").click(function() {
- $("#placeholder").html("mouse over the graph for more details");
- $("#dotschart").slideUp();
- $("#workflowchart").html("");
- process(ticketdata.workflow);
- $("#workflowchart").removeClass("hidden");
- $("#workflowchart").slideDown();
- $(".dots-btn").removeClass("btn-info");
- $(this).addClass("btn-info");
-});
-
-emailpie_values = [ticketdata.other_users, ticketdata.futurice_users];
-emailpie_labels = ["External", "Internal"];
-Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emailpie_labels, "#fff");
-}
-</script>
 <div class="row">
 	<div class="span12">
 		<div class="btn-group">
@@ -122,22 +63,22 @@ Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emai
             <div id="username2">legend</div>
         </div>
         <div id="placeholder">mouse over the circles for more details</div>
-        <div id="dotschart"></div>
+        <div id="dotschart"><img src="/img/loading.gif"></div>
         <div id="workflowchart" class="hidden"></div>
 </div></div>
 
 <div class="row">
 	<div class="span3" rel="popover" data-original-title="What?" data-content="This is the number of new tickets. New tickets are not yet acknowledged. For example, it might be assigned to someone who didn't read it yet." data-placement="top">
 		<h2><small>New tickets</small></h2>
-		<h2 id="new_tickets"></h2>
+		<h2 id="new_tickets"><img src="/img/loading-inline.gif"></h2>
 	</div>
 	<div class="span3" rel="popover" data-original-title="What?" data-content="This is the number of currently open ticket. New tickets are not yet acknowledged" data-placement="top">
 		<h2><small>Open tickets</small></h2>
-		<h2 id="open_tickets"></h2>
+		<h2 id="open_tickets"><img src="/img/loading-inline.gif"></h2>
 	</div>
 	<div class="span3" id="total-tickets-popover">
 		<h2><small>Total number of tickets</small></h2>
-		<h2 id="all_tickets"></h2>
+		<h2 id="all_tickets"><img src="/img/loading-inline.gif"></h2>
 	</div>
 </div>
 
@@ -150,26 +91,26 @@ Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emai
 <div class="row">
 	<div class="span2">
 		<h2><small>Last 7 days</small></h2>
-		<h2 id="unique_manual_7d"></h2>
+		<h2 id="unique_manual_7d"><img src="/img/loading-inline.gif"></h2>
 	</div>
 	<div class="span2">
 		<h2><small>Last 30 days</small></h2>
-		<h2 id="unique_manual_30d"></h2>
+		<h2 id="unique_manual_30d"><img src="/img/loading-inline.gif"></h2>
 	</div>
 	<div class="span2">
 		<h2><small>Last 365 days</small></h2>
-		<h2 id="unique_manual_365d"></h2>
+		<h2 id="unique_manual_365d"><img src="/img/loading-inline.gif"></h2>
 	</div>
 	<div class="span2">
 		<h2><small>All-time</small></h2>
-		<h2 id="unique_manual"></h2>
+		<h2 id="unique_manual"><img src="/img/loading-inline.gif"></h2>
 	</div>
 </div>
 
 <div class="row" style="padding-top:2em">
 	<div class="span4">
 		<h1>Ticket sources</h1>
-		<div id="emailpieholder"></div>
+		<div id="emailpieholder"><img src="/img/loading.gif"></div>
 	</div>
 </div>
 

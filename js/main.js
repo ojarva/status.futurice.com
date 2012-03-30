@@ -1,4 +1,4 @@
-$(document).ready(function () {
+function update_frontpage() {
     $.get("/frontpage_json.php", function (data) {
         for (key in data.autofill) {
             if ($("#" + key) !== null) {
@@ -6,4 +6,9 @@ $(document).ready(function () {
             }
         }
     }, "json");
+    setTimeout("update_frontpage()", 1000*60);
+}
+
+$(document).ready(function () {
+   update_frontpage();
 });

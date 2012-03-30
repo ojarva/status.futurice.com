@@ -1,10 +1,14 @@
+var paused = false;
 function update_next_reload() {
     var next_reload = $("#next-reload").data("reload-timestamp");
+    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 1 * 60 * 1000);
     if (moment(next_reload) < moment()) {
         $("#next-reload").html("Next reload right now");
+        update_data();
     } else {
         $("#next-reload").html("Next reload " + moment(next_reload).fromNow());
     }
+
     setTimeout("update_next_reload();", 1000);
 }
 
@@ -42,7 +46,6 @@ function refresh_popovers() {
 function update_data() {
 
     function process_data() {
-        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 15 * 60 * 1000);
 
         function add_popover(element, title, content) {
             element.attr("rel", "popover");
@@ -152,24 +155,33 @@ function update_data() {
 
     $("#progress-indicator").show();
     $("#update_now_button").addClass("disabled");
-    clearTimeout($("body").data("update_data_timeout"));
     $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime()/100), function(data) {
         $("body").data("services_data", data);
         process_data();
-        $("body").data("update_data_timeout", setTimeout("update_data();", 1000*60*15)); // fetch data every 15 minutes
         $("#update_now_button").removeClass("disabled");
     });
 }
 
 $(document).ready(function() {
+    $(window).blur(function () {
+        paused = true;
+        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 30 * 60 * 1000);
+    });
+
+    $(window).focus(function () {
+        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 1 * 60 * 1000);
+        paused = false;
+        if ($("#next-reload").data("reloaded") > 0 && (((new Date()).getTime() * 1000) - $("#next-reload").data("reloaded")) > 1000 * 60 * 2) {
+            update_data();
+        }
+    });
+
     // Set initial reload timestamp
-    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 15 * 60 * 1000);
+    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 1 * 60 * 1000);
     // Start updating "Next reload in..."
     update_next_reload();
     // Refresh popovers once per minute
     setInterval("refresh_popovers();", 1000*60);
-
-    // Fetch all data
     update_data();
     $("#update_now_button").click(function() {
         update_data();

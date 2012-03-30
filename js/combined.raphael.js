@@ -6037,28 +6037,28 @@ Raphael.fn.pieChart = function (cx, cy, r, values, labels, stroke) {
                 var axisx = options.data.xtitles,
                     axisy = options.data.ytitles;
                 if (! $(this).data("dotsgraph_settings")) {
-                        // Draw
-                        var width = 800,
-                            height = 300,
-                            leftgutter = 30,
-                            bottomgutter = 20,
-                            r = Raphael("dotschart", width, height),
-                            txt = {"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#000"},
-                            X = (width - leftgutter) / axisx.length,
-                            Y = (height - bottomgutter) / axisy.length,
-                            color = $("#chart").css("color"),
-                            max = Math.round(X / 2) - 1;
-                        var dotsgraph_settings = {"width": width, "height": height, "leftgutter": leftgutter, "bottomgutter": bottomgutter, "r": r, "txt": txt, "X": X, "Y": Y, "color": color, "max": max};
-                        $(this).data("dotsgraph_settings", dotsgraph_settings);
-                        // Draw axis
-                        for (var i = 0, ii = axisx.length; i < ii; i++) {
-                            var tmptext = r.text(0, 294, axisx[i]).attr(txt);
-                            tmptext.animate({x: leftgutter + X * (i + .5), y: 294}, 2180, "bounce");
-                        }
-                        for (var i = 0, ii = axisy.length; i < ii; i++) {
-                            var tmptext = r.text(10, 0, axisy[i]).attr(txt);
-                            tmptext.animate({x: 10, y: Y * (i + .5)}, 2050, "bounce");
-                        }
+                    // Draw
+                    var width = 800,
+                        height = 300,
+                        leftgutter = 30,
+                        bottomgutter = 20,
+                        r = Raphael("dotschart", width, height),
+                        txt = {"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#000"},
+                        X = (width - leftgutter) / axisx.length,
+                        Y = (height - bottomgutter) / axisy.length,
+                        color = $("#chart").css("color"),
+                        max = Math.round(X / 2) - 1;
+                    var dotsgraph_settings = {"width": width, "height": height, "leftgutter": leftgutter, "bottomgutter": bottomgutter, "r": r, "txt": txt, "X": X, "Y": Y, "color": color, "max": max};
+                    $(this).data("dotsgraph_settings", dotsgraph_settings);
+                    // Draw axis
+                    for (var i = 0, ii = axisx.length; i < ii; i++) {
+                        var tmptext = r.text(0, 294, axisx[i]).attr(txt);
+                        tmptext.animate({x: leftgutter + X * (i + .5), y: 294}, 2180, "bounce");
+                    }
+                    for (var i = 0, ii = axisy.length; i < ii; i++) {
+                        var tmptext = r.text(10, 0, axisy[i]).attr(txt);
+                        tmptext.animate({x: 10, y: Y * (i + .5)}, 2050, "bounce");
+                    }
                 }
             });
         },

@@ -70,7 +70,7 @@ ob_start("callback");
              </li>
              <li id="cache-update-status" style="display:none">
                 <div class="progress progress-striped active" style="margin-bottom:0px; margin:10px; width:100px">
-                 <div class="bar" style="width: 30%;"></div>
+                 <div class="bar" style="width: 0%;"></div>
                 </div>
              </li>
             </ul>
