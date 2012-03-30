@@ -6,91 +6,105 @@
 <link rel="stylesheet" type="text/css" href="highlight.css">
 </head>
 <body class="hl">
-<pre class="hl"><span class="hl sym">&lt;</span>?php
-<span class="hl kwd">Header</span><span class="hl sym">(</span><span class="hl str">&quot;Content-Type: text/html; charset=utf-8&quot;</span><span class="hl sym">);</span>
-<span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl str">&quot;main&quot;</span><span class="hl sym">;</span>
-<span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwa">isset</span><span class="hl sym">(</span><span class="hl kwc">$_GET</span><span class="hl sym">[</span><span class="hl str">&quot;page&quot;</span><span class="hl sym">])) {</span>
- <span class="hl kwc">$temp</span> <span class="hl sym">=</span> <span class="hl kwd">basename</span><span class="hl sym">(</span><span class="hl kwc">$_GET</span><span class="hl sym">[</span><span class="hl str">&quot;page&quot;</span><span class="hl sym">]);</span>
- <span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwc">$temp</span> <span class="hl sym">==</span> <span class="hl str">&quot;network-map&quot;</span><span class="hl sym">) {</span>
-  <span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl str">&quot;netmap&quot;</span><span class="hl sym">;</span>
- <span class="hl sym">}</span>
- <span class="hl kwc">$temp</span> <span class="hl sym">=</span> <span class="hl kwd">str_replace</span><span class="hl sym">(</span><span class="hl str">&quot;-&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;&quot;</span><span class="hl sym">,</span> <span class="hl kwc">$temp</span><span class="hl sym">);</span>
- <span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwd">file_exists</span><span class="hl sym">(</span><span class="hl str">&quot;pages/$temp.php&quot;</span><span class="hl sym">)) {</span>
-  <span class="hl kwc">$pagename</span> <span class="hl sym">=</span> <span class="hl kwc">$temp</span><span class="hl sym">;</span>
- <span class="hl sym">}</span>
-<span class="hl sym">}</span>
-<span class="hl kwc">$pages</span> <span class="hl sym">=</span> <span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;/&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Home&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;/page/services&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Services&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;/page/network-map&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;Network map&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;/page/it-tickets&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;IT tickets&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;/page/what&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;What?&quot;</span><span class="hl sym">),</span>
-	<span class="hl kwa">array</span><span class="hl sym">(</span><span class="hl str">&quot;/page/todo&quot;</span><span class="hl sym">,</span> <span class="hl str">&quot;TODO&quot;</span><span class="hl sym">));</span>
-?<span class="hl sym">&gt;</span>
+<pre class="hl"><span class="hl opt">&lt;</span>?php
+<span class="hl kwd">Header</span><span class="hl opt">(</span><span class="hl str">&quot;Content-Type: text/html; charset=utf-8&quot;</span><span class="hl opt">);</span>
+<span class="hl kwc">$pagename</span> <span class="hl opt">=</span> <span class="hl str">&quot;main&quot;</span><span class="hl opt">;</span>
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;page&quot;</span><span class="hl opt">])) {</span>
+ <span class="hl kwc">$temp</span> <span class="hl opt">=</span> <span class="hl kwd">basename</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;page&quot;</span><span class="hl opt">]);</span>
+ <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$temp</span> <span class="hl opt">==</span> <span class="hl str">&quot;network-map&quot;</span><span class="hl opt">) {</span>
+  <span class="hl kwc">$pagename</span> <span class="hl opt">=</span> <span class="hl str">&quot;netmap&quot;</span><span class="hl opt">;</span>
+ <span class="hl opt">}</span>
+ <span class="hl kwc">$temp</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;-&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$temp</span><span class="hl opt">);</span>
+ <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwd">file_exists</span><span class="hl opt">(</span><span class="hl str">&quot;pages/$temp.php&quot;</span><span class="hl opt">)) {</span>
+  <span class="hl kwc">$pagename</span> <span class="hl opt">=</span> <span class="hl kwc">$temp</span><span class="hl opt">;</span>
+ <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+<span class="hl kwc">$pages</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Home&quot;</span><span class="hl opt">),</span>
+	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/services&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Services&quot;</span><span class="hl opt">),</span>
+	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/network-map&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Network map&quot;</span><span class="hl opt">),</span>
+	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/it-tickets&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;IT tickets&quot;</span><span class="hl opt">),</span>
+	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/what&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;What?&quot;</span><span class="hl opt">),</span>
+	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/todo&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;TODO&quot;</span><span class="hl opt">));</span>
 
-<span class="hl sym">&lt;!</span>DOCTYPE html<span class="hl sym">&gt;</span>
-<span class="hl sym">&lt;</span>html lang<span class="hl sym">=</span><span class="hl str">&quot;en&quot;</span> manifest<span class="hl sym">=</span><span class="hl str">&quot;/cache.appcache&quot;</span><span class="hl sym">&gt;</span>
-  <span class="hl sym">&lt;</span>head<span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;</span>meta charset<span class="hl sym">=</span><span class="hl str">&quot;utf-8&quot;</span><span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;</span>title<span class="hl sym">&gt;</span>status<span class="hl sym">.</span>futurice<span class="hl sym">.</span>com<span class="hl sym">&lt;/</span>title<span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;</span>meta name<span class="hl sym">=</span><span class="hl str">&quot;viewport&quot;</span> content<span class="hl sym">=</span><span class="hl str">&quot;width=device-width, initial-scale=1.0&quot;</span><span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;</span>meta name<span class="hl sym">=</span><span class="hl str">&quot;description&quot;</span> content<span class="hl sym">=</span><span class="hl str">&quot;Futurice IT status&quot;</span><span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;</span>meta name<span class="hl sym">=</span><span class="hl str">&quot;author&quot;</span> content<span class="hl sym">=</span><span class="hl str">&quot;Olli Jarva&quot;</span><span class="hl sym">&gt;</span>
+<span class="hl kwa">function</span> <span class="hl kwd">callback</span><span class="hl opt">(</span><span class="hl kwc">$buffer</span><span class="hl opt">) {</span>
+ <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
+ <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
+ <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\t</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
+ <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">preg_replace</span><span class="hl opt">(</span> <span class="hl str">'/\s+/'</span><span class="hl opt">,</span> <span class="hl str">' '</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
+ <span class="hl kwa">return</span> <span class="hl kwc">$buffer</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl kwd">ob_start</span><span class="hl opt">(</span><span class="hl str">&quot;callback&quot;</span><span class="hl opt">);</span>
+?<span class="hl opt">&gt;</span>
 
-    <span class="hl sym">&lt;</span>link href<span class="hl sym">=</span><span class="hl str">&quot;/css/combined.min.css&quot;</span> rel<span class="hl sym">=</span><span class="hl str">&quot;stylesheet&quot;</span><span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;!--[</span><span class="hl kwa">if</span> lt IE <span class="hl num">9</span><span class="hl sym">]&gt;</span>
-      <span class="hl sym">&lt;</span>script src<span class="hl sym">=</span><span class="hl str">&quot;http://html5shim.googlecode.com/svn/trunk/html5.js&quot;</span><span class="hl sym">&gt;&lt;/</span>script<span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;![</span><span class="hl kwa">endif</span><span class="hl sym">]--&gt;</span>
-    <span class="hl sym">&lt;</span>script src<span class="hl sym">=</span><span class="hl str">&quot;/js/combined.min.js&quot;</span><span class="hl sym">&gt;&lt;/</span>script<span class="hl sym">&gt;</span>
-  <span class="hl sym">&lt;/</span>head<span class="hl sym">&gt;</span>
+<span class="hl opt">&lt;!</span>DOCTYPE html<span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;</span>html lang<span class="hl opt">=</span><span class="hl str">&quot;en&quot;</span> manifest<span class="hl opt">=</span><span class="hl str">&quot;/cache.appcache&quot;</span><span class="hl opt">&gt;</span>
+  <span class="hl opt">&lt;</span>head<span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;</span>meta charset<span class="hl opt">=</span><span class="hl str">&quot;utf-8&quot;</span><span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;</span>title<span class="hl opt">&gt;</span>status<span class="hl opt">.</span>futurice<span class="hl opt">.</span>com<span class="hl opt">&lt;/</span>title<span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;</span>meta name<span class="hl opt">=</span><span class="hl str">&quot;viewport&quot;</span> content<span class="hl opt">=</span><span class="hl str">&quot;width=device-width, initial-scale=1.0&quot;</span><span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;</span>meta name<span class="hl opt">=</span><span class="hl str">&quot;description&quot;</span> content<span class="hl opt">=</span><span class="hl str">&quot;Futurice IT status&quot;</span><span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;</span>meta name<span class="hl opt">=</span><span class="hl str">&quot;author&quot;</span> content<span class="hl opt">=</span><span class="hl str">&quot;Olli Jarva&quot;</span><span class="hl opt">&gt;</span>
 
-  <span class="hl sym">&lt;</span>body<span class="hl sym">&gt;</span>
+    <span class="hl opt">&lt;</span>link href<span class="hl opt">=</span><span class="hl str">&quot;/css/combined.min.css&quot;</span> rel<span class="hl opt">=</span><span class="hl str">&quot;stylesheet&quot;</span><span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;!--[</span><span class="hl kwa">if</span> lt IE <span class="hl num">9</span><span class="hl opt">]&gt;</span>
+      <span class="hl opt">&lt;</span>script src<span class="hl opt">=</span><span class="hl str">&quot;http://html5shim.googlecode.com/svn/trunk/html5.js&quot;</span><span class="hl opt">&gt;&lt;/</span>script<span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;![</span><span class="hl kwa">endif</span><span class="hl opt">]--&gt;</span>
+    <span class="hl opt">&lt;</span>script src<span class="hl opt">=</span><span class="hl str">&quot;/js/combined.min.js&quot;</span><span class="hl opt">&gt;&lt;/</span>script<span class="hl opt">&gt;</span>
+  <span class="hl opt">&lt;/</span>head<span class="hl opt">&gt;</span>
 
-    <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;navbar navbar-fixed-top&quot;</span><span class="hl sym">&gt;</span>
-      <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;navbar-inner&quot;</span><span class="hl sym">&gt;</span>
-        <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;container&quot;</span><span class="hl sym">&gt;</span>
-          <span class="hl sym">&lt;</span>a <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;btn btn-navbar&quot;</span> data<span class="hl sym">-</span>toggle<span class="hl sym">=</span><span class="hl str">&quot;collapse&quot;</span> data<span class="hl sym">-</span>target<span class="hl sym">=</span><span class="hl str">&quot;.nav-collapse&quot;</span><span class="hl sym">&gt;</span>
-            <span class="hl sym">&lt;</span>span <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl sym">&gt;&lt;/</span>span<span class="hl sym">&gt;</span>
-            <span class="hl sym">&lt;</span>span <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl sym">&gt;&lt;/</span>span<span class="hl sym">&gt;</span>
-            <span class="hl sym">&lt;</span>span <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl sym">&gt;&lt;/</span>span<span class="hl sym">&gt;</span>
-          <span class="hl sym">&lt;/</span>a<span class="hl sym">&gt;</span>
-          <span class="hl sym">&lt;</span>a <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;brand&quot;</span> href<span class="hl sym">=</span><span class="hl str">&quot;/&quot;</span><span class="hl sym">&gt;</span>status<span class="hl sym">&lt;/</span>a<span class="hl sym">&gt;</span>
-          <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;nav-collapse&quot;</span><span class="hl sym">&gt;</span>
-            <span class="hl sym">&lt;</span>ul <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;nav&quot;</span><span class="hl sym">&gt;</span>
-<span class="hl sym">&lt;</span>?
- <span class="hl kwa">foreach</span> <span class="hl sym">(</span><span class="hl kwc">$pages</span> <span class="hl kwa">as</span> <span class="hl kwc">$k</span> <span class="hl sym">=&gt;</span> <span class="hl kwc">$v</span><span class="hl sym">) {</span>
-  ?<span class="hl sym">&gt;&lt;</span>li<span class="hl sym">&lt;</span>?<span class="hl kwa">if</span> <span class="hl sym">(</span><span class="hl kwc">$v</span><span class="hl sym">[</span><span class="hl num">0</span><span class="hl sym">] ==</span> <span class="hl kwc">$pagename</span><span class="hl sym">) {</span>?<span class="hl sym">&gt;</span> <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;active&quot;</span><span class="hl sym">&lt;</span>?<span class="hl sym">}</span>?<span class="hl sym">&gt;&gt;&lt;</span>a href<span class="hl sym">=</span><span class="hl str">&quot;&lt;?=$v[0];?&gt;&quot;</span><span class="hl sym">&gt;&lt;</span>?<span class="hl sym">=</span><span class="hl kwc">$v</span><span class="hl sym">[</span><span class="hl num">1</span><span class="hl sym">];</span>?<span class="hl sym">&gt;&lt;/</span>a<span class="hl sym">&gt;&lt;/</span>li<span class="hl sym">&gt;&lt;</span>?
- <span class="hl sym">}</span>
-?<span class="hl sym">&gt;</span>
-            <span class="hl sym">&lt;/</span>ul<span class="hl sym">&gt;</span>
-          <span class="hl sym">&lt;/</span>div<span class="hl sym">&gt;&lt;!--/.</span>nav<span class="hl sym">-</span>collapse <span class="hl sym">--&gt;</span>
-        <span class="hl sym">&lt;/</span>div<span class="hl sym">&gt;</span>
-      <span class="hl sym">&lt;/</span>div<span class="hl sym">&gt;</span>
-    <span class="hl sym">&lt;/</span>div<span class="hl sym">&gt;</span>
+  <span class="hl opt">&lt;</span>body<span class="hl opt">&gt;</span>
 
-    <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;container&quot;</span><span class="hl sym">&gt;</span>
-<span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;row&quot;</span><span class="hl sym">&gt;</span>
-        <span class="hl sym">&lt;</span>div <span class="hl kwa">class</span><span class="hl sym">=</span><span class="hl str">&quot;span12&quot;</span><span class="hl sym">&gt;</span>
-                <span class="hl sym">&lt;</span>div id<span class="hl sym">=</span><span class="hl str">&quot;notify-box&quot;</span><span class="hl sym">&gt;&lt;/</span>div<span class="hl sym">&gt;</span>
-        <span class="hl sym">&lt;/</span>div<span class="hl sym">&gt;</span>
-<span class="hl sym">&lt;/</span>div<span class="hl sym">&gt;</span>
+    <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;navbar navbar-fixed-top&quot;</span><span class="hl opt">&gt;</span>
+      <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;navbar-inner&quot;</span><span class="hl opt">&gt;</span>
+        <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;container&quot;</span><span class="hl opt">&gt;</span>
+          <span class="hl opt">&lt;</span>a <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;btn btn-navbar&quot;</span> data<span class="hl opt">-</span>toggle<span class="hl opt">=</span><span class="hl str">&quot;collapse&quot;</span> data<span class="hl opt">-</span>target<span class="hl opt">=</span><span class="hl str">&quot;.nav-collapse&quot;</span><span class="hl opt">&gt;</span>
+            <span class="hl opt">&lt;</span>span <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl opt">&gt;&lt;/</span>span<span class="hl opt">&gt;</span>
+            <span class="hl opt">&lt;</span>span <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl opt">&gt;&lt;/</span>span<span class="hl opt">&gt;</span>
+            <span class="hl opt">&lt;</span>span <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;icon-bar&quot;</span><span class="hl opt">&gt;&lt;/</span>span<span class="hl opt">&gt;</span>
+          <span class="hl opt">&lt;/</span>a<span class="hl opt">&gt;</span>
+          <span class="hl opt">&lt;</span>a <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;brand&quot;</span> href<span class="hl opt">=</span><span class="hl str">&quot;/&quot;</span><span class="hl opt">&gt;</span>Status<span class="hl opt">&lt;/</span>a<span class="hl opt">&gt;</span>
+          <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;nav-collapse&quot;</span><span class="hl opt">&gt;</span>
+            <span class="hl opt">&lt;</span>ul <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;nav&quot;</span><span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;</span>?
+ <span class="hl kwa">foreach</span> <span class="hl opt">(</span><span class="hl kwc">$pages</span> <span class="hl kwa">as</span> <span class="hl kwc">$k</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$v</span><span class="hl opt">) {</span>
+  ?<span class="hl opt">&gt;&lt;</span>li<span class="hl opt">&lt;</span>?<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] ==</span> <span class="hl kwc">$pagename</span><span class="hl opt">) {</span>?<span class="hl opt">&gt;</span> <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;active&quot;</span><span class="hl opt">&lt;</span>?<span class="hl opt">}</span>?<span class="hl opt">&gt;&gt;&lt;</span>a href<span class="hl opt">=</span><span class="hl str">&quot;&lt;?=$v[0];?&gt;&quot;</span><span class="hl opt">&gt;&lt;</span>?<span class="hl opt">=</span><span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">];</span>?<span class="hl opt">&gt;&lt;/</span>a<span class="hl opt">&gt;&lt;/</span>li<span class="hl opt">&gt;&lt;</span>?
+ <span class="hl opt">}</span>
+?<span class="hl opt">&gt;</span>
+            <span class="hl opt">&lt;/</span>ul<span class="hl opt">&gt;</span>
+          <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;&lt;!--/.</span>nav<span class="hl opt">-</span>collapse <span class="hl opt">--&gt;</span>
+        <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
+      <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
+    <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
 
-<span class="hl sym">&lt;</span>?
-<span class="hl kwa">require_once</span><span class="hl sym">(</span><span class="hl str">&quot;pages/$pagename.php&quot;</span><span class="hl sym">);</span>
-?<span class="hl sym">&gt;</span>
+    <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;container&quot;</span><span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;row&quot;</span><span class="hl opt">&gt;</span>
+        <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;span12&quot;</span><span class="hl opt">&gt;</span>
+                <span class="hl opt">&lt;</span>div id<span class="hl opt">=</span><span class="hl str">&quot;notify-box&quot;</span><span class="hl opt">&gt;&lt;/</span>div<span class="hl opt">&gt;</span>
+        <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
+
+<span class="hl opt">&lt;</span>?
+<span class="hl kwd">ob_end_flush</span><span class="hl opt">();</span>
+
+<span class="hl kwd">ob_start</span><span class="hl opt">(</span><span class="hl str">&quot;callback&quot;</span><span class="hl opt">);</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;pages/$pagename.php&quot;</span><span class="hl opt">);</span>
+?<span class="hl opt">&gt;</span>
 
 
-      <span class="hl sym">&lt;</span>hr style<span class="hl sym">=</span><span class="hl str">&quot;padding-top: 5em&quot;</span><span class="hl sym">&gt;</span>
+      <span class="hl opt">&lt;</span>hr style<span class="hl opt">=</span><span class="hl str">&quot;padding-top: 5em&quot;</span><span class="hl opt">&gt;</span>
 
-      <span class="hl sym">&lt;</span>footer id<span class="hl sym">=</span><span class="hl str">&quot;twitter_footer&quot;</span><span class="hl sym">&gt;</span>
+      <span class="hl opt">&lt;</span>footer id<span class="hl opt">=</span><span class="hl str">&quot;twitter_footer&quot;</span><span class="hl opt">&gt;</span>
 
-      <span class="hl sym">&lt;/</span>footer<span class="hl sym">&gt;</span>
+      <span class="hl opt">&lt;/</span>footer<span class="hl opt">&gt;</span>
 
-    <span class="hl sym">&lt;/</span>div<span class="hl sym">&gt; &lt;!-- /</span>container <span class="hl sym">--&gt;</span>
+    <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt; &lt;!-- /</span>container <span class="hl opt">--&gt;</span>
 
-  <span class="hl sym">&lt;/</span>body<span class="hl sym">&gt;</span>
-<span class="hl sym">&lt;/</span>html<span class="hl sym">&gt;</span>
-
+  <span class="hl opt">&lt;/</span>body<span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;/</span>html<span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;</span>?
+<span class="hl kwd">ob_end_flush</span><span class="hl opt">();</span>
+?<span class="hl opt">&gt;</span>
 </pre>
 </body>
 </html>
-<!--HTML generated by highlight 2.12, http://www.andre-simon.de/-->
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->
