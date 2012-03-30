@@ -4858,6 +4858,17 @@ $(document).ready(function () {
     if (!onlinestatus) {
         $("#notify-box").append("<div class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
     }
+    $("#reload-button").data("action", "update");
+    try {
+        $("#reload-button").click(function() {
+            if ($(this).data("action") == "update") {
+                window.applicationCache.update();
+            } else {
+                window.location.reload();
+            }
+            return false;
+        });
+     } catch (e) {}
 });
 
 
@@ -4869,6 +4880,9 @@ window.addEventListener('load', function(e) {
       // Browser downloaded a new app cache.
       // Swap it in and reload the page to get the new hotness.
       window.applicationCache.swapCache();
+      $("#cache-status").show();
+      $("#reload-button").html("New version available");
+      $("#reload-button").data("action", "reload");
       if (confirm('A new version of this site is available. Load it?')) {
         window.location.reload();
       }
@@ -4876,14 +4890,23 @@ window.addEventListener('load', function(e) {
       // Manifest didn't changed. Nothing new to server.
     }
   }, false);
-
 }, false);
 
+
 try {
+ window.applicationCache.addEventListener("progress", function(e) {
+    $("#reload-button").html("Downloading...");
+    $("#cache-update-status").show();
+    $("#cache-update-status > .progress > .bar").css("width", (e.loaded / e.total*100)+"%");
+    if (e.loaded == e.total) {
+      $("#cache-update-status").hide();
+    }
+ }, false);
  applicationCache;
  setInterval("applicationCache.update();", 1000*60*60);
 } catch(e) {
-
+ $("#cache-update-status").hide();
+ $("#cache-status").hide();
 }
 
 jQuery.fn.urlize = function() {

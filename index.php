@@ -63,6 +63,17 @@ ob_start("callback");
  }
 ?>
             </ul>
+
+            <ul class="nav pull-right">
+             <li id="cache-status" style="display:; ">
+              <form class="navbar-form"><button class="btn btn-small btn-inverse" id="reload-button">Current version</button></form>
+             </li>
+             <li id="cache-update-status" style="display:none">
+                <div class="progress progress-striped active" style="margin-bottom:0px; margin:10px; width:100px">
+                 <div class="bar" style="width: 30%;"></div>
+                </div>
+             </li>
+            </ul>
           </div><!--/.nav-collapse -->
         </div>
       </div>
