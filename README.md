@@ -35,9 +35,8 @@ External systems:
 
 On server running this site:
 
-* Install python and php. Configure apache2.
-* Install highlight (Debian/Ubuntu package "highlight") and python-twitter
-* Install yui-compressor (after making changes to css/js, run make on top directory to create minified versions)
+* Install python, highlight, python-twitter, apache2, libapache2-mod-php5, yui-compressor and make (*apt-get install python highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make*).
+* Configure apache2 (*a2enmod php5 rewrite headers deflate expires*)
 
 On your RT server:
 
