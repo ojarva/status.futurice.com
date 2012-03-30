@@ -60,6 +60,11 @@ $pages = array(array("/", "Home"),
     </div>
 
     <div class="container">
+<div class="row">
+        <div class="span12">
+                <div id="notify-box"></div>
+        </div>
+</div>
 
 <?
 require_once("pages/$pagename.php");

@@ -1,4 +1,4 @@
-<script src="/js/main.min.js"></script>
+<script type="text/javascript"><?readfile("js/main.min.js");?></script>
 
       <div class="hero-unit">
         <h1>Status information from Futurice</h1>
@@ -24,11 +24,6 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
 </div>
 */?>
 
-<div class="row">
-	<div class="span12">
-		<div id="notify-box"></div>
-	</div>
-</div>
 
       <div class="row">
         <div class="span4">
