@@ -29,7 +29,7 @@ ob_start("callback");
 ?>
 
 <!DOCTYPE html>
-<html lang="en" manifest="/cache.appcache">
+<html lang="en" manifest="/cache.manifest">
   <head>
     <meta charset="utf-8">
     <title>status.futurice.com</title>
@@ -41,7 +41,7 @@ ob_start("callback");
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <script src="/js/combined.min.js"></script>
+    <script src="/js/combined.js"></script>
   </head>
 
   <body>
