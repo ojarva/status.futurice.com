@@ -157,9 +157,15 @@ function fetch_data() {
     $("#progress-indicator").show();
     $("#update_now_button").addClass("disabled");
     $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime()/100), function(data) {
+        setTimeout('$("#update_now_button").removeClass("disabled");$("#progress-indicator").hide();', 1000);
+        try {
+            var old_timestamp = $("body").data("services_data").overall.timestamp.unix;
+            if (old_timestamp == data.overall.timestamp.unix) {
+                return;
+            }
+        } catch (e) { }
         $("body").data("services_data", data);
         process_data();
-        setTimeout('$("#update_now_button").removeClass("disabled");$("#progress-indicator").hide();', 1000);
     });
 }
 
