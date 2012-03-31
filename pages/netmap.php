@@ -10,7 +10,7 @@ This map shows status of various networks at Futurice. Not all details and backu
 </div>
 </div>
 <div class="row" style="padding-top:1em">
-<div class="span12">
+<div class="span12" style="height:950px;">
 <img id="netmap-img" src="/netmap.png">
 </div>
 </div>
