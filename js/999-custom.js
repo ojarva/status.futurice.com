@@ -66,6 +66,14 @@ try {
         $("#reload-button").html("Page cached");
         $("#reload-button").removeClass("disabled");
     }, false);
+    window.applicationCache.addEventListener("obsolete", function(e) {
+        if (confirm("You're running old version. Do you want to reload now?")) {
+            window.location.reload();
+        }
+        $("#reload-button").html("Obsolete version");
+        $("#reload-button").removeClass("disabled");
+        $("#reload-button").data("action", "reload");
+    }, false);
     window.applicationCache.addEventListener("noupdate", function(e) {
         $("#reload-button").html("No update available");
         setTimeout('$("#reload-button").html("Check for updates")', 1000);
