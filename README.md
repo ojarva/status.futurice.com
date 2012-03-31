@@ -45,6 +45,7 @@ On your RT server:
 
 To this code:
 
+* Whenever you make changes, run *make* on top directory to generate minified versions and to update application cache manifest timestamp
 * Modify *pages/what.php* to match with your ideologies and technologies used.
 * Move *backend/pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
 * Add *backend/fetch_pingdom.py* to crontab

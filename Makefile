@@ -1,4 +1,8 @@
-all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js
+all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js cache.appcache
+
+
+cache.appcache: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php
+	sed -i s/'\# version: .*'/"\# version: `date +%s`"/ cache.appcache
 
 css/combined.min.css: css/combined.css
 	yui-compressor css/combined.css > css/combined.min.css
