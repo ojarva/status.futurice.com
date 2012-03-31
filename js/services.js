@@ -1,10 +1,10 @@
-var paused = false;
+var paused = false, refresh_interval = 1;
+
 function update_next_reload() {
     var next_reload = $("#next-reload").data("reload-timestamp");
-    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 1 * 60 * 1000);
     if (moment(next_reload) < moment()) {
         $("#next-reload").html("Next reload right now");
-        update_data();
+        fetch_data();
     } else {
         $("#next-reload").html("Next reload " + moment(next_reload).fromNow());
     }
@@ -43,7 +43,7 @@ function refresh_popovers() {
     });
 }
 
-function update_data() {
+function fetch_data() {
 
     function process_data() {
 
@@ -149,42 +149,41 @@ function update_data() {
         refresh_popovers();
         // Reload popovers
         $("[rel=popover]").popover();
-        $("#progress-indicator").hide();
     } // End of process_data()
 
 
+    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + refresh_interval * 60 * 1000);
+    update_twitter();
     $("#progress-indicator").show();
     $("#update_now_button").addClass("disabled");
     $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime()/100), function(data) {
         $("body").data("services_data", data);
         process_data();
-        $("#update_now_button").removeClass("disabled");
+        setTimeout('$("#update_now_button").removeClass("disabled");$("#progress-indicator").hide();', 1000);
     });
 }
 
 $(document).ready(function() {
     $(window).blur(function () {
         paused = true;
-        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 30 * 60 * 1000);
+        refresh_interval = 15;
+        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + refresh_interval * 60 * 1000);
     });
 
     $(window).focus(function () {
-        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 1 * 60 * 1000);
+        $("#next-reload").data("reload-timestamp", $("#next-reload").data("reload-timestamp") - ((refresh_interval - 1) * 60 * 1000));
+        refresh_interval = 1;
         paused = false;
-        if ($("#next-reload").data("reloaded") > 0 && (((new Date()).getTime() * 1000) - $("#next-reload").data("reloaded")) > 1000 * 60 * 2) {
-            update_data();
-        }
     });
 
     // Set initial reload timestamp
-    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 1 * 60 * 1000);
+    $("#next-reload").data("reload-timestamp", 0);
     // Start updating "Next reload in..."
     update_next_reload();
     // Refresh popovers once per minute
     setInterval("refresh_popovers();", 1000*60);
-    update_data();
     $("#update_now_button").click(function() {
-        update_data();
+        fetch_data();
     });
 });
 

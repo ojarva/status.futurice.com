@@ -4862,7 +4862,8 @@ $(document).ready(function () {
     try {
         $("#reload-button").click(function() {
             if ($(this).data("action") == "update") {
-                window.applicationCache.update();
+                $("#reload-button").data("pressed", true);
+                check_appcache_update();
             } else {
                 window.location.reload();
             }
@@ -4870,6 +4871,12 @@ $(document).ready(function () {
         });
      } catch (e) {}
 });
+
+function check_appcache_update() {
+    try {
+        window.applicationCache.update();
+    } catch (e) {}
+}
 
 
 // Check if a new cache is available on page load.
@@ -4879,10 +4886,13 @@ window.addEventListener('load', function(e) {
         if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
             // Browser downloaded a new app cache.
             // Swap it in and reload the page
-            window.applicationCache.swapCache();
+            try {
+                window.applicationCache.swapCache(); // Bug with firefox.
+            } catch (e) {}
             $("#cache-status").show();
             $("#reload-button").html("New version available");
             $("#reload-button").data("action", "reload");
+            $("#reload-button").removeClass("disabled");
             if (confirm('A new version of this site is available. Load it?')) {
                 window.location.reload();
             }
@@ -4905,10 +4915,26 @@ try {
 
     window.applicationCache.addEventListener("cached", function(e) {
         $("#reload-button").html("Page cached");
+        $("#reload-button").removeClass("disabled");
+    }, false);
+    window.applicationCache.addEventListener("noupdate", function(e) {
+        $("#reload-button").html("No update available");
+        setTimeout('$("#reload-button").html("Check for updates")', 1000);
+        if ($("#reload-button").data("pressed")) {
+            $("#next-reload").data("reload-timestamp", 0);
+            $("#reload-button").data("pressed", false);
+        }
+        $("#reload-button").removeClass("disabled");
     }, false);
 
-    applicationCache;
-    setInterval("applicationCache.update();", 1000*60*60);
+    window.applicationCache.addEventListener("checking", function(e) {
+        $("#reload-button").addClass("disabled");
+        $("#reload-button").html("Checking...");
+    }, false);
+
+    window.applicationCache.addEventListener("error", function(e) {
+        console.log(e);
+    }, false);
 
 } catch(e) {
     $("#cache-update-status").hide();
@@ -4922,7 +4948,7 @@ jQuery.fn.urlize = function() {
             var x = $(obj).html();
             var list = x.match( /\b(http:\/\/|www\.|http:\/\/www\.)[^ <]{2,200}\b/g );
             if (list) {
-                for ( i = 0; i < list.length; i++ ) {
+                for (var i = 0; i < list.length; i++ ) {
                     var prot = list[i].indexOf('http://') === 0 || list[i].indexOf('https://') === 0 ? '' : 'http://';
                     x = x.replace( list[i], "<a target='_blank' href='" + prot + list[i] + "'>"+ list[i] + "</a>" );
                 }
@@ -4933,12 +4959,16 @@ jQuery.fn.urlize = function() {
     }
 };
 
+function update_twitter() {
+    $.get("/twitter.json", function(data) {
+        $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
+        $("#twitter_status").urlize();
+    }, "json");
+
+}
+
 $(document).ready(function() {
-$("[rel=popover]").popover();
-
-$.get("/twitter.json", function(data) {
-$("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
-$("#twitter_status").urlize();
-}, "json");
-
+    $("[rel=popover]").popover();
+    update_twitter();
+    setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
 });

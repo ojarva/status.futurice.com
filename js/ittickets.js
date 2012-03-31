@@ -1,6 +1,9 @@
+var ticketdata, refresh_interval = 15;
+
 function update_next_reload() {
     var next_reload = $("#next-reload").data("reload-timestamp");
     if (moment(next_reload) < moment()) {
+        fetch_data();
         $("#next-reload").html("Next reload right now");
     } else {
         $("#next-reload").html("Next reload " + moment(next_reload).fromNow());
@@ -10,30 +13,39 @@ function update_next_reload() {
 
 
 
-var ticketdata;
-
 $(document).ready(function() {
-    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 15 * 60 * 1000);
+    $("#next-reload").data("reload-timestamp", 0);
     update_next_reload();
     $("#update_now_button").click(function() {
         fetch_data();
     });
-    fetch_data();
+
+    $(window).blur(function () {
+        paused = true;
+        refresh_interval = 120;
+        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + refresh_interval * 60 * 1000);
+    });
+
+    $(window).focus(function () {
+        $("#next-reload").data("reload-timestamp", $("#next-reload").data("reload-timestamp") - ((refresh_interval - 15) * 60 * 1000));
+        refresh_interval = 15;
+        paused = false;
+    });
+
 });
 
 function fetch_data() {
+    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + refresh_interval * 60 * 1000);
+    update_twitter();
     $("#progress-indicator").show();
     $("#update_now_button").addClass("disabled");
-    clearTimeout($("body").data("update_data_timeout"));
     $.get("/ittickets.json", function(data) {
         ticketdata = data.data;
         if ($("body").data("ittickets-initialized") !== true) {
             initialize_page();
         }
         update_data();
-        $("body").data("update_data_timeout", setTimeout("fetch_data();", 1000*60*15)); // fetch data every 15 minutes
-        $("#update_now_button").removeClass("disabled");
-        $("#progress-indicator").hide();
+        setTimeout('$("#update_now_button").removeClass("disabled");$("#progress-indicator").hide();', 1000);
     });
 }
 
@@ -58,8 +70,6 @@ function initialize_page() {
 
 function update_data() {
 
-
-    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + 15 * 60 * 1000);
     clearInterval($("body").data("status_timestamp_interval"));
     $("body").data("status_timestamp_interval", setInterval('$("#status-timestamp").html(moment('+(new Date()).getTime()+').fromNow()+".");', 1000));
 
