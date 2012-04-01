@@ -1,0 +1,6 @@
+""" This is settings file for monitor_and_upload_file.py """
+
+UPLOAD_PASSWORD = "password from upload_settings.php"
+UPLOAD_URL = "http://your_domain.example.com/upload.php"
+UPLOAD_FILE = "/var/www/weathermap/your_weathermap.png"
+UPLOAD_DESTINATION = "netmap.png"

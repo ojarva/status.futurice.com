@@ -52,6 +52,7 @@ To this code:
 * Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
 * Add carousel (on what? page) images to *img/carousel/*. We recommend 1200x400, but you can use whatever resolution you want. UI doesn't scale images.
 * Add *backend/fetch_twitter.py* to crontab. First argument is your twitter username.
+* If your weathermap runs on separate server, run *backend/monitor_and_upload_file.py* there.
 
 Relevant sites/documents
 ------------------------
