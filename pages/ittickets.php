@@ -43,7 +43,7 @@
 <script src="/js/combined.raphael.min.js"></script>
 <script src="/js/ittickets.min.js"></script>
 
-<h1>IT tickets <small><span id="status-timestamp"></span> <span id="next-reload"></span></small> <button class="btn btn-small" id="update_now_button">Update now <span id="progress-indicator"><img src="/img/loading-mini.gif"></span></button></h1>
+<h1>IT tickets <span id="update_data"></span></h1>
 
 <div class="row">
 	<div class="span12">

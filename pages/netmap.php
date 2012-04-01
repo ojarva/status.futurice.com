@@ -1,7 +1,8 @@
 <script type="text/javascript">
 <?readfile("js/netmap.min.js");?>
 </script>
-<h1>Network map <small><span id="status-timestamp"></span> <span id="next-reload"></span></small> <button class="btn btn-small" id="update_now_button">Update now <span id="progress-indicator"><img src="/img/loading-mini.gif"></span></button></h1>
+<h1>Network map <span id="update_data"></span></h1>
+
 <div class="row">
 <div class="span9">
 <div class="well">

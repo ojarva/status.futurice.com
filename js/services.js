@@ -1,15 +1,12 @@
-var paused = false, refresh_interval = 1;
+var notifications_enabled = false,
+    shown_notifications = Array(); 
 
-function update_next_reload() {
-    var next_reload = $("#next-reload").data("reload-timestamp");
-    if (moment(next_reload) < moment()) {
-        $("#next-reload").html("Next reload right now");
-        fetch_data();
-    } else {
-        $("#next-reload").html("Next reload " + moment(next_reload).fromNow());
-    }
 
-    setTimeout("update_next_reload();", 1000);
+
+function cancelnotification(timestamp) {
+    $.each(shown_notifications["closenotify"+timestamp], function (index, value) {
+        value.cancel();
+    });
 }
 
 function refresh_popovers() {
@@ -19,7 +16,7 @@ function refresh_popovers() {
         last_check_time,
         ts,
         services_data = $("body").data("services_data");
-    if (!(services_data instanceof Array)) {
+    if (!(services_data instanceof Object)) {
         return;
     }
     for (var service in services_data.per_service) {
@@ -56,6 +53,8 @@ function fetch_data() {
 
         var counter = 0,
             broken_services = 0,
+            notifications_shown = 0,
+            notifications_more_shown = false,
             color, popover_content, da,
             services_data = $("body").data("services_data");
 
@@ -67,10 +66,6 @@ function fetch_data() {
 
         $("#checks-overview-tbody").empty();
         $("#checks-summary-tbody").empty();
-        $("#status-timestamp").html(moment(services_data.overall.timestamp.unix*1000).fromNow()+".");
-
-        clearInterval($("body").data("status_timestamp_interval"));
-        $("body").data("status_timestamp_interval", setInterval('$("#status-timestamp").html(moment($("body").data("services_data").overall.timestamp.unix*1000).fromNow()+".");', 1000));
 
         for (var service in services_data.per_service) {
             counter += 1;
@@ -99,8 +94,54 @@ function fetch_data() {
                 daystatus += '<td class="check-day" rel="popover" data-original-title="More information" data-content="'+popover_content+'"><span class="icon '+color+'">'+color+'</span></td>';
             }
 
+            if (ts.status == "up" && notifications_enabled) {
+                if (shown_notifications[service]) {
+                    shown_notifications[service]["notification"].cancel();
+                    shown_notifications[service]["up"] = true;
+                }
+            }
             if (ts.status == "down") {
                 broken_services++;
+                if (notifications_enabled) {
+                    var service_notification_shown = false;
+                    for (var item_index in shown_notifications) {
+                        if (service == item_index && !shown_notifications[service]["up"]) {
+                            service_notification_shown = true;
+                        }
+                    }
+                    if (!service_notification_shown) {
+                        if (notifications_shown > 2) {
+                            var notification = webkitNotifications.createNotification(
+                                "",
+                                "Other services down too",
+                                "More services are down too. You'll not get further notices this time."
+                            );
+                            if (!notifications_more_shown) {
+                                notification.ondisplay = function () {
+                                    var timestamp = (new Date()).getTime() + Math.random();
+                                    setTimeout("cancelnotification("+timestamp+");", 5000);
+                                    shown_notifications["closenotify"+timestamp] = $(this);
+                                };
+                                notification.show();
+                                notifications_more_shown = true;
+                            }
+                        } else {
+                            var notification = webkitNotifications.createNotification(
+                                "",
+                                "Service "+ts.name+" is down",
+                                "Service "+ts.name+" went down "+moment(ts.lasterrortime*1000).fromNow()
+                            );
+                            notification.ondisplay = function () {
+                                var timestamp = (new Date()).getTime() + Math.random();
+                                setTimeout("cancelnotification("+timestamp+");", 5000);
+                                shown_notifications["closenotify"+timestamp] = $(this);
+                            };
+                            notification.show();
+                            notifications_shown += 1;
+                        }
+                        shown_notifications[service] = {"notification": notification, "timestamp": (new Date()).getTime(), "up": false}
+                    }
+                }
             }
 
             popover_content = "";
@@ -152,44 +193,39 @@ function fetch_data() {
     } // End of process_data()
 
 
-    $("#next-reload").data("reload-timestamp", (new Date()).getTime() + refresh_interval * 60 * 1000);
-    update_twitter();
-    $("#progress-indicator").show();
-    $("#update_now_button").addClass("disabled");
     $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime()/100), function(data) {
-        setTimeout('$("#update_now_button").removeClass("disabled");$("#progress-indicator").hide();', 1000);
         try {
             var old_timestamp = $("body").data("services_data").overall.timestamp.unix;
             if (old_timestamp == data.overall.timestamp.unix) {
+                $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix*1000);
                 return;
             }
         } catch (e) { }
         $("body").data("services_data", data);
         process_data();
+        $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix*1000);
     });
 }
 
 $(document).ready(function() {
-    $(window).blur(function () {
-        paused = true;
-        refresh_interval = 15;
-        $("#next-reload").data("reload-timestamp", (new Date()).getTime() + refresh_interval * 60 * 1000);
-    });
-
-    $(window).focus(function () {
-        $("#next-reload").data("reload-timestamp", $("#next-reload").data("reload-timestamp") - ((refresh_interval - 1) * 60 * 1000));
-        refresh_interval = 1;
-        paused = false;
-    });
-
-    // Set initial reload timestamp
-    $("#next-reload").data("reload-timestamp", 0);
-    // Start updating "Next reload in..."
-    update_next_reload();
-    // Refresh popovers once per minute
+    $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60});
     setInterval("refresh_popovers();", 1000*60);
-    $("#update_now_button").click(function() {
-        fetch_data();
-    });
+
+    $("#notification_permissions").hide();
+    if (window.webkitNotifications) {
+        if (window.webkitNotifications.checkPermission() == 1) {
+            $("#notification_permissions").show();
+            $("#notification_permissions").click(function () {
+                $("#notification_permissions").addClass("disabled");
+                window.webkitNotifications.requestPermission(function() {
+                    $("#notification_permissions").html("Done");
+                    setTimeout('$("#notification_permissions").hide();', 1000);
+                });
+            });
+
+        } else if (window.webkitNotifications.checkPermission() == 0) {
+            notifications_enabled = true;
+        }
+    }
 });
 

@@ -43,7 +43,7 @@ js/combined.min.js: js/combined.js
 	yui-compressor js/combined.js > js/combined.min.js
 	chmod 644 js/combined.min.js
 
-js/combined.js: js/000-jquery.js js/100-bootstrap.js js/110-bootstrap-alert.js js/110-bootstrap-button.js js/110-bootstrap-carousel.js js/110-bootstrap-collapse.js js/110-bootstrap-dropdown.js js/110-bootstrap-modal.js js/110-bootstrap-popover.js js/110-bootstrap-scrollspy.js js/110-bootstrap-tab.js js/110-bootstrap-tooltip.js js/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/999-custom.js
+js/combined.js: js/000-jquery.js js/100-bootstrap.js js/110-bootstrap-alert.js js/110-bootstrap-button.js js/110-bootstrap-carousel.js js/110-bootstrap-collapse.js js/110-bootstrap-dropdown.js js/110-bootstrap-modal.js js/110-bootstrap-popover.js js/110-bootstrap-scrollspy.js js/110-bootstrap-tab.js js/110-bootstrap-tooltip.js js/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/999-custom.js js/990-pagerefresh.js
 	cat js/???-*.js > js/combined.js
 	chmod 644 js/combined.js
 

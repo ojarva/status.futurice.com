@@ -24,7 +24,7 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
 </div>
 */?>
 
-<div style="display:none;" id="next-reload"></div>
+<div style="display:none;" id="update_data"></div>
 
       <div class="row">
         <div class="span4">

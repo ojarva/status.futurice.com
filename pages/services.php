@@ -1,7 +1,7 @@
 <script src="/js/combined.raphael.min.js"></script>
 <script type="text/javascript" src="/js/services.min.js"></script>
 
-<h1>Overview of service status <small><span id="status-timestamp"></span> <span id="next-reload"></span></small> <button class="btn btn-small" id="update_now_button">Update now <span id="progress-indicator"><img src="/img/loading-mini.gif"></span></button></h1>
+<h1>Overview of service status <span id="update_data"></span> <button id="notification_permissions" class="btn btn-info">Show notifications</button></h1>
 
 <div class="row">
 <div class="span2">
