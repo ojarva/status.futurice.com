@@ -35,7 +35,7 @@ External systems:
 
 On server running this site:
 
-* Install python, highlight, python-twitter, apache2, libapache2-mod-php5, yui-compressor and make (*apt-get install python highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make*).
+* Install python, highlight, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor and make (*apt-get install python highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage*).
 * Configure apache2 (*a2enmod php5 rewrite headers deflate expires*)
 
 On your RT server:
