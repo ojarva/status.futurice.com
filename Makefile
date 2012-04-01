@@ -9,7 +9,7 @@ css/combined.min.css: css/combined.css
 	chmod 644 css/combined.min.css
 
 css/combined.css: css/bootstrap.min.css css/bootstrap-responsive.min.css css/custom.css
-	cat css/bootstrap.min.css css/bootstrap-responsive.min.css css/custom.css > css/combined.css
+	cat css/bootstrap.min.css css/custom.css css/bootstrap-responsive.min.css  > css/combined.css
 	chmod 644 css/combined.css
 
 js/combined.raphael.min.js: js/combined.raphael.js
