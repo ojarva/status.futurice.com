@@ -4861,7 +4861,8 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
                 'next_reload_id': $(this).selector + '> small > .update_next_reload',
                 'refresh_callback': "update_twitter(); fetch_data();",
                 'ago_id': $(this).selector + '> small > .update_ago',
-                'thiselem': $(this)
+                'thiselem': $(this),
+                'filewatch': false
             }, options);
             settings.current_timeout = settings.short_timeout;
 
@@ -4875,6 +4876,32 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
                  settings.thiselem.pagerefresh("fetch");
             });
 
+            if (EventSource && settings.filewatch) {
+                var source = new EventSource("/sse.php?file="+settings.filewatch);
+                source.addEventListener('message', function(e) {
+                }, false);
+
+                source.addEventListener('changeevent', function(e) {
+                    $(settings.next_reload_id).data("reload-timestamp", 0);
+                }, false);
+
+                source.addEventListener('manifestchange', function(e) {
+                    try { window.window.applicationCache.update(); } catch (e) {}
+                }, false);
+
+                source.addEventListener('open', function(e) {
+                }, false);
+
+                source.addEventListener('error', function(e) {
+                    if (e.eventPhase == EventSource.CLOSED) {
+                        // Connection was closed.
+                    }
+                }, false);
+                $(this).pagerefresh("savesetting", "sse", true);
+                settings.sse = true;
+            }
+
+            if (!settings.sse) {
             $(window).blur(function () {
                 var next_reload = $(settings.next_reload_id).data("reload-timestamp");
                 if (next_reload) {
@@ -4896,6 +4923,7 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
                 }
                 settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.short_timeout);
             });
+            } // !sse
 
             $(this).pagerefresh("update");
         },
@@ -4918,12 +4946,23 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
             } else {
                 $(settings.ago_id).html("");
             }
+
             var next_reload = $(settings.next_reload_id).data("reload-timestamp");
-            if (!next_reload || moment(next_reload) < moment()) {
-                $(settings.next_reload_id).html("Next reload right now");
-                $(this).pagerefresh("fetch");
+            if (settings.sse) {
+                if (moment(next_reload) < moment()) {
+                    $(settings.next_reload_id).html("Next reload right now");
+                    $(this).pagerefresh("fetch");
+                } else {
+                    $(settings.next_reload_id).html("Next reload when new data is available");
+                    $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.current_timeout * 1000);
+                }
             } else {
-                $(settings.next_reload_id).html("Next reload " + moment(next_reload).fromNow());
+                if (!next_reload || moment(next_reload) < moment()) {
+                    $(settings.next_reload_id).html("Next reload right now");
+                    $(this).pagerefresh("fetch");
+                } else {
+                    $(settings.next_reload_id).html("Next reload " + moment(next_reload).fromNow());
+                }
             }
             setTimeout("$('"+String(settings.thiselem.selector)+"').pagerefresh('update');", 1000);
         },

@@ -208,7 +208,7 @@ function fetch_data() {
 }
 
 $(document).ready(function() {
-    $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60});
+    $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "services.json"});
     setInterval("refresh_popovers();", 1000*60);
 
     $("#notification_permissions").hide();

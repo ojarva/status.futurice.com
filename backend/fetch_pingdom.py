@@ -233,7 +233,10 @@ class Pingdomrun:
 
     def save(self):
         """ Save data to services.json """
-        open("../services.json", "w").write(json.dumps({"overall": self.data, "per_service": self.cdata}))
+        new_data = json.dumps({"overall": self.data, "per_service": self.cdata})
+        old_data = open("../services.json").read()
+        if new_data != old_data:
+            open("../services.json", "w").write(new_data)
 
 
 def main():

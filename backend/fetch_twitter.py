@@ -16,15 +16,23 @@ class TwitterInfo:
         """ Fetch user information and save status, follower count 
             and timestamp of status """
         user = self.api.GetUser(self.username)
-        json.dump({"status": user.status.GetText(), 
+        new_data = json.dumps({"status": user.status.GetText(), 
               "followers": user.GetFollowersCount(), 
-              "status_ago": user.status.GetRelativeCreatedAt()}, 
-              open("../twitter.json", "w"))
+              "status_ago": user.status.GetRelativeCreatedAt()})
+        old_data = open("../twitter.json").read()
+        if new_data != old_data:
+            open("../twitter.json", "w").write(new_data)
 
     def fetch_timeline(self):
         """ Fetch user timeline and save it to json encoded file """
         msg = self.api.GetUserTimeline(self.username)
-        json.dump({"statuses": msg}, open("../twitter_statuses.json", "w"))
+        new_data = json.dumps({"statuses": msg})
+        old_data = open("../twitter_statuses.json").read()
+        print new_data
+        print old_data
+ 
+        if new_data != old_data:
+            open("../twitter_statuses.json", "w").write(new_data)
 
 def main(username):
     """ Run twitter information """

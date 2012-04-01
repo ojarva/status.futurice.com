@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    $("#update_data").pagerefresh({"short_timeout": 5*60, "long_timeout": 30*60});
+    $("#update_data").pagerefresh({"short_timeout": 6*60, "long_timeout": 30*60, "filewatch": "netmap.png"});
 });
 
 function fetch_data() {

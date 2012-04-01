@@ -241,7 +241,10 @@
 
     <span class="hl kwa">def</span> <span class="hl kwd">save</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Save data to services.json &quot;&quot;&quot;</span>
-        <span class="hl kwb">open</span><span class="hl opt">(</span><span class="hl str">&quot;../services.json&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">).</span><span class="hl kwd">write</span><span class="hl opt">(</span>json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;overall&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">,</span> <span class="hl str">&quot;per_service&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>cdata<span class="hl opt">}))</span>
+        new_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;overall&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">,</span> <span class="hl str">&quot;per_service&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>cdata<span class="hl opt">})</span>
+        old_data <span class="hl opt">=</span> <span class="hl kwb">open</span><span class="hl opt">(</span><span class="hl str">&quot;../services.json&quot;</span><span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">()</span>
+        <span class="hl kwa">if</span> new_data <span class="hl opt">!=</span> old_data<span class="hl opt">:</span>
+            <span class="hl kwb">open</span><span class="hl opt">(</span><span class="hl str">&quot;../services.json&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">).</span><span class="hl kwd">write</span><span class="hl opt">(</span>new_data<span class="hl opt">)</span>
 
 
 <span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>

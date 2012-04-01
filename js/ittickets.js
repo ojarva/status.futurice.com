@@ -1,7 +1,7 @@
 var ticketdata;
 
 $(document).ready(function() {
-    $("#update_data").pagerefresh({"short_timeout": 15 * 60, "long_timeout": 120 * 60});
+    $("#update_data").pagerefresh({"short_timeout": 15 * 60, "long_timeout": 120 * 60, "filewatch": "ittickets.json"});
 });
 
 function fetch_data() {
