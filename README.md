@@ -52,3 +52,14 @@ To this code:
 * Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
 * Add carousel (on what? page) images to *img/carousel/*. We recommend 1200x400, but you can use whatever resolution you want. UI doesn't scale images.
 * Add *backend/fetch_twitter.py* to crontab. First argument is your twitter username.
+
+Relevant sites/documents
+------------------------
+
+This list is just some useful documents and links used while creating this services.
+
+* [Application cache](http://www.html5rocks.com/en/tutorials/appcache/beginner/)
+* [Server-sent events](http://www.html5rocks.com/en/tutorials/eventsource/basics/) and [W3 EventSource draft](http://www.w3.org/TR/eventsource/)
+* [caniuse.com](http://caniuse.com/)
+* [Web notifications](http://www.w3.org/TR/notifications/)
+* [Pingdom API](http://www.pingdom.com/services/api-documentation-rest/)

@@ -128,6 +128,12 @@ adding complex process to handling incoming emails.</p>
 			<li><a href="http://documentcloud.github.com/underscore/">underscore.js</a></li>
 			<li><a href="http://handdrawing.olawolska.com/">Hand drawing icons set by Aleksandra Wolska</a></li>
 		</ul>
+                <p>And using following tutorials/documents:</p>
+		<ul>
+			<li><a href="http://www.html5rocks.com/en/tutorials/appcache/beginner/">Application cache</a></li>
+			<li><a href="http://www.html5rocks.com/en/tutorials/eventsource/basics/">Server-sent events</a> and <a href="http://www.w3.org/TR/eventsource/">W3 EventSource draft</a></li>
+			<li><a href="http://www.w3.org/TR/notifications/">Web notifications</a></li>
+		</ul>
 	</div>
 	<div class="span4">
 		<h3>Backend stacks</h3>
@@ -139,6 +145,8 @@ adding complex process to handling incoming emails.</p>
 			<li><a href="http://www.network-weathermap.com/">Network weathermap</a></li>
 			<li><a href="http://bestpractical.com/rt/">RT (Request Tracker)</a></li>
 			<li><a href="http://oss.oetiker.ch/mrtg/">MRTG</a></li>
+			<li><a href="http://atlee.ca/software/poster/">python-poster</a></li>
+			<li><a href="http://code.google.com/p/python-twitter/">python-twitter</a></li>
 		</ul>
 	</div>
 	<div class="span4">
