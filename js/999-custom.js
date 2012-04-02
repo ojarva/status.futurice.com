@@ -125,6 +125,7 @@ function update_twitter() {
 }
 
 $(document).ready(function() {
+    $("[rel=popover]").popover("hide");
     $("[rel=popover]").popover();
     update_twitter();
     setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.

@@ -36,6 +36,7 @@ function refresh_popovers() {
     }
     $(".check-popover").each(function(index) {
         $(this).data("content", popover_contents[$(this).data("service-id")]);
+        $(this).popover("hide");
         $(this).popover();
     });
 }
@@ -48,6 +49,7 @@ function fetch_data() {
             element.attr("rel", "popover");
             element.attr("data-original-title", title);
             element.attr("data-content", content);
+            element.popover("hide");
             element.popover();
         }
 
@@ -189,6 +191,7 @@ function fetch_data() {
 
         refresh_popovers();
         // Reload popovers
+        $("[rel=popover]").popover("hide");
         $("[rel=popover]").popover();
     } // End of process_data()
 

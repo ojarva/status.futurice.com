@@ -16,6 +16,7 @@ function fetch_data() {
         $("#total-tickets-popover").data("original-title", "What?");
         $("#total-tickets-popover").data("placement", "top");
         $("#total-tickets-popover").attr("rel", "popover");
+        $("#total-tickets-popover").popover("hide");
         $("#total-tickets-popover").popover();
 
         $("#dots_all").addClass("btn-info");
