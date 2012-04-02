@@ -5,23 +5,28 @@ $(document).ready(function() {
 });
 
 function fetch_data() {
+    var $workflowchart = $("#workflowchart"),
+        $dotschart = $("#dotschart"),
+        $placeholder = $("#placeholder");
+
     function initialize_page() {
         $("body").data("ittickets-initialized", true);
-        $("#workflowchart").slideUp();
-        $("#workflowchart").empty();
-        $("#dotschart").empty();
+        $workflowchart.slideUp();
+        $workflowchart.empty();
+        $dotschart.empty();
         $("#emailpieholder").empty();
 
-        $("#total-tickets-popover").data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
-        $("#total-tickets-popover").data("original-title", "What?");
-        $("#total-tickets-popover").data("placement", "top");
-        $("#total-tickets-popover").attr("rel", "popover");
-        $("#total-tickets-popover").popover("hide");
-        $("#total-tickets-popover").popover();
+        var $ticketid = $("#total-tickets-popover");
+        $ticketid.data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
+        $ticketid.data("original-title", "What?");
+        $ticketid.data("placement", "top");
+        $ticketid.attr("rel", "popover");
+        $ticketid.popover("hide");
+        $ticketid.popover();
 
         $("#dots_all").addClass("btn-info");
-        $("#dotschart").dotsgraph({"data": ticketdata.dots.all});
-        $("#dotschart").dotsgraph("update");
+        $dotschart.dotsgraph({"data": ticketdata.dots.all});
+        $dotschart.dotsgraph("update");
 
     }
 
@@ -36,26 +41,26 @@ function fetch_data() {
             if ($(this).hasClass("btn-info")) {
                 return;
             }
-            $("#dotschart").slideDown();
-            $("#workflowchart").slideUp();
+            $dotschart.slideDown();
+            $workflowchart.slideUp();
             var dictname = $(this).data("name");
-            $("#dotschart").dotsgraph({"data": ticketdata["dots"][dictname]});
-            $("#dotschart").dotsgraph("update");
+            $dotschart.dotsgraph({"data": ticketdata["dots"][dictname]});
+            $dotschart.dotsgraph("update");
             $(".dots-btn").removeClass("btn-info");
             $("#change_graph").removeClass("btn-info");
             $(this).addClass("btn-info");
-            $("#placeholder").html("mouse over the circles for more details");
-            $("#placeholder").removeClass("hidden");
+            $placeholder.html("mouse over the circles for more details");
+            $placeholder.removeClass("hidden");
             $("#name2").addClass("hidden");
         });
 
         $("#change_graph").click(function() {
-            $("#placeholder").html("mouse over the graph for more details");
-            $("#dotschart").slideUp();
-            $("#workflowchart").html("");
+            $placeholder.html("mouse over the graph for more details");
+            $dotschart.slideUp();
+            $workflowchart.html("");
             process(ticketdata.workflow);
-            $("#workflowchart").removeClass("hidden");
-            $("#workflowchart").slideDown();
+            $workflowchart.removeClass("hidden");
+            $workflowchart.slideDown();
             $(".dots-btn").removeClass("btn-info");
             $(this).addClass("btn-info");
         });

@@ -1,6 +1,6 @@
 function fetch_data() {
     $.get("/frontpage_json.php", function (data) {
-        for (key in data.autofill) {
+        for (var key in data.autofill) {
             if ($("#" + key) !== null) {
                 $("#" + key).html(data.autofill[key]);
             }
