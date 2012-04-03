@@ -38,7 +38,8 @@ ob_start("callback");
     <meta name="author" content="Olli Jarva">
 
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="apple-touch-startup-image" href="/img/ios-splashscreen.png" />
 
     <link href="/css/combined.min.css" rel="stylesheet">
     <!--[if lt IE 9]>
