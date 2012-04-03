@@ -29,7 +29,7 @@ proud of something if you can show it to others, send link to your friends, cust
 </div>
 
 <?
-$images = glob("img/carousel/*.jpg");
+$images = glob("img/carousel/full/*.jpg");
 if ($images != false && count($images) > 0) {
 ?>
 <div class="row">

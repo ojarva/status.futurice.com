@@ -4,4 +4,4 @@ backend/cache/*
 *settings.php
 *.pyc
 upload/*
-img/carousel/*.jpg
+img/carousel/*
