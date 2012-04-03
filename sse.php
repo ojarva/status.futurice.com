@@ -34,7 +34,7 @@ while (true) {
     clearstatcache();
     foreach ($follow_files as $k => $v) {
         $new_mtime = filemtime($v["filename"]);
-        if ($new_mtime != $v["mtimet"]) {
+        if ($new_mtime != $v["mtime"]) {
             $hash = sha1_file($v["filename"]);
             if ($hash != $v["hash"]) {
                 echo "event: ".$v["event"]."\n";
