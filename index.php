@@ -37,6 +37,9 @@ ob_start("callback");
     <meta name="description" content="Futurice IT status">
     <meta name="author" content="Olli Jarva">
 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
     <link href="/css/combined.min.css" rel="stylesheet">
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
