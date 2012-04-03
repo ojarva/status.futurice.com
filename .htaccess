@@ -28,7 +28,6 @@ AddType "application/json" json
 	ExpiresByType image/jpeg "access plus 8 days"
 	ExpiresByType image/gif "access plus 8 days"
 	ExpiresByType text/css "access plus 8 days"
-	ExpiresByType text/html "access plus 5 minutes"
 	<Location /img>
 		ExpiresByType image/png "access plus 8 days"
 	</Location>
