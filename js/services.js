@@ -1,8 +1,6 @@
 var notifications_enabled = false,
     shown_notifications = Array(); 
 
-
-
 function cancelnotification(timestamp) {
     $.each(shown_notifications["closenotify"+timestamp], function (index, value) {
         value.cancel();
@@ -37,11 +35,11 @@ function refresh_popovers() {
     $(".check-popover").each(function(index) {
         $(this).data("content", popover_contents[$(this).data("service-id")]);
         $(this).popover("hide");
-        $(this).popover();
+        $(this).popover({"placement": popover_placement});
     });
 }
 
-function fetch_data() {
+function fetch_data(from_localstorage) {
 
     function process_data() {
 
@@ -50,7 +48,7 @@ function fetch_data() {
             element.attr("data-original-title", title);
             element.attr("data-content", content);
             element.popover("hide");
-            element.popover();
+            element.popover({"placement": popover_placement});
         }
 
         var counter = 0,
@@ -147,8 +145,8 @@ function fetch_data() {
             }
 
             popover_content = "";
-            $("#checks-overview-tbody").append('<tr><td class="check-status check-popover" rel="popover" data-service-id="'+service+'" data-original-title="'+ts.name+'" data-content="'+popover_content+'" data-placement="right"><span class="status '+ts['status']+'"></span></td><td class="check-name"><a target="_parent" href="http://status.futurice.com/'+service+'">'+ts["name"]+'</a></td><td style="width:50px" class="response-sparkline" id="full_table_'+service+'_sparkline" data-check-id="'+service+'"></td>'+daystatus+'</tr>');
-            $("#checks-summary-tbody").append('<tr><td class="check-name"><a target="_parent" href="http://status.futurice.com/'+service+'">'+ts["name"]+'</a></td><td class="check-status check-popover" data-service-id="'+service+'" rel="popover" data-original-title="'+ts.name+'" data-content="'+popover_content+'" data-placement="right"><span class="status '+ts['status']+'"></span></td><td style="width:50px" class="response-sparkline" id="summary_table_'+service+'_sparkline" data-check-id="'+service+'"></td><td style="width:50px" class="uptime-sparkline" id="summary_table_'+service+'_uptime_sparkline" data-check-id="'+service+'"></td></tr>');
+            $("#checks-overview-tbody").append('<tr><td class="check-status check-popover" rel="popover" data-service-id="'+service+'" data-original-title="'+ts.name+'" data-content="'+popover_content+'"><span class="status '+ts['status']+'"></span></td><td class="check-name"><a target="_parent" href="http://status.futurice.com/'+service+'">'+ts["name"]+'</a></td><td style="width:50px" class="response-sparkline" id="full_table_'+service+'_sparkline" data-check-id="'+service+'"></td>'+daystatus+'</tr>');
+            $("#checks-summary-tbody").append('<tr><td class="check-name"><a target="_parent" href="http://status.futurice.com/'+service+'">'+ts["name"]+'</a></td><td class="check-status check-popover" data-service-id="'+service+'" rel="popover" data-original-title="'+ts.name+'" data-content="'+popover_content+'"><span class="status '+ts['status']+'"></span></td><td style="width:50px" class="response-sparkline" id="summary_table_'+service+'_sparkline" data-check-id="'+service+'"></td><td style="width:50px" class="uptime-sparkline" id="summary_table_'+service+'_uptime_sparkline" data-check-id="'+service+'"></td></tr>');
         }
         if (broken_services == 0) {
             $("#status-text").html("Everything is running normally");
@@ -173,7 +171,7 @@ function fetch_data() {
 
         $(".response-sparkline").each(function(index) {
             var paper = Raphael.fromJquery($(this)),
-            data = services_data.per_service[$(this).data('check-id')].avgms;
+                data = services_data.per_service[$(this).data('check-id')].avgms;
             paper.sparkline(data);
             var min = Math.min.apply(Math, data),
                 max = Math.max.apply(Math, data);
@@ -192,36 +190,57 @@ function fetch_data() {
         refresh_popovers();
         // Reload popovers
         $("[rel=popover]").popover("hide");
-        $("[rel=popover]").popover();
+        $("[rel=popover]").popover({"placement": popover_placement});
     } // End of process_data()
 
 
-    $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime()/100), function(data) {
+    if (from_localstorage) {
+        var data = $("body").data("services_data");
+        $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix * 1000);
+        process_data();
+    } else {
+      $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
         try {
             var old_timestamp = $("body").data("services_data").overall.timestamp.unix;
             if (old_timestamp == data.overall.timestamp.unix) {
-                $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix*1000);
+                $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix * 1000);
                 return;
             }
         } catch (e) { }
+        if (localStorage) {
+            localStorage.setItem("services_json", JSON.stringify(data));
+        }
         $("body").data("services_data", data);
         process_data();
         $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix*1000);
-    });
+      });
+    }
 }
 
 $(document).ready(function() {
     $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "services.json"});
+    if (localStorage) {
+        var ticketdata_temp = localStorage.getItem("services_json");
+        if (ticketdata_temp != null) {
+            try {
+                ticketdata_temp = JSON.parse(ticketdata_temp);
+                $("body").data("services_data", ticketdata_temp);
+                fetch_data(true);
+            } catch (e) {}
+        }
+    }
+
     setInterval("refresh_popovers();", 1000*60);
 
-    $("#notification_permissions").hide();
+    var $np = $("#notification_permissions");
+    $np.hide();
     if (window.webkitNotifications) {
         if (window.webkitNotifications.checkPermission() == 1) {
-            $("#notification_permissions").show();
-            $("#notification_permissions").click(function () {
-                $("#notification_permissions").addClass("disabled");
+            $np.show();
+            $np.click(function () {
+                $np.addClass("disabled");
                 window.webkitNotifications.requestPermission(function() {
-                    $("#notification_permissions").html("Done");
+                    $np.html("Done");
                     setTimeout('$("#notification_permissions").hide();', 1000);
                 });
             });

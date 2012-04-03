@@ -2,9 +2,19 @@ var ticketdata;
 
 $(document).ready(function() {
     $("#update_data").pagerefresh({"short_timeout": 15 * 60, "long_timeout": 120 * 60, "filewatch": "ittickets.json"});
+    if (localStorage) {
+        var ticketdata_temp = localStorage.getItem("ittickets_json");
+        if (ticketdata_temp != null) {
+            try {
+                ticketdata_temp = JSON.parse(ticketdata_temp);
+                ticketdata = ticketdata_temp;
+                fetch_data(true);
+            } catch (e) {}
+        }
+    }
 });
 
-function fetch_data() {
+function fetch_data(from_storage) {
     var $workflowchart = $("#workflowchart"),
         $dotschart = $("#dotschart"),
         $placeholder = $("#placeholder");
@@ -22,7 +32,7 @@ function fetch_data() {
         $ticketid.data("placement", "top");
         $ticketid.attr("rel", "popover");
         $ticketid.popover("hide");
-        $ticketid.popover();
+        $ticketid.popover({"placement": popover_placement});
 
         $("#dots_all").addClass("btn-info");
         $dotschart.dotsgraph({"data": ticketdata.dots.all});
@@ -69,13 +79,22 @@ function fetch_data() {
             emailpie_labels = ["External", "Internal"];
         Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emailpie_labels, "#fff");
     }
-
-    $.get("/ittickets.json", function(data) {
-        ticketdata = data.data;
-        if ($("body").data("ittickets-initialized") !== true) {
-            initialize_page();
-        }
-        update_data();
-        $("#update_data").pagerefresh("fetch_done", (new Date()).getTime());
-    });
+    if (from_storage) {
+            if ($("body").data("ittickets-initialized") !== true) {
+                initialize_page();
+            }
+            update_data();        
+    } else {
+        $.get("/ittickets.json", function(data) {
+            ticketdata = data.data;
+            if (localStorage) {
+                localStorage.setItem("ittickets_json", JSON.stringify(ticketdata));
+            }
+            if ($("body").data("ittickets-initialized") !== true) {
+                initialize_page();
+            }
+            update_data();
+            $("#update_data").pagerefresh("fetch_done", (new Date()).getTime());
+        });
+    }
 }
