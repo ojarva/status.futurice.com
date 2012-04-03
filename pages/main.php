@@ -54,7 +54,7 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
  tickets during previous 7 days.</p>
           <p>Our IT team handles tasks and resolves all kind of problems from employees and clients. For that, we are using RT. We can't tell who sends messages and we don't have classifications for ticket complexity, but best we can do is to publish amount of handled tickets.</p>
           <p><a class="btn" href="/page/ittickets">View statistics &raquo;</a>
-<a href="/page/what" class="btn btn-info" rel="popover" data-original-title="How and why" data-content="Sometimes when you see corporate IT offices, you think nothing ever happens. Based on surveys in Futurice (not conducted by IT team), that's not the case. But anyway, we thought it might be good idea to tell how much work we are doing. Also, these statistics filter out all automatic tickets and automatic replies." data-placement="top">How and why</a>
+<a href="/page/what" class="btn btn-info" rel="popover" data-original-title="How and why" data-content="Sometimes when you see corporate IT offices, you think nothing ever happens. Based on surveys in Futurice (not conducted by IT team), that's not the case. But anyway, we thought it might be good idea to tell how much work we are doing. Also, these statistics filter out all automatic tickets and automatic replies.">How and why</a>
 </p>
         </div>
       </div>

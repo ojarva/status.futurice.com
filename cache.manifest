@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# version: 1333368567
+# version: 1333446229
 
 /
 /page/main
@@ -50,6 +50,9 @@ CACHE MANIFEST
 /img/carousel/18.jpg
 /img/carousel/19.jpg
 
+FALLBACK:
+/twitter.json /twitter_fallback.json
+/netmap.png /netmap_fallback.png
 
 NETWORK:
 *

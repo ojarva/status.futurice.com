@@ -43,8 +43,8 @@ js/combined.min.js: js/combined.js
 	yui-compressor js/combined.js > js/combined.min.js
 	chmod 644 js/combined.min.js
 
-js/combined.js: js/bootstrap/000-jquery.js js/bootstrap/100-bootstrap.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-carousel.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/999-custom.js js/990-pagerefresh.js
-	cat js/bootstrap/000-jquery.js  js/bootstrap/110-bootstrap-transition.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-modal.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-scrollspy.js js/bootstrap/110-bootstrap-tab.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-carousel.js js/bootstrap/110-bootstrap-typeahead.js > js/combined.js
+js/combined.js: js/bootstrap/000-jquery.js js/bootstrap/001-custom.js js/bootstrap/100-bootstrap.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-carousel.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/999-custom.js js/990-pagerefresh.js
+	cat js/bootstrap/000-jquery.js js/bootstrap/001-custom.js js/bootstrap/110-bootstrap-transition.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-modal.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-scrollspy.js js/bootstrap/110-bootstrap-tab.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-carousel.js js/bootstrap/110-bootstrap-typeahead.js > js/combined.js
 	cat js/???-*.js >> js/combined.js
 	chmod 644 js/combined.js
 

@@ -9250,6 +9250,49 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
 
 })( window );
+function popover_placement(popover, container) {
+    var $container = $(container),
+        height = $(window).height(),
+        width = $(window).width(),
+        offsetleft = $container.offset().left,
+        offsettop = $container.offset().top,
+        placements = {};
+    var spaceleft = offsetleft,
+        spaceright = width - offsetleft,
+        spacetop = offsettop,
+        spacebottom = height - offsettop,
+        max = 0,
+        best = false;
+
+    if (spacetop > 150) {
+        placements["top"] = spacetop;
+        if (spaceleft < 150 || spaceright < 150) {
+            placements["top"] = Math.min(spaceleft, spaceright);
+        }
+    }
+    if (spacebottom > 150) {
+        placements["bottom"] = spacebottom;
+        if (spaceleft < 150 || spaceright < 150) {
+            placements["bottom"] = Math.min(spaceleft, spaceright);
+        }
+    }
+    if (spaceleft > 250) {
+        placements["left"] = spaceleft / 2;
+    }
+    if (spaceright > 250) {
+        placements["right"] = spaceright / 2;
+    }
+    console.log(placements);
+    best = "bottom";
+    for (var item in placements) {
+        if (placements[item] > max) {
+            max = placements[item];
+            best = item;
+        }
+    }
+    return best;
+}
+
 /* ===================================================
  * bootstrap-transition.js v2.0.2
  * http://twitter.github.com/bootstrap/javascript.html#transitions
@@ -10061,10 +10104,11 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
         if (this.options.animation) {
           $tip.addClass('fade')
         }
-
+        console.log("before", this.options.placement);
         placement = typeof this.options.placement == 'function' ?
           this.options.placement.call(this, $tip[0], this.$element[0]) :
           this.options.placement
+        console.log("after", placement);
 
         inside = /in/.test(placement)
 
@@ -10195,6 +10239,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
   $.fn.tooltip = function ( option ) {
     return this.each(function () {
+      console.log(option);
       var $this = $(this)
         , data = $this.data('tooltip')
         , options = typeof option == 'object' && option
@@ -10215,7 +10260,8 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   , template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
   }
 
-}( window.jQuery );/* ===========================================================
+}( window.jQuery );
+/* ===========================================================
  * bootstrap-popover.js v2.0.2
  * http://twitter.github.com/bootstrap/javascript.html#popovers
  * ===========================================================
@@ -10304,12 +10350,13 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   $.fn.popover.Constructor = Popover
 
   $.fn.popover.defaults = $.extend({} , $.fn.tooltip.defaults, {
-    placement: 'right'
+    placement: popover_placement
   , content: ''
   , template: '<div class="popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
   })
 
-}( window.jQuery );/* ============================================================
+}( window.jQuery );
+/* ============================================================
  * bootstrap-button.js v2.0.2
  * http://twitter.github.com/bootstrap/javascript.html#buttons
  * ============================================================
@@ -12806,6 +12853,48 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
         }
     };
 }) ( jQuery );
+function popover_placement(popover, container) {
+    var $container = $(container),
+        height = $(window).height(),
+        width = $(window).width(),
+        offsetleft = $container.offset().left,
+        offsettop = $container.offset().top,
+        placements = {};
+    var spaceleft = offsetleft,
+        spaceright = width - offsetleft,
+        spacetop = offsettop,
+        spacebottom = height - offsettop,
+        max = 0,
+        best = false;
+    
+    if (spacetop > 150) {
+        placements["top"] = spacetop;
+        if (spaceleft < 150 || spaceright < 150) {
+            placements["top"] = Math.min(spaceleft, spaceright);
+        }
+    }
+    if (spacebottom > 150) {
+        placements["bottom"] = spacebottom;
+        if (spaceleft < 150 || spaceright < 150) {
+            placements["bottom"] = Math.min(spaceleft, spaceright);
+        }
+    }
+    if (spaceleft > 250) {
+        placements["left"] = spaceleft / 2;
+    }
+    if (spaceright > 250) {
+        placements["right"] = spaceright / 2;
+    }
+    best = "bottom";    
+    for (var item in placements) {
+        if (placements[item] > max) {
+            max = placements[item];
+            best = item;
+        }
+    }
+    return best;
+}
+
 $(document).ready(function () {
     var onlinestatus = window.navigator.onLine,
         key;
@@ -12934,7 +13023,7 @@ function update_twitter() {
 
 $(document).ready(function() {
     $("[rel=popover]").popover("hide");
-    $("[rel=popover]").popover();
+    $("[rel=popover]").popover({"placement": popover_placement});
     update_twitter();
     setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
 });
