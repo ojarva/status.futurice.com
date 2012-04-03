@@ -1,121 +1,156 @@
-(function( $ ) {
-    var data = [],
-        axisx = [],
-        axisy = [];
+/*!
+ * g.Raphael 0.5 - Charting library, based on Raphaël
+ *
+ * Copyright (c) 2009 Dmitry Baranovskiy (http://g.raphaeljs.com)
+ * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
+ */
+(function () {
+        var colorValue = function (value, total, s, b) {
+            return 'hsb(' + [Math.min((1 - value / total) * .4, 1), s || .75, b || .75] + ')';
+        };
 
-    var methods = {
-        init : function (options) {
-            return $(this).each(function() {
-                $(this).data("dotsgraph_data", options["data"]);
-                var axisx = options.data.xtitles,
-                    axisy = options.data.ytitles;
-                if (! $(this).data("dotsgraph_settings")) {
-                    // Draw
-                    var width = 800,
-                        height = 300,
-                        leftgutter = 30,
-                        bottomgutter = 20,
-                        r = Raphael("dotschart", width, height),
-                        txt = {"font": '10px Fontin-Sans, Arial', stroke: "none", fill: "#000"},
-                        X = (width - leftgutter) / axisx.length,
-                        Y = (height - bottomgutter) / axisy.length,
-                        color = $("#chart").css("color"),
-                        max = Math.round(X / 2) - 1;
-                    var dotsgraph_settings = {"width": width, "height": height, "leftgutter": leftgutter, "bottomgutter": bottomgutter, "r": r, "txt": txt, "X": X, "Y": Y, "color": color, "max": max};
-                    $(this).data("dotsgraph_settings", dotsgraph_settings);
-                    // Draw axis
-                    for (var i = 0, ii = axisx.length; i < ii; i++) {
-                        var tmptext = r.text(0, 294, axisx[i]).attr(txt);
-                        tmptext.animate({x: leftgutter + X * (i + .5), y: 294}, 2180, "bounce");
-                    }
-                    for (var i = 0, ii = axisy.length; i < ii; i++) {
-                        var tmptext = r.text(10, 0, axisy[i]).attr(txt);
-                        tmptext.animate({x: 10, y: Y * (i + .5)}, 2050, "bounce");
-                    }
-                }
-            });
-        },
-        destroy: function () {
-
-        },
-        update: function() {
-            return $(this).each(function() {
-                var dgs = $(this).data("dotsgraph_settings"),
-                    width = dgs.width,
-                    height = dgs.height,
-                    leftgutter = dgs.leftgutter,
-                    bottomgutter = dgs.bottomgutter,
-                    r = dgs.r,
-                    txt = dgs.txt,
-                    X = dgs.X,
-                    Y = dgs.Y,
-                    color = dgs.color,
-                    max = dgs.max,
-                    dgd = $(this).data("dotsgraph_data"),
-                    xaxis = dgd.xtitles,
-                    yaxis = dgd.ytitles,
-                    data = dgd.date_stats,
-                    o = 0,
-                    circleinAnimation = Raphael.animation({opacity: 1}, 750, "easeIn"),
-                    circleoutAnimation = Raphael.animation({opacity: 1}, 1500, "easeOut");
-                // i == y axis index
-                // j == x axis index
-                // o == data array index
-                // R == circle diameter
-
-                for (var i = 0, ii = dgd.ytitles.length; i < ii; i++) {
-                    for (var j = 0, jj = dgd.xtitles.length; j < jj; j++) {
-                        var Rtmp = max,
-                            R = data[o] && Math.min(Math.round(Math.sqrt(data[o] / Math.PI / 13) * 4), max),
-                            dttmp = r.circle(leftgutter + X * (j + .5) - 60 - R + 60 + R, Y * (i + .5) - 10 + 10, max+2).attr({stroke:"none", fill: "#fff", opacity: 0});
-                        dttmp.animate(circleoutAnimation.delay(dgd.ytitles.length*dgd.xtitles.length - o * 10)); //{"opacity": 1}, 1500, "easeOut");
-                        if (R) {
-                            (function (dx, dy, R, value) {
-                                var color = "hsb(" + [(1 - R / max) * .5, 1, .75] + ")",
-                                    dt = r.circle(dx + 60 + R, dy + 10, R).attr({stroke: "none", fill: color, opacity: 0});
-                                dt.animate(circleinAnimation.delay((o % 24)*70 + (o % 24) * 20));
-                                if (R < 6) {
-                                    var bg = r.circle(dx + 60 + R, dy + 10, 6).attr({stroke: "none", fill: "#00f", opacity: .4}).hide();
-                                }
-                                var lbl = r.text(dx + 60 + R, dy + 10, data[o])
-                                        .attr({"font": '18px Fontin-Sans, Arial', stroke: "none", fill: "#000"}).hide(),
-                                    dot = r.circle(dx + 60 + R, dy + 10, max).attr({stroke: "none", fill: "#00f", opacity: 0});
-                                dot[0].onmouseover = function () {
-                                    if (bg) {
-                                        bg.show();
-                                    } else {
-                                        var clr = Raphael.rgb2hsb(color);
-                                        clr.b = .5;
-                                        dt.attr("fill", Raphael.hsb2rgb(clr).hex);
-                                    }
-                                    lbl.show();
-                                };
-                                dot[0].onmouseout = function () {
-                                    if (bg) {
-                                        bg.hide();
-                                    } else {
-                                        dt.attr("fill", color);
-                                    }
-                                    lbl.hide();
-                                };
-                            })(leftgutter + X * (j + .5) - 60 - R, Y * (i + .5) - 10, R, data[o]);
-                        }
-                        o++;
-                    }
-                }
-            });
+    function Dotchart(paper, x, y, width, height, valuesx, valuesy, size, opts) {
+        
+        var chartinst = this;
+        
+        function drawAxis(ax) {
+            +ax[0] && (ax[0] = chartinst.axis(x + gutter, y + gutter, width - 2 * gutter, minx, maxx, opts.axisxstep || Math.floor((width - 2 * gutter) / 20), 2, opts.axisxlabels || null, opts.axisxtype || "t", null, paper));
+            +ax[1] && (ax[1] = chartinst.axis(x + width - gutter, y + height - gutter, height - 2 * gutter, miny, maxy, opts.axisystep || Math.floor((height - 2 * gutter) / 20), 3, opts.axisylabels || null, opts.axisytype || "t", null, paper));
+            +ax[2] && (ax[2] = chartinst.axis(x + gutter, y + height - gutter + maxR, width - 2 * gutter, minx, maxx, opts.axisxstep || Math.floor((width - 2 * gutter) / 20), 0, opts.axisxlabels || null, opts.axisxtype || "t", null, paper));
+            +ax[3] && (ax[3] = chartinst.axis(x + gutter - maxR, y + height - gutter, height - 2 * gutter, miny, maxy, opts.axisystep || Math.floor((height - 2 * gutter) / 20), 1, opts.axisylabels || null, opts.axisytype || "t", null, paper));
         }
-    }
 
+        opts = opts || {};
+        var xdim = chartinst.snapEnds(Math.min.apply(Math, valuesx), Math.max.apply(Math, valuesx), valuesx.length - 1),
+            minx = xdim.from,
+            maxx = xdim.to,
+            gutter = opts.gutter || 10,
+            ydim = chartinst.snapEnds(Math.min.apply(Math, valuesy), Math.max.apply(Math, valuesy), valuesy.length - 1),
+            miny = ydim.from,
+            maxy = ydim.to,
+            len = Math.max(valuesx.length, valuesy.length, size.length),
+            symbol = paper[opts.symbol] || "circle",
+            res = paper.set(),
+            series = paper.set(),
+            max = opts.max || 100,
+            top = Math.max.apply(Math, size),
+            R = [],
+            k = Math.sqrt(top / Math.PI) * 2 / max;
 
-    $.fn.dotsgraph = function( method ) {
-    
-        if ( methods[method] ) {
-            return methods[method].apply( this, Array.prototype.slice.call( arguments, 1 ));
-        } else if ( typeof method === 'object' || ! method ) {
-            return methods.init.apply( this, arguments );
-        } else {
-            $.error( 'Method ' +  method + ' does not exist on jQuery.tooltip' );
-        }    
+        for (var i = 0; i < len; i++) {
+            R[i] = Math.min(Math.sqrt(size[i] / Math.PI) * 2 / k, max);
+        }
+
+        gutter = Math.max.apply(Math, R.concat(gutter));
+
+        var axis = paper.set(),
+            maxR = Math.max.apply(Math, R);
+
+        if (opts.axis) {
+            var ax = (opts.axis + "").split(/[,\s]+/);
+
+            drawAxis.call(chartinst, ax);
+
+            var g = [], b = [];
+
+            for (var i = 0, ii = ax.length; i < ii; i++) {
+                var bb = ax[i].all ? ax[i].all.getBBox()[["height", "width"][i % 2]] : 0;
+
+                g[i] = bb + gutter;
+                b[i] = bb;
+            }
+
+            gutter = Math.max.apply(Math, g.concat(gutter));
+
+            for (var i = 0, ii = ax.length; i < ii; i++) if (ax[i].all) {
+                ax[i].remove();
+                ax[i] = 1;
+            }
+
+            drawAxis.call(chartinst, ax);
+
+            for (var i = 0, ii = ax.length; i < ii; i++) if (ax[i].all) {
+                axis.push(ax[i].all);
+            }
+
+            res.axis = axis;
+        }
+
+        var kx = (width - gutter * 2) / ((maxx - minx) || 1),
+            ky = (height - gutter * 2) / ((maxy - miny) || 1);
+
+        for (var i = 0, ii = valuesy.length; i < ii; i++) {
+            var sym = paper.raphael.is(symbol, "array") ? symbol[i] : symbol,
+                X = x + gutter + (valuesx[i] - minx) * kx,
+                Y = y + height - gutter - (valuesy[i] - miny) * ky;
+
+            sym && R[i] && series.push(paper[sym](X, Y, R[i]).attr({ fill: opts.heat ? colorValue(R[i], maxR) : chartinst.colors[0], "fill-opacity": opts.opacity ? R[i] / max : 1, stroke: "none" }));
+        }
+
+        var covers = paper.set();
+
+        for (var i = 0, ii = valuesy.length; i < ii; i++) {
+            var X = x + gutter + (valuesx[i] - minx) * kx,
+                Y = y + height - gutter - (valuesy[i] - miny) * ky;
+
+            covers.push(paper.circle(X, Y, maxR).attr(chartinst.shim));
+            opts.href && opts.href[i] && covers[i].attr({href: opts.href[i]});
+            covers[i].r = +R[i].toFixed(3);
+            covers[i].x = +X.toFixed(3);
+            covers[i].y = +Y.toFixed(3);
+            covers[i].X = valuesx[i];
+            covers[i].Y = valuesy[i];
+            covers[i].value = size[i] || 0;
+            covers[i].dot = series[i];
+        }
+
+        res.covers = covers;
+        res.series = series;
+        res.push(series, axis, covers);
+
+        res.hover = function (fin, fout) {
+            covers.mouseover(fin).mouseout(fout);
+            return this;
+        };
+
+        res.click = function (f) {
+            covers.click(f);
+            return this;
+        };
+
+        res.each = function (f) {
+            if (!paper.raphael.is(f, "function")) {
+                return this;
+            }
+
+            for (var i = covers.length; i--;) {
+                f.call(covers[i]);
+            }
+
+            return this;
+        };
+
+        res.href = function (map) {
+            var cover;
+
+            for (var i = covers.length; i--;) {
+                cover = covers[i];
+
+                if (cover.X == map.x && cover.Y == map.y && cover.value == map.value) {
+                    cover.attr({href: map.href});
+                }
+            }
+        };
+        return res;
     };
-})( jQuery );
+    
+    //inheritance
+    var F = function() {};
+    F.prototype = Raphael.g
+    Dotchart.prototype = new F;
+    
+    //public
+    Raphael.fn.dotchart = function(x, y, width, height, valuesx, valuesy, size, opts) {
+        return new Dotchart(this, x, y, width, height, valuesx, valuesy, size, opts);
+    }
+})();

@@ -25,6 +25,7 @@ function fetch_data(from_storage) {
         $workflowchart.empty();
         $dotschart.empty();
         $("#emailpieholder").empty();
+        draw_dots_chart(ticketdata.dots.all);
 
         var $ticketid = $("#total-tickets-popover");
         $ticketid.data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
@@ -35,9 +36,29 @@ function fetch_data(from_storage) {
         $ticketid.popover({"placement": popover_placement});
 
         $("#dots_all").addClass("active");
-        $dotschart.dotsgraph({"data": ticketdata.dots.all});
-        $dotschart.dotsgraph("update");
 
+    }
+
+    function draw_dots_chart(datain) {
+        $dotschart.empty();
+        var r = Raphael("dotschart");
+        var xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+            ys = [];
+            data = datain.date_stats,
+            axisy = datain.ytitles;
+            axisx = datain.xtitles;
+        for (var y = 0; y < 7; y++) {
+            for (var i = 0; i < 24; i++) {
+                ys.push(y);
+            }
+        }
+
+        r.dotchart(10,10,900,300, xs, ys.reverse(), data, {symbol: "o", max: 10, heat: true, axis: "0 0 1 1", axisxstep: 23, axisystep: 6, axisxlabels: axisx, axisxtype: " ", axisytype: " ", axisylabels: axisy.reverse()}).hover(function () {
+            this.marker = this.marker || r.tag(this.x, this.y, this.value, 0, this.r + 2).insertBefore(this);
+            this.marker.show();
+        }, function () {
+            this.marker && this.marker.hide();
+        });
     }
 
     function update_data() {
@@ -51,11 +72,12 @@ function fetch_data(from_storage) {
             if ($(this).hasClass("active")) {
                 return;
             }
-            $dotschart.slideDown();
+            $dotschart.show(); // Show instantly, because otherwise svg chart height is 1
             $workflowchart.slideUp();
+
             var dictname = $(this).data("name");
-            $dotschart.dotsgraph({"data": ticketdata["dots"][dictname]});
-            $dotschart.dotsgraph("update");
+            draw_dots_chart(ticketdata.dots[dictname]);
+
             $placeholder.html("mouse over the circles for more details");
             $placeholder.removeClass("hidden");
             $("#name2").addClass("hidden");
