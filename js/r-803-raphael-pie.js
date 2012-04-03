@@ -1,45 +1,255 @@
-Raphael.fn.pieChart = function (cx, cy, r, values, labels, stroke) {
-    var paper = this,
-        rad = Math.PI / 180,
-        chart = this.set();
-    function sector(cx, cy, r, startAngle, endAngle, params) {
-        var x1 = cx + r * Math.cos(-startAngle * rad),
-            x2 = cx + r * Math.cos(-endAngle * rad),
-            y1 = cy + r * Math.sin(-startAngle * rad),
-            y2 = cy + r * Math.sin(-endAngle * rad);
-        return paper.path(["M", cx, cy, "L", x1, y1, "A", r, r, 0, +(endAngle - startAngle > 180), 0, x2, y2, "z"]).attr(params);
-    }
-    var angle = 0,
-        total = 0,
-        start = 0,
-        process = function (j) {
-            var value = values[j],
-                angleplus = 360 * value / total,
-                popangle = angle + (angleplus / 2),
-                color = Raphael.hsb(start, .75, 1),
-                ms = 500,
-                delta = 30,
-                bcolor = Raphael.hsb(start, 1, 1),
-                p = sector(cx, cy, r, angle, angle + angleplus, {fill: "90-" + bcolor + "-" + color, stroke: stroke, "stroke-width": 3}),
-                txt = paper.text(cx + (r + delta + 55) * Math.cos(-popangle * rad), cy + (r + delta + 25) * Math.sin(-popangle * rad), labels[j]).attr({fill: bcolor, stroke: "none", opacity: 0, "font-size": 20});
-            p.mouseover(function () {
-                p.stop().animate({transform: "s1.1 1.1 " + cx + " " + cy}, ms, "elastic");
-                txt.stop().animate({opacity: 1}, ms, "elastic");
-            }).mouseout(function () {
-                p.stop().animate({transform: ""}, ms, "elastic");
-                txt.stop().animate({opacity: 0}, ms);
-            });
-            angle += angleplus;
-            chart.push(p);
-            chart.push(txt);
-            start += .1;
-        };
-    for (var i = 0, ii = values.length; i < ii; i++) {
-        total += values[i];
-    }
-    for (i = 0; i < ii; i++) {
-        process(i);
-    }
-    return chart;
-};
+/*
+ * g.Raphael 0.5 - Charting library, based on Raphaël
+ *
+ * Copyright (c) 2009 Dmitry Baranovskiy (http://g.raphaeljs.com)
+ * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
+ */
+(function () {
 
+    function Piechart(paper, cx, cy, r, values, opts) {
+        opts = opts || {};
+
+        var chartinst = this,
+            sectors = [],
+            covers = paper.set(),
+            chart = paper.set(),
+            series = paper.set(),
+            order = [],
+            len = values.length,
+            angle = 0,
+            total = 0,
+            others = 0,
+            cut = 9,
+            defcut = true;
+
+        function sector(cx, cy, r, startAngle, endAngle, fill) {
+            var rad = Math.PI / 180,
+                x1 = cx + r * Math.cos(-startAngle * rad),
+                x2 = cx + r * Math.cos(-endAngle * rad),
+                xm = cx + r / 2 * Math.cos(-(startAngle + (endAngle - startAngle) / 2) * rad),
+                y1 = cy + r * Math.sin(-startAngle * rad),
+                y2 = cy + r * Math.sin(-endAngle * rad),
+                ym = cy + r / 2 * Math.sin(-(startAngle + (endAngle - startAngle) / 2) * rad),
+                res = [
+                    "M", cx, cy,
+                    "L", x1, y1,
+                    "A", r, r, 0, +(Math.abs(endAngle - startAngle) > 180), 1, x2, y2,
+                    "z"
+                ];
+
+            res.middle = { x: xm, y: ym };
+            return res;
+        }
+
+        chart.covers = covers;
+
+        if (len == 1) {
+            series.push(paper.circle(cx, cy, r).attr({ fill: chartinst.colors[0], stroke: opts.stroke || "#fff", "stroke-width": opts.strokewidth == null ? 1 : opts.strokewidth }));
+            covers.push(paper.circle(cx, cy, r).attr(chartinst.shim));
+            total = values[0];
+            values[0] = { value: values[0], order: 0, valueOf: function () { return this.value; } };
+            series[0].middle = {x: cx, y: cy};
+            series[0].mangle = 180;
+        } else {
+            for (var i = 0; i < len; i++) {
+                total += values[i];
+                values[i] = { value: values[i], order: i, valueOf: function () { return this.value; } };
+            }
+
+            values.sort(function (a, b) {
+                return b.value - a.value;
+            });
+
+            for (i = 0; i < len; i++) {
+                if (defcut && values[i] * 360 / total <= 1.5) {
+                    cut = i;
+                    defcut = false;
+                }
+
+                if (i > cut) {
+                    defcut = false;
+                    values[cut].value += values[i];
+                    values[cut].others = true;
+                    others = values[cut].value;
+                }
+            }
+
+            len = Math.min(cut + 1, values.length);
+            others && values.splice(len) && (values[cut].others = true);
+
+            for (i = 0; i < len; i++) {
+                var mangle = angle - 360 * values[i] / total / 2;
+
+                if (!i) {
+                    angle = 90 - mangle;
+                    mangle = angle - 360 * values[i] / total / 2;
+                }
+
+                if (opts.init) {
+                    var ipath = sector(cx, cy, 1, angle, angle - 360 * values[i] / total).join(",");
+                }
+
+                var path = sector(cx, cy, r, angle, angle -= 360 * values[i] / total);
+                var p = paper.path(opts.init ? ipath : path).attr({ fill: opts.colors && opts.colors[i] || chartinst.colors[i] || "#666", stroke: opts.stroke || "#fff", "stroke-width": (opts.strokewidth == null ? 1 : opts.strokewidth), "stroke-linejoin": "round" });
+
+                p.value = values[i];
+                p.middle = path.middle;
+                p.mangle = mangle;
+                sectors.push(p);
+                series.push(p);
+                opts.init && p.animate({ path: path.join(",") }, (+opts.init - 1) || 1000, ">");
+            }
+
+            for (i = 0; i < len; i++) {
+                p = paper.path(sectors[i].attr("path")).attr(chartinst.shim);
+                opts.href && opts.href[i] && p.attr({ href: opts.href[i] });
+                p.attr = function () {};
+                covers.push(p);
+                series.push(p);
+            }
+        }
+
+        chart.hover = function (fin, fout) {
+            fout = fout || function () {};
+
+            var that = this;
+
+            for (var i = 0; i < len; i++) {
+                (function (sector, cover, j) {
+                    var o = {
+                        sector: sector,
+                        cover: cover,
+                        cx: cx,
+                        cy: cy,
+                        mx: sector.middle.x,
+                        my: sector.middle.y,
+                        mangle: sector.mangle,
+                        r: r,
+                        value: values[j],
+                        total: total,
+                        label: that.labels && that.labels[j]
+                    };
+                    cover.mouseover(function () {
+                        fin.call(o);
+                    }).mouseout(function () {
+                        fout.call(o);
+                    });
+                })(series[i], covers[i], i);
+            }
+            return this;
+        };
+
+        // x: where label could be put
+        // y: where label could be put
+        // value: value to show
+        // total: total number to count %
+        chart.each = function (f) {
+            var that = this;
+
+            for (var i = 0; i < len; i++) {
+                (function (sector, cover, j) {
+                    var o = {
+                        sector: sector,
+                        cover: cover,
+                        cx: cx,
+                        cy: cy,
+                        x: sector.middle.x,
+                        y: sector.middle.y,
+                        mangle: sector.mangle,
+                        r: r,
+                        value: values[j],
+                        total: total,
+                        label: that.labels && that.labels[j]
+                    };
+                    f.call(o);
+                })(series[i], covers[i], i);
+            }
+            return this;
+        };
+
+        chart.click = function (f) {
+            var that = this;
+
+            for (var i = 0; i < len; i++) {
+                (function (sector, cover, j) {
+                    var o = {
+                        sector: sector,
+                        cover: cover,
+                        cx: cx,
+                        cy: cy,
+                        mx: sector.middle.x,
+                        my: sector.middle.y,
+                        mangle: sector.mangle,
+                        r: r,
+                        value: values[j],
+                        total: total,
+                        label: that.labels && that.labels[j]
+                    };
+                    cover.click(function () { f.call(o); });
+                })(series[i], covers[i], i);
+            }
+            return this;
+        };
+
+        chart.inject = function (element) {
+            element.insertBefore(covers[0]);
+        };
+
+        var legend = function (labels, otherslabel, mark, dir) {
+            var x = cx + r + r / 5,
+                y = cy,
+                h = y + 10;
+
+            labels = labels || [];
+            dir = (dir && dir.toLowerCase && dir.toLowerCase()) || "east";
+            mark = paper[mark && mark.toLowerCase()] || "circle";
+            chart.labels = paper.set();
+
+            for (var i = 0; i < len; i++) {
+                var clr = series[i].attr("fill"),
+                    j = values[i].order,
+                    txt;
+
+                values[i].others && (labels[j] = otherslabel || "Others");
+                labels[j] = chartinst.labelise(labels[j], values[i], total);
+                chart.labels.push(paper.set());
+                chart.labels[i].push(paper[mark](x + 5, h, 5).attr({ fill: clr, stroke: "none" }));
+                chart.labels[i].push(txt = paper.text(x + 20, h, labels[j] || values[j]).attr(chartinst.txtattr).attr({ fill: opts.legendcolor || "#000", "text-anchor": "start"}));
+                covers[i].label = chart.labels[i];
+                h += txt.getBBox().height * 1.2;
+            }
+
+            var bb = chart.labels.getBBox(),
+                tr = {
+                    east: [0, -bb.height / 2],
+                    west: [-bb.width - 2 * r - 20, -bb.height / 2],
+                    north: [-r - bb.width / 2, -r - bb.height - 10],
+                    south: [-r - bb.width / 2, r + 10]
+                }[dir];
+
+            chart.labels.translate.apply(chart.labels, tr);
+            chart.push(chart.labels);
+        };
+
+        if (opts.legend) {
+            legend(opts.legend, opts.legendothers, opts.legendmark, opts.legendpos);
+        }
+
+        chart.push(series, covers);
+        chart.series = series;
+        chart.covers = covers;
+
+        return chart;
+    };
+    
+    //inheritance
+    var F = function() {};
+    F.prototype = Raphael.g;
+    Piechart.prototype = new F;
+    
+    //public
+    Raphael.fn.piechart = function(cx, cy, r, values, opts) {
+        return new Piechart(this, cx, cy, r, values, opts);
+    }
+    
+})();

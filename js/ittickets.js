@@ -34,7 +34,7 @@ function fetch_data(from_storage) {
         $ticketid.popover("hide");
         $ticketid.popover({"placement": popover_placement});
 
-        $("#dots_all").addClass("btn-info");
+        $("#dots_all").addClass("active");
         $dotschart.dotsgraph({"data": ticketdata.dots.all});
         $dotschart.dotsgraph("update");
 
@@ -48,7 +48,7 @@ function fetch_data(from_storage) {
         }
 
         $(".dots-btn").click(function() {
-            if ($(this).hasClass("btn-info")) {
+            if ($(this).hasClass("active")) {
                 return;
             }
             $dotschart.slideDown();
@@ -56,9 +56,6 @@ function fetch_data(from_storage) {
             var dictname = $(this).data("name");
             $dotschart.dotsgraph({"data": ticketdata["dots"][dictname]});
             $dotschart.dotsgraph("update");
-            $(".dots-btn").removeClass("btn-info");
-            $("#change_graph").removeClass("btn-info");
-            $(this).addClass("btn-info");
             $placeholder.html("mouse over the circles for more details");
             $placeholder.removeClass("hidden");
             $("#name2").addClass("hidden");
@@ -71,13 +68,29 @@ function fetch_data(from_storage) {
             process(ticketdata.workflow);
             $workflowchart.removeClass("hidden");
             $workflowchart.slideDown();
-            $(".dots-btn").removeClass("btn-info");
-            $(this).addClass("btn-info");
         });
 
+        $("#emailpieholder").empty();
         var emailpie_values = [ticketdata.other_users, ticketdata.futurice_users],
-            emailpie_labels = ["External", "Internal"];
-        Raphael("emailpieholder", 400, 200).pieChart(180, 100, 69, emailpie_values, emailpie_labels, "#fff");
+            emailpie_labels = {legend: ["External %%.%%", "Internal %%.%%"], legendpos: "west"};
+        var r = Raphael("emailpieholder", 400, 200),
+            pie = r.piechart(190, 100, 69, emailpie_values, emailpie_labels);
+        
+        pie.hover(function () {
+            this.sector.stop();
+                this.sector.scale(1.1, 1.1, this.cx, this.cy);
+                if (this.label) {
+                    this.label[0].stop();
+                    this.label[0].attr({ r: 7.5 });
+                    this.label[1].attr({ "font-weight": 800 });
+                }
+            }, function () {
+                this.sector.animate({ transform: 's1 1 ' + this.cx + ' ' + this.cy }, 500, "bounce");
+                if (this.label) {
+                    this.label[0].animate({ r: 5 }, 500, "bounce");
+                    this.label[1].attr({ "font-weight": 400 });
+                }
+        });
     }
     if (from_storage) {
             if ($("body").data("ittickets-initialized") !== true) {

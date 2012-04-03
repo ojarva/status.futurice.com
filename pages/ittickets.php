@@ -47,7 +47,7 @@
 
 <div class="row">
 	<div class="span12">
-		<div class="btn-group">
+		<div class="btn-group" data-toggle="buttons-radio">
 			<button rel="popover" data-original-title="What?" data-content="This includes all tickets, also automatically generated warnings, information messages and errors." data-placement="bottom"  data-name="all" id="dots_all" class="btn dots-btn">All tickets by creation time</button>
 			<button rel="popover" data-original-title="What?" data-content="This shows resolve times (time when ticket was marked as resolved) for all tickets" data-placement="bottom" data-name="all_resolved" id="dots_all_resolved" class="btn dots-btn">All tickets by resolve time</button>
 			<button rel="popover" data-original-title="What?" data-content="This shows only tickets created by human being. Practically all machine generated tickets are removed." data-placement="bottom" data-name="manual" id="dots_manual" class="btn dots-btn">Non-automatic tickets by creation time</button>
