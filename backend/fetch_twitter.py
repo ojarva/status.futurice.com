@@ -20,7 +20,8 @@ class TwitterInfo:
         user = self.api.GetUser(self.username)
         new_data = json.dumps({"status": user.status.GetText(), 
               "followers": user.GetFollowersCount(), 
-              "status_ago": user.status.GetRelativeCreatedAt()})
+              "status_ago": user.status.GetRelativeCreatedAt(),
+              "timestamp": user.status.GetCreatedAtInSeconds()})
         try:
             old_data = open(self.filename).read()
         except IOError:
@@ -33,8 +34,6 @@ class TwitterInfo:
         msg = self.api.GetUserTimeline(self.username)
         new_data = json.dumps({"statuses": msg})
         old_data = open(self.statusfilename).read()
-        print new_data
-        print old_data
  
         if new_data != old_data:
             open(self.statusfilename, "w").write(new_data)

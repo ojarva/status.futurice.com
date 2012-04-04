@@ -12687,6 +12687,51 @@ function popover_placement(popover, container) {
   };
 
 })();
+function set_last_data(filename, data) {
+    data = JSON.stringify(data);
+    if (localStorage) {
+        localStorage.setItem(filename+"-data", data);
+    } else {
+        $("body").data(filename+"-data", data);
+    }
+}
+
+function set_last_data_timestamp(filename, data) {
+    if (localStorage) {
+        localStorage.setItem(filename+"-timestamp", data);
+    } else {
+        $("body").data(filename+"-timestamp", data);
+    }
+}
+
+function get_last_data(filename) {
+    var data;
+    if (localStorage) {
+        data = localStorage.getItem(filename+"-data");
+    } else {
+        data = $("body").data(filename+"-data");
+    }
+    if (!data) {
+       return;
+    }
+    return JSON.parse(data);
+}
+
+function get_last_data_timestamp(filename) {
+    var data;
+    if (localStorage) {
+        data = localStorage.getItem(filename+"-timestamp");
+    } else {
+        data = $("body").data(filename+"-timestamp");
+    }
+    if (!data) {
+       data = 0;
+    }
+    return parseInt(data);
+}
+
+
+
 (function ( $) {
     var methods = {
         init : function (options) {
@@ -12697,7 +12742,8 @@ function popover_placement(popover, container) {
                 'update_button_id': $(this).selector + '> .update_now_button',
                 'spinner_id': $(this).selector + '> .update_now_button > .update_progress_indicator',
                 'next_reload_id': $(this).selector + '> small > .update_next_reload',
-                'refresh_callback': "update_twitter(); fetch_data();",
+                'refresh_callback': "fetch_data();",
+                'refresh_twitter_callback': "update_twitter();",
                 'ago_id': $(this).selector + '> small > .update_ago',
                 'thiselem': $(this),
                 'filewatch': false
@@ -12740,27 +12786,27 @@ function popover_placement(popover, container) {
             }
 
             if (!settings.sse) {
-            $(window).blur(function () {
-                var next_reload = $(settings.next_reload_id).data("reload-timestamp");
-                if (next_reload) {
-                    var max_timeout = (new Date()).getTime() + settings.long_timeout * 1000 + settings.short_timeout * 1000;
-                    var proposed_timeout = next_reload + (settings.long_timeout * 1000);
-                    $(settings.next_reload_id).data("reload-timestamp", Math.min(max_timeout, proposed_timeout));
-                } else {
-                    $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
-                }
-                settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.long_timeout);
-            });
+                $(window).blur(function () {
+                    var next_reload = $(settings.next_reload_id).data("reload-timestamp");
+                    if (next_reload) {
+                        var max_timeout = (new Date()).getTime() + settings.long_timeout * 1000 + settings.short_timeout * 1000;
+                        var proposed_timeout = next_reload + (settings.long_timeout * 1000);
+                        $(settings.next_reload_id).data("reload-timestamp", Math.min(max_timeout, proposed_timeout));
+                    } else {
+                        $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
+                    }
+                    settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.long_timeout);
+                });
 
-            $(window).focus(function () {
-                var next_reload = $(settings.next_reload_id).data("reload-timestamp");
-                if (next_reload) {
-                    $(settings.next_reload_id).data("reload-timestamp", next_reload - settings.long_timeout * 1000);
-                } else {
-                    $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.short_timeout * 1000);
-                }
-                settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.short_timeout);
-            });
+                $(window).focus(function () {
+                    var next_reload = $(settings.next_reload_id).data("reload-timestamp");
+                    if (next_reload) {
+                        $(settings.next_reload_id).data("reload-timestamp", next_reload - settings.long_timeout * 1000);
+                    } else {
+                        $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.short_timeout * 1000);
+                    }
+                    settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.short_timeout);
+                });
             } // !sse
 
             $(this).pagerefresh("update");
@@ -12824,9 +12870,38 @@ function popover_placement(popover, container) {
             $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.current_timeout * 1000);
             $(settings.spinner_id).show();
             $(settings.update_button_id).addClass("disabled");
-            try {
-                eval(settings.refresh_callback);
-            } catch (e) { console.log("Executing callback ("+settings.refresh_callback+") failed", e); }
+
+            if (!$("body").data(settings.filewatch+"-localstorage-loaded")) {
+                $("body").data(settings.filewatch+"-localstorage-loaded", true);
+                data = get_last_data(settings.filewatch);
+                if (data) {
+                    $("body").data("pagerefresh-data", data);
+                    eval(settings.refresh_callback);
+                }
+                twitter = get_last_data("twitter.json");
+                if (twitter) {
+                    $("body").data("pagerefresh-twitter", twitter);
+                    eval(settings.refresh_twitter_callback);
+                }
+            }
+            var url = "/json.php?filename="+settings.filewatch+"&last_data="+get_last_data_timestamp(settings.filewatch);
+            $.get(url, function(data) {
+                if (data.status == "success") {
+                    if (data.twitter) {
+                        $("body").data("pagerefresh-twitter", data.twitter);
+                        set_last_data("twitter.json", data.twitter);
+                        eval(settings.refresh_twitter_callback);
+                    }
+                    if (data.data) {
+                        $("body").data("pagerefresh-data", data.data);
+                        set_last_data(settings.filewatch, data.data);
+                        eval(settings.refresh_callback);
+                        set_last_data_timestamp(settings.filewatch, data.data.content_timestamp);
+                        settings.thiselem.pagerefresh("fetch_done", data.data.content_timestamp*1000);
+                    }
+                }
+            }, "json");
+
         },
         fetch_done: function ( timestamp ) {
             $(this).pagerefresh("savesetting", "timestamp", timestamp);
@@ -12978,16 +13053,13 @@ jQuery.fn.urlize = function() {
 };
 
 function update_twitter() {
-    $.get("/data/twitter.json", function(data) {
-        $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
-        $("#twitter_status").urlize();
-    }, "json");
-
+    var data = $("body").data("pagerefresh-twitter").content;
+    $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
+    $("#twitter_status").urlize();
 }
 
 $(document).ready(function() {
     $("[rel=popover]").popover("hide");
     $("[rel=popover]").popover({"placement": popover_placement});
-    update_twitter();
     setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
 });

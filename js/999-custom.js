@@ -126,16 +126,13 @@ jQuery.fn.urlize = function() {
 };
 
 function update_twitter() {
-    $.get("/data/twitter.json", function(data) {
-        $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
-        $("#twitter_status").urlize();
-    }, "json");
-
+    var data = $("body").data("pagerefresh-twitter").content;
+    $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
+    $("#twitter_status").urlize();
 }
 
 $(document).ready(function() {
     $("[rel=popover]").popover("hide");
     $("[rel=popover]").popover({"placement": popover_placement});
-    update_twitter();
     setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
 });

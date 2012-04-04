@@ -11,29 +11,30 @@ header('Pragma: no-cache');
 header("content-type: application/json");
 
 function response($success, $status) {
- return json_encode(array("success" => $success, "status" => $status));
+    return json_encode(array("success" => $success, "status" => $status));
 }
 
-if ($_POST["password"] != $password) {
- Header('HTTP/1.1 403 Forbidden');
- echo response(false, "Wrong password");
- exit(0);
+if (!isset($POST["password"]) || $_POST["password"] != $password) {
+    Header('HTTP/1.1 403 Forbidden');
+    echo response(false, "Wrong password");
+    exit(0);
 }
 
 if (!in_array($_POST["what"], $what_allowed)) {
- echo response(false, "Invalid target name");
- exit(0);
+    echo response(false, "Invalid target name");
+    exit(0);
 }
 
 $filename = "upload/".$_POST["what"]; // Already validated
 if (move_uploaded_file($_FILES["data"]["tmp_name"], $filename)) {
- echo response(true, "Upload succeeded");
- $ext = pathinfo($filename, PATHINFO_EXTENSION);
- if ($ext == "png") {
-  exec("advpng -z1 \"$filename\"");
- }
+    echo response(true, "Upload succeeded");
+    $pinfo = pathinfo($filename);
+    if ($pinfo["extension"] == "png") {
+        exec("advpng -z1 \"$filename\"");
+        file_put_contents("upload/".$pinfo["filename"].".json", json_encode(array("timestamp" => time() )) );
+    }
 } else {
- echo response(false, "File upload failed: $filename\n");
+    echo response(false, "File upload failed: $filename\n");
 }
 
 ?>

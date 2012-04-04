@@ -11,19 +11,19 @@ set_time_limit(0);
 Header("Content-Type: text/event-stream");
 flush();
 if (isset($_GET["file"])) {
-    $filename = "data/"+basename($_GET["file"]);
+    $filename = "data/".basename($_GET["file"]);
 }
 
 if (!(isset($filename) && file_exists($filename))) {
     echo "Event: error\n";
-    echo "data: invalid filename\n";
+    echo "data: invalid filename $filename\n";
     flush();
     exit();
 }
 
 $follow_files = array(array("filename" => "data/twitter.json", "event" => "changeevent"),
                       array("filename" => "cache.manifest", "event" => "manifestchange"),
-                      array("filename" => "data/"+$filename, "event" => "changeevent"));
+                      array("filename" => $filename, "event" => "changeevent"));
 
 foreach ($follow_files as $k => $v) {
     $follow_files[$k]["mtime"] = filemtime($v["filename"]);

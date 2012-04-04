@@ -13,7 +13,7 @@ function refresh_popovers() {
         last_error_time,
         last_check_time,
         ts,
-        services_data = $("body").data("services_data");
+        services_data = $("body").data("pagerefresh-data").content;
     if (!(services_data instanceof Object)) {
         return;
     }
@@ -39,10 +39,7 @@ function refresh_popovers() {
     });
 }
 
-function fetch_data(from_localstorage) {
-
-    function process_data() {
-
+function fetch_data() {
         function add_popover(element, title, content) {
             element.attr("rel", "popover");
             element.attr("data-original-title", title);
@@ -56,7 +53,7 @@ function fetch_data(from_localstorage) {
             notifications_shown = 0,
             notifications_more_shown = false,
             color, popover_content, da,
-            services_data = $("body").data("services_data");
+            services_data = $("body").data("pagerefresh-data").content;
 
         for (var key in services_data.overall) {
             if ($("#"+key) != null) {
@@ -191,44 +188,11 @@ function fetch_data(from_localstorage) {
         // Reload popovers
         $("[rel=popover]").popover("hide");
         $("[rel=popover]").popover({"placement": popover_placement});
-    } // End of process_data()
 
-
-    if (from_localstorage) {
-        var data = $("body").data("services_data");
-        $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix * 1000);
-        process_data();
-    } else {
-      $.getJSON("/data/services.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
-        try {
-            var old_timestamp = $("body").data("services_data").overall.timestamp.unix;
-            if (old_timestamp == data.overall.timestamp.unix) {
-                $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix * 1000);
-                return;
-            }
-        } catch (e) { }
-        if (localStorage) {
-            localStorage.setItem("services_json", JSON.stringify(data));
-        }
-        $("body").data("services_data", data);
-        process_data();
-        $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix*1000);
-      });
-    }
 }
 
 $(document).ready(function() {
     $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "services.json"});
-    if (localStorage) {
-        var ticketdata_temp = localStorage.getItem("services_json");
-        if (ticketdata_temp != null) {
-            try {
-                ticketdata_temp = JSON.parse(ticketdata_temp);
-                $("body").data("services_data", ticketdata_temp);
-                fetch_data(true);
-            } catch (e) {}
-        }
-    }
 
     setInterval("refresh_popovers();", 1000*60);
 
