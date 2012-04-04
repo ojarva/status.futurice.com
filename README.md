@@ -35,7 +35,7 @@ External systems:
 
 On server running this site:
 
-* Install python, highlight, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor and make (*apt-get install python highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage*).
+* Install python, highlight, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor, rrdtool, python-rrdtool and make (*apt-get install python highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool*).
 * Configure apache2 (*a2enmod php5 rewrite headers deflate expires*)
 
 On your RT server:
@@ -56,7 +56,7 @@ Backend components (*backend/*)
 * Add *fetch_pingdom.py* to crontab
 * Add *fetch_twitter.py* to crontab. First argument is your twitter username.
 * If your weathermap runs on separate server, run *monitor_and_upload_file.py* there.
-* *printer_status.py* fetches printer status using SNMP. Configure *printer_settings.py.sample*.
+* *printer_status.py* fetches printer status using SNMP. Configure *printer_settings.py.sample*. Requires net-snmp package.
 
 Relevant sites/documents
 ------------------------
