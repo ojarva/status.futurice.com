@@ -37,7 +37,6 @@ function fetch_data(from_localstorage) {
 
             collapse_id = "printers_collapse_"+counter;
             var printer_activity = "<span class='badge'>"+printer.status.readable+"</span>";
-//            $("#printers").append('<div class="row" style="padding-top: 2em"><div class="span8"><h2>'+printer.name+' '+status_label+' '+printer_activity+'</h2>'+status_texts+'</div></div>');
 
             //consumables
             var con_status_texts = '<table class="table-striped">';
@@ -74,22 +73,20 @@ function fetch_data(from_localstorage) {
             pap_status_texts_front += "</table>";
             $("#printers_papers").append('<div class="row" style="padding-top: 2em"><div class="span8"><h2>'+printer.name+' '+status_label+' '+printer_activity+'</h2>'+pap_status_texts+'</div></div>');
 
-            $("#printers_accordion").append('            <div class="accordion-group"> ' +
-'              <div class="accordion-heading"> ' +
+            $("#printers_accordion").append('<div class="accordion-group"> ' +
+              '<div class="accordion-heading"> ' +
 '<h2><a style="text-decoration:none" class="accordion-toggle" data-toggle="collapse" data-parent="#printers_accordion" href="#'+collapse_id+'">'+printer.name+' '+status_label+' '+printer_activity+'</a></h2> ' +
  status_texts +
-'              </div> ' +
-'              <div id="'+collapse_id+'" class="accordion-body collapse"> ' +
-'                <div class="accordion-inner"> ' +
-'                    <h3>Consumables</h3> ' +
+              '</div> ' +
+              '<div id="'+collapse_id+'" class="accordion-body collapse"> ' +
+                '<div class="accordion-inner"> ' +
+                    '<h3>Consumables</h3> ' +
                     con_status_texts_front +
-'                    <h3>Paper</h3> ' +
+                    '<h3>Paper</h3> ' +
                     pap_status_texts_front +
-'                </div> ' +
-'              </div> ' +
-'            </div>');
-
-
+                '</div> ' +
+              '</div> ' +
+            '</div>');
 
         }
     } // End of process_data()
@@ -103,7 +100,7 @@ function fetch_data(from_localstorage) {
       $.getJSON("/data/printers.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
         try {
             var old_timestamp = $("body").data("printers_data").timestamp;
-            if (old_timestamp == data.overall.timestamp.unix) {
+            if (old_timestamp == data.timestamp) {
                 $("#update_data").pagerefresh("fetch_done", data.timestamp * 1000);
                 return;
             }
