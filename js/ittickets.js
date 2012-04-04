@@ -120,7 +120,7 @@ function fetch_data(from_storage) {
             }
             update_data();        
     } else {
-        $.get("/ittickets.json", function(data) {
+        $.get("/data/ittickets.json", function(data) {
             ticketdata = data.data;
             if (localStorage) {
                 localStorage.setItem("ittickets_json", JSON.stringify(ticketdata));

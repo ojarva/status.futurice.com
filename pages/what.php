@@ -170,7 +170,8 @@ quite a bit.</p>
 		<p>There's no need to keep <a href="https://github.com/ojarva/status.futurice.com">source code</a> of this service secret. You need your own backend services and credentials, though. Many parts are quick 
 first versions, and there's always better way to do it. Feel free to fork, make improvements and create pull request. We're more than happy to merge improvements and cleanups.</p>
 
-		<p>Also, deployed <a href="fetch_rt.py.html">RT code</a>, <a href="fetch_pingdom.py.html">Pingdom code</a> and <a href="index.php.html">index.php</a> are available for viewing.</p>
+		<p>Also, deployed <a href="/sources/fetch_rt.py.html">RT code</a>, <a href="/sources/fetch_pingdom.py.html">Pingdom code</a> and <a href="/sources/index.php.html">index.php</a> are available for 
+viewing.</p>
 
 	</div>
 </div>

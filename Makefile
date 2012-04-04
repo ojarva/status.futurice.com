@@ -1,4 +1,4 @@
-all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest 
+all: sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest 
 
 
 cache.manifest: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js js/printers.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php js/main.min.js js/combined.raphael.min.js carousel_images.php pages/printers.php
@@ -52,15 +52,12 @@ js/combined.js: js/bootstrap/000-jquery.js js/bootstrap/001-custom.js js/bootstr
 	cat js/???-*.js >> js/combined.js
 	chmod 644 js/combined.js
 
-index.php.html: index.php
-	highlight --syntax php index.php > index.php.html
-	chmod 644 index.php.html
+sources/index.php.html: index.php
+	cd sources; highlight --syntax php ../index.php > index.php.html; chmod 644 index.php.html
 
-fetch_pingdom.py.html: backend/fetch_pingdom.py
-	highlight --syntax py backend/fetch_pingdom.py > fetch_pingdom.py.html
-	chmod 644 fetch_pingdom.py.html
+sources/fetch_pingdom.py.html: backend/fetch_pingdom.py
+	cd sources; highlight --syntax py ../backend/fetch_pingdom.py > fetch_pingdom.py.html; chmod 644 fetch_pingdom.py.html
 
-fetch_rt.py.html: backend/fetch_rt.py
-	highlight --syntax py backend/fetch_rt.py > fetch_rt.py.html
-	chmod 644 fetch_rt.py.html
+sources/fetch_rt.py.html: backend/fetch_rt.py
+	cd sources; highlight --syntax py ../backend/fetch_rt.py > fetch_rt.py.html; chmod 644 fetch_rt.py.html
 

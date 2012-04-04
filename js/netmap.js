@@ -3,6 +3,6 @@ $(document).ready(function() {
 });
 
 function fetch_data() {
-    $("#netmap-img").attr("src", "/netmap.png?timestamp="+ (new Date()).getTime());
+    $("#netmap-img").attr("src", "/data/netmap.png?timestamp="+ (new Date()).getTime());
     $("#update_data").pagerefresh("fetch_done", (new Date()).getTime());
 }

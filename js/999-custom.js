@@ -126,7 +126,7 @@ jQuery.fn.urlize = function() {
 };
 
 function update_twitter() {
-    $.get("/twitter.json", function(data) {
+    $.get("/data/twitter.json", function(data) {
         $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
         $("#twitter_status").urlize();
     }, "json");

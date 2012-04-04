@@ -199,7 +199,7 @@ function fetch_data(from_localstorage) {
         $("#update_data").pagerefresh("fetch_done", data.overall.timestamp.unix * 1000);
         process_data();
     } else {
-      $.getJSON("/services.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
+      $.getJSON("/data/services.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
         try {
             var old_timestamp = $("body").data("services_data").overall.timestamp.unix;
             if (old_timestamp == data.overall.timestamp.unix) {

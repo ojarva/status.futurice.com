@@ -11,6 +11,8 @@ class TwitterInfo:
     def __init__(self, username):
         self.username = username
         self.api = twitter.Api()
+        self.filename = "../data/twitter.json"
+        self.statusfilename = "../data/twitter_statuses.json"
 
     def fetch(self):
         """ Fetch user information and save status, follower count 
@@ -19,20 +21,23 @@ class TwitterInfo:
         new_data = json.dumps({"status": user.status.GetText(), 
               "followers": user.GetFollowersCount(), 
               "status_ago": user.status.GetRelativeCreatedAt()})
-        old_data = open("../twitter.json").read()
+        try:
+            old_data = open(self.filename).read()
+        except IOError:
+            old_data = ""
         if new_data != old_data:
-            open("../twitter.json", "w").write(new_data)
+            open(self.filename, "w").write(new_data)
 
     def fetch_timeline(self):
         """ Fetch user timeline and save it to json encoded file """
         msg = self.api.GetUserTimeline(self.username)
         new_data = json.dumps({"statuses": msg})
-        old_data = open("../twitter_statuses.json").read()
+        old_data = open(self.statusfilename).read()
         print new_data
         print old_data
  
         if new_data != old_data:
-            open("../twitter_statuses.json", "w").write(new_data)
+            open(self.statusfilename, "w").write(new_data)
 
 def main(username):
     """ Run twitter information """

@@ -100,7 +100,7 @@ function fetch_data(from_localstorage) {
         $("#update_data").pagerefresh("fetch_done", data.timestamp.unix * 1000);
         process_data();
     } else {
-      $.getJSON("/printers.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
+      $.getJSON("/data/printers.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
         try {
             var old_timestamp = $("body").data("printers_data").timestamp;
             if (old_timestamp == data.overall.timestamp.unix) {
