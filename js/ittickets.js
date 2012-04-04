@@ -1,5 +1,3 @@
-var ticketdata;
-
 $(document).ready(function() {
     $("#update_data").pagerefresh({"short_timeout": 15 * 60, "long_timeout": 120 * 60, "filewatch": "ittickets.json"});
 });
@@ -7,7 +5,8 @@ $(document).ready(function() {
 function fetch_data() {
     var $workflowchart = $("#workflowchart"),
         $dotschart = $("#dotschart"),
-        $placeholder = $("#placeholder");
+        $placeholder = $("#placeholder"),
+        ticketdata = $("body").data("pagerefresh-data").content.data;
 
     function initialize_page() {
         $("body").data("ittickets-initialized", true);
@@ -108,5 +107,5 @@ function fetch_data() {
     if ($("body").data("ittickets-initialized") !== true) {
          initialize_page();
     }
-    update_data();        
+    update_data();
 }

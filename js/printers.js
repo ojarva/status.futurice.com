@@ -1,7 +1,7 @@
-function fetch_data(from_localstorage) {
+function fetch_data() {
 
     function process_data() {
-        var data = $("body").data("printers_data");
+        var data = $("body").data("pagerefresh-data").content;
         $("#printers").empty();
         $("#printers_accordion").empty();
         $("#printers_consumables").empty();
@@ -92,42 +92,10 @@ function fetch_data(from_localstorage) {
     } // End of process_data()
 
 
-    if (from_localstorage) {
-        var data = $("body").data("printers_json");
-        $("#update_data").pagerefresh("fetch_done", data.timestamp.unix * 1000);
-        process_data();
-    } else {
-      $.getJSON("/data/printers.json?timestamp="+Math.floor((new Date()).getTime() / 100), function(data) {
-        try {
-            var old_timestamp = $("body").data("printers_data").timestamp;
-            if (old_timestamp == data.timestamp) {
-                $("#update_data").pagerefresh("fetch_done", data.timestamp * 1000);
-                return;
-            }
-        } catch (e) { }
-        if (localStorage) {
-            localStorage.setItem("printers_json", JSON.stringify(data));
-        }
-        $("body").data("printers_data", data);
-        process_data();
-        $("#update_data").pagerefresh("fetch_done", data.timestamp*1000);
-      });
-    }
+    process_data();
 }
 
 $(document).ready(function() {
     $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "printers.json"});
-
-    if (localStorage) {
-        var printers_temp = localStorage.getItem("printers_json");
-        if (printers_temp != null) {
-            try {
-                printers_temp = JSON.parse(printers_temp);
-                $("body").data("printers_data", printers_temp);
-                fetch_data(true);
-            } catch (e) {}
-        }
-    }
-
 });
 

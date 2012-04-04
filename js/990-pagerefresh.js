@@ -209,6 +209,8 @@ function get_last_data_timestamp(filename) {
                         eval(settings.refresh_callback);
                         set_last_data_timestamp(settings.filewatch, data.data.content_timestamp);
                         settings.thiselem.pagerefresh("fetch_done", data.data.content_timestamp*1000);
+                    } else {
+                        settings.thiselem.pagerefresh("fetch_done", $("body").data("pagerefresh-data").content_timestamp*1000);
                     }
                 }
             }, "json");

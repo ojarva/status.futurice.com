@@ -14,7 +14,8 @@ function response($success, $status) {
     return json_encode(array("success" => $success, "status" => $status));
 }
 
-if (!isset($POST["password"]) || $_POST["password"] != $password) {
+
+if ($_POST["password"] != $password) {
     Header('HTTP/1.1 403 Forbidden');
     echo response(false, "Wrong password");
     exit(0);

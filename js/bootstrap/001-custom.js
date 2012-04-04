@@ -30,7 +30,6 @@ function popover_placement(popover, container) {
     if (spaceright > 250) {
         placements["right"] = spaceright / 2;
     }
-    console.log(placements);
     best = "bottom";
     for (var item in placements) {
         if (placements[item] > max) {

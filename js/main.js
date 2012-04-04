@@ -1,13 +1,12 @@
 function fetch_data() {
-    $.get("/data/frontpage_json.php", function (data) {
-        for (var key in data.autofill) {
-            if ($("#" + key) !== null) {
-                $("#" + key).html(data.autofill[key]);
-            }
+    var data = $("body").data("pagerefresh-data").content;
+    for (var key in data.autofill) {
+        if ($("#" + key) !== null) {
+            $("#" + key).html(data.autofill[key]);
         }
-    }, "json");
+    }
 }
 
 $(document).ready(function () {
-    $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "static.json"});
+    $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "frontpage.json"});
 });

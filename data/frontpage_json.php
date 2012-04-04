@@ -25,4 +25,5 @@ if ($etagHeader == $etag) {
 }
 
 echo json_encode(array("autofill" => $autofill));
+
 ?>
