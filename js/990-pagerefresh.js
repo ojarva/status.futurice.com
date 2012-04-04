@@ -103,7 +103,7 @@
                     $(this).pagerefresh("fetch");
                 } else {
                     $(settings.next_reload_id).html("Next reload when new data is available");
-                    $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.current_timeout * 1000);
+                    $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.current_timeout * 60 * 1000);
                 }
             } else {
                 if (!next_reload || moment(next_reload) < moment()) {
