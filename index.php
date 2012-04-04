@@ -15,6 +15,7 @@ $pages = array(array("/", "Home"),
 	array("/page/services", "Services"),
 	array("/page/network-map", "Network map"),
 	array("/page/it-tickets", "IT tickets"),
+	array("/page/printers", "Printers"),
 	array("/page/what", "What?"),
 	array("/page/todo", "TODO"));
 

@@ -1,0 +1,11 @@
+UPLOAD_PASSWORD = "password from upload_settings.php"
+UPLOAD_URL = "http://your_domain.example.com/upload.php"
+UPLOAD_DESTINATION="printers.json"
+
+PRINTERS = [
+       {"name": "Tampere large printer", "hostname": "your printer hostname", "password": "snmp community", "slug": "tre-workcentre"},
+       {"name": "Helsinki 4th floor south end", "hostname": "your printer hostname", "password": "snmp community", "slug": "hki-4th-south"},
+       {"name": "Helsinki 5th floor large printer", "hostname": "your printer hostname", "password": "snmp community", "slug": "hki-5th-workcentre"},
+       {"name": "Helsinki 4th floor north end", "hostname": "your printer hostname", "password": "snmp community", "slug": "hki-4th-north"},
+       {"name": "Helsinki 5th floor north end", "hostname": "your printer hostname", "password": "snmp community", "slug": "hki-5th-north"}
+]

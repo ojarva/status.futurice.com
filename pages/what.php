@@ -37,9 +37,9 @@ if ($images != false && count($images) > 0) {
 		<div id="carousel" class="carousel">
 			<div class="carousel-inner">
 <?
-$chosen = array_rand($images, 10);
-foreach ($chosen as $k => $v) {
-?><div class="<?if ($k == 0) {?>active <?}?>item"><img src="/<?=$images[$v];?>"></img></div><?
+shuffle($images);
+foreach ($images as $k => $v) {
+?><div class="<?if ($k == 0) {?>active <?}?>item"><img src="/<?=$v;?>"></img></div><?
 }
 ?>
 			</div>
@@ -109,6 +109,19 @@ system into use even in smaller organizations. Using ticket tracking system does
 adding complex process to handling incoming emails.</p>
 
 	</div>
+	<div class="span4">
+		<h3>Printers</h3>
+
+		<p>Printer information is fetched using SNMP, processed with Python and pushed to 
+this server.</p>
+
+		<p>It's hard to know what printer works right now, or is there a need for ordering 
+some printer supplies. We have few printers around our offices, because unfortunately not everything 
+can be handled electronically. Even though printers are on 24/7, power saving mode saves electricity 
+quite a bit.</p>
+
+
+	</div>
 </div>
 
 
@@ -147,6 +160,8 @@ adding complex process to handling incoming emails.</p>
 			<li><a href="http://oss.oetiker.ch/mrtg/">MRTG</a></li>
 			<li><a href="http://atlee.ca/software/poster/">python-poster</a></li>
 			<li><a href="http://code.google.com/p/python-twitter/">python-twitter</a></li>
+			<li><a href="http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html">rrdpython</a></li>
+			<li><a href="http://www.net-snmp.org/">net-snmp</a></li>
 		</ul>
 	</div>
 	<div class="span4">

@@ -1,13 +1,8 @@
 <?
 // This file handles uploads from RT server and network monitoring server
 
-// File contains $password = "secret password for upload authentication";
+// File contains $password = "secret password for upload authentication"; $what_allowed=array("allowed_files.json", "netmap.png", ...);
 require_once("upload_settings.php");
-
-/* Only files in this array are allowed. Make sure web server user
-(typically apache, httpd or www-data) is allowed to write to these files */
-$what_allowed = array("ittickets.json", "netmap.png");
-
 
 // Do not cache
 header('Cache-Control: no-cache, no-store, max-age=0, must-revalidate');

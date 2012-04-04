@@ -47,12 +47,16 @@ To this code:
 
 * Whenever you make changes, run *make* on top directory to generate minified versions and to update application cache manifest timestamp
 * Modify *pages/what.php* to match with your ideologies and technologies used.
-* Move *backend/pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
-* Add *backend/fetch_pingdom.py* to crontab
-* Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
 * Add carousel (on what? page) images to *img/carousel/*. We recommend 1200x400, but you can use whatever resolution you want. UI doesn't scale images.
-* Add *backend/fetch_twitter.py* to crontab. First argument is your twitter username.
-* If your weathermap runs on separate server, run *backend/monitor_and_upload_file.py* there.
+* Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
+
+Backend components (*backend/*)
+
+* Move *pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
+* Add *fetch_pingdom.py* to crontab
+* Add *fetch_twitter.py* to crontab. First argument is your twitter username.
+* If your weathermap runs on separate server, run *monitor_and_upload_file.py* there.
+* *printer_status.py* fetches printer status using SNMP. Configure *printer_settings.py.sample*.
 
 Relevant sites/documents
 ------------------------

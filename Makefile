@@ -1,7 +1,7 @@
-all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js cache.manifest
+all: index.php.html fetch_pingdom.py.html fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest 
 
 
-cache.manifest: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php js/main.min.js js/combined.raphael.min.js carousel_images.php
+cache.manifest: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js js/printers.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php js/main.min.js js/combined.raphael.min.js carousel_images.php pages/printers.php
 	sed -i s/'\# version: .*'/"\# version: `date +%s`"/ cache.manifest
 
 css/combined.min.css: css/combined.css
@@ -24,6 +24,10 @@ js/combined.raphael.js: js/r-800-raphael.js js/r-801-raphaelg.js js/r-801-raphae
 js/services.min.js: js/services.js
 	yui-compressor js/services.js > js/services.min.js
 	chmod 644 js/services.min.js
+
+js/printers.min.js: js/printers.js
+	yui-compressor js/printers.js > js/printers.min.js
+	chmod 644 js/printers.min.js
 
 js/netmap.min.js: js/netmap.js
 	yui-compressor js/netmap.js > js/netmap.min.js
