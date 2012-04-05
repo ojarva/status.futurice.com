@@ -172,6 +172,22 @@ function get_last_data_timestamp(filename) {
                 $this.removeData("pagerefresh_settings");
             });
         },
+        autofill : function ( ) {
+            return this.each(function () {
+                var $this = $(this);
+                var settings = $this.data("pagerefresh_settings");
+                if (!settings) {
+                    return;
+                }
+                var data = get_last_data(settings.filewatch);
+                if (data) { data = data.content; }
+                for (var key in data.autofill) {
+                    if ($("#" + key) !== null) {
+                        $("#" + key).html(data.autofill[key]);
+                    }
+                }
+            });
+        },
         fetch: function ( ) {
             var settings = $(this).data("pagerefresh_settings");
             if (!settings) {
@@ -188,6 +204,7 @@ function get_last_data_timestamp(filename) {
                 if (data) {
                     $("body").data("pagerefresh-data", data);
                     eval(settings.refresh_callback);
+                    settings.thiselem.pagerefresh("autofill");
                 }
                 twitter = get_last_data("twitter.json");
                 if (twitter) {
@@ -208,10 +225,9 @@ function get_last_data_timestamp(filename) {
                         set_last_data(settings.filewatch, data.data);
                         eval(settings.refresh_callback);
                         set_last_data_timestamp(settings.filewatch, data.data.content_timestamp);
-                        settings.thiselem.pagerefresh("fetch_done", data.data.content_timestamp*1000);
-                    } else {
-                        settings.thiselem.pagerefresh("fetch_done", $("body").data("pagerefresh-data").content_timestamp*1000);
                     }
+                    settings.thiselem.pagerefresh("fetch_done", $("body").data("pagerefresh-data").content_timestamp*1000);
+                    settings.thiselem.pagerefresh("autofill");
                 }
             }, "json");
 

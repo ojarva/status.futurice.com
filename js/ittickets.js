@@ -21,7 +21,7 @@ function fetch_data() {
         $ticketid.data("original-title", "What?");
         $ticketid.data("placement", "top");
         $ticketid.attr("rel", "popover");
-        $ticketid.popover("hide");
+        hide_popovers();
         $ticketid.popover({"placement": popover_placement});
 
         $("#dots_all").addClass("active");

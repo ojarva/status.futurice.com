@@ -131,7 +131,7 @@ class Pingdomrun:
         if averages["summary"]["status"]["totalup"] == 0:
             uptime = 0
         else:
-            uptime = round((float(averages["summary"]["status"]["totalup"]) - float(averages["summary"]["status"]["totaldown"])) / float(averages["summary"]["status"]["totalup"]), 6)
+            uptime = min(1, round((float(averages["summary"]["status"]["totalup"]) - float(averages["summary"]["status"]["totaldown"])) / float(averages["summary"]["status"]["totalup"]), 6))
         self.cdata[check.id]["dates"].append({"down": averages["summary"]["status"]["totaldown"], "up": averages["summary"]["status"]["totalup"], "u": uptime})
 
         self.data["downtime_total"] += averages["summary"]["status"]["totaldown"]
@@ -147,9 +147,9 @@ class Pingdomrun:
         for item in outages['states']:
             if item["status"] == "down":
                 if item["timefrom"] > today_night:
-                    self.data["outages_today"] += 1
+                    self.data["autofill"]["outages_today"] += 1
                 if item["timefrom"] > today_night-7*86400:
-                    self.data["outages_week"] += 1
+                    self.data["autofill"]["outages_week"] += 1
                 self.data["outages_per_day"][counter] += 1
 
 
@@ -159,14 +159,14 @@ class Pingdomrun:
             uptimes"""
         for item in self.uptime_classes:
             if self.uptime_classes[item]["up"] == 0:
-                self.data[item] = 0
+                self.data["autofill"][item] = 0
             else:
-                self.data[item] = str(round(100 * (float(self.uptime_classes[item]["up"]) - float(self.uptime_classes[item]["down"])) / float(self.uptime_classes[item]["up"]), 3))+"%"
+                self.data["autofill"][item] = str(min(100, round(100 * (float(self.uptime_classes[item]["up"]) - float(self.uptime_classes[item]["down"])) / float(self.uptime_classes[item]["up"]), 3)))+"%"
         for item in self.cdata:
             if self.cdata[item]["data"]["up"] == 0:
                 self.cdata[item]["data"]["u"] = 0
             else:
-                self.cdata[item]["data"]["u"] = round((float(self.cdata[item]["data"]["up"]) - float(self.cdata[item]["data"]["down"])) / float(self.cdata[item]["data"]["up"]), 6)
+                self.cdata[item]["data"]["u"] = min(1, round((float(self.cdata[item]["data"]["up"]) - float(self.cdata[item]["data"]["down"])) / float(self.cdata[item]["data"]["up"]), 6))
             del self.cdata[item]["data"]["up"]
             del self.cdata[item]["data"]["down"]
 
@@ -174,9 +174,9 @@ class Pingdomrun:
             if self.data["up_per_day"][i] == 0:
                 t_uptime = 0
             else:
-                t_uptime = str(round(100*(float(self.data["up_per_day"][i]) - float(self.data["down_per_day"][i])) / float(self.data["up_per_day"][i]), 3))
+                t_uptime = str(min(100, round(100*(float(self.data["up_per_day"][i]) - float(self.data["down_per_day"][i])) / float(self.data["up_per_day"][i]), 3)))
             self.data["uptime_per_day"].append(t_uptime)
-        self.data["overall"] = str(round(100*(float(self.data["uptime_total"]) - float(self.data["downtime_total"])) / float(self.data["uptime_total"]), 3))+"%"
+        self.data["autofill"]["overall"] = str(round(100*(float(self.data["uptime_total"]) - float(self.data["downtime_total"])) / float(self.data["uptime_total"]), 3))+"%"
 
 
     def run(self):
@@ -187,12 +187,12 @@ class Pingdomrun:
         days_timeranges = Pingdomrun.gen_daterange(today_night)
 
         self.cdata = {}
-        self.data = {"overall": 0,
-                     "outages_today": 0,
-                     "outages_week": 0,
-                     "networks": 0,
-                     "virtualization_platforms": 0,
-                     "websites": 0,
+        self.data = {"autofill": {"overall": 0,
+                                  "outages_today": 0,
+                                  "outages_week": 0,
+                                  "networks": 0,
+                                  "virtualization_platforms": 0,
+                                  "websites": 0},
                      "day_titles": days_timeranges,
                      "uptime_per_day": [],
                      "outages_per_day": [0, 0, 0, 0, 0, 0, 0],
@@ -233,13 +233,14 @@ class Pingdomrun:
 
     def save(self):
         """ Save data to services.json """
-        new_data = json.dumps({"overall": self.data, "per_service": self.cdata})
+        new_data = json.dumps({"autofill": self.data.get("autofill", {}), "overall": self.data, "per_service": self.cdata})
+        filename = "../data/services.json"
         try:
-            old_data = open("../data/services.json").read()
+            old_data = open(filename).read()
         except IOError:
             old_data = None
         if new_data != old_data:
-            open("../data/services.json", "w").write(new_data)
+            open(filename, "w").write(new_data)
 
 
 def main():

@@ -16,7 +16,7 @@ js/combined.raphael.min.js: js/combined.raphael.js
 	yui-compressor js/combined.raphael.js > js/combined.raphael.min.js
 	chmod 644 js/combined.raphael.min.js
 
-js/combined.raphael.js: js/r-800-raphael.js js/r-801-raphaelg.js js/r-801-raphael-sparkline.js js/r-802-raphael-impact.js js/r-803-raphael-pie.js js/r-804-raphael-dots.js 
+js/combined.raphael.js: js/r-800-raphael.js js/r-801-raphaelg.js js/r-801-raphael-sparkline.js js/r-802-raphael-impact.js js/r-803-raphael-pie.js js/r-804-raphael-dots.js js/r-805-raphael-bar.js
 	cat js/r-*.js > js/combined.raphael.js
 	chmod 644 js/combined.raphael.js
 	

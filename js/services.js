@@ -34,7 +34,7 @@ function refresh_popovers() {
     }
     $(".check-popover").each(function(index) {
         $(this).data("content", popover_contents[$(this).data("service-id")]);
-        $(this).popover("hide");
+        hide_popovers($(this));
         $(this).popover({"placement": popover_placement});
     });
 }
@@ -44,7 +44,7 @@ function fetch_data() {
             element.attr("rel", "popover");
             element.attr("data-original-title", title);
             element.attr("data-content", content);
-            element.popover("hide");
+            hide_popovers(element);
             element.popover({"placement": popover_placement});
         }
 
@@ -54,12 +54,6 @@ function fetch_data() {
             notifications_more_shown = false,
             color, popover_content, da,
             services_data = $("body").data("pagerefresh-data").content;
-
-        for (var key in services_data.overall) {
-            if ($("#"+key) != null) {
-                $("#"+key).html(services_data.overall[key]);
-            }
-        }
 
         $("#checks-overview-tbody").empty();
         $("#checks-summary-tbody").empty();
@@ -159,6 +153,7 @@ function fetch_data() {
             $.each(services_data.per_service[$(this).data('check-id')].dates, function (index, item) {
                 data.push(item.u);
             });
+
             paper.sparkline(data);
             var min = Math.min.apply(Math, data),
                 max = Math.max.apply(Math, data);
@@ -186,7 +181,7 @@ function fetch_data() {
 
         refresh_popovers();
         // Reload popovers
-        $("[rel=popover]").popover("hide");
+        hide_popovers();
         $("[rel=popover]").popover({"placement": popover_placement});
 
 }
