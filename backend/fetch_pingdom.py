@@ -8,6 +8,7 @@ import datetime
 import time
 import os
 import logging
+from dateutil import rrule
 
 try:
     # cPickle is much faster than pickle
@@ -45,6 +46,15 @@ class Pingdomrun:
         filename = "%s%s" % (self.cache_directory, what)
         pickle.dump(data, open(filename, "w"))
         logging.debug("Cache set: %s", what)
+
+    def get_performance(self, checkid, timefrom, timeto, resolution):
+        keyname = "performance-%s-%s-%s-%s" % (checkid, timefrom, timeto, resolution)
+        cached = self.get_cache(keyname)
+        if cached is not False:
+            return cached
+        data = self.connection.get_performance(checkid, timefrom=timefrom, timeto=timeto, resolution=resolution)
+        self.set_cache(keyname, data)
+        return data
 
     def get_checks(self, **kwargs):
         """ Get list of checks and check details (status, last check 
@@ -204,13 +214,25 @@ class Pingdomrun:
                      "uptime_total": 0,
                      "downtime_total": 0}
 
-        for check in checks:
+        today = datetime.date.today()
+        monday = today - datetime.timedelta(days=today.weekday())
+        begin = monday - datetime.timedelta(days=112)
+       
+        weeks = []
+        for dt in rrule.rrule(rrule.WEEKLY, dtstart=begin, until=monday-datetime.timedelta(days=1)):
+            week_sunday = dt + datetime.timedelta(days=7) - datetime.timedelta(seconds=1)
+            weeks.append((dt, week_sunday))
 
+        for check in checks:
+            
             self.cdata[check.id] = {"data": {"down": 0, "up": 0},
                                     "dates": [],
                                     "avgms": []}
 
             self.populate_check_keywords(check)
+
+
+
 
             if check.status == "up":
                 self.data["services_up"] += 1
@@ -225,11 +247,28 @@ class Pingdomrun:
                 self.get_check_outages(check, timefrom, timeto, today_night, counter)
                 counter += 1
 
+            checkdetails = {"autofill": self.cdata[check.id]};
+            checkdetails["per_day"] = []
+            for (week_start, week_end) in weeks:
+                details = self.get_performance(check.id, time.mktime(week_start.timetuple()), time.mktime(week_end.timetuple()), "day").content["summary"]
+                for item in details.get("days"):
+                    checkdetails["per_day"].append(item)
+            self.save_check(check.id, checkdetails)
+
         self.calculate_uptime_data()
 
         self.data["timestamp"] = {"unix": time.time(), 
              "human": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
+    def save_check(self, checkid, checkdetails):
+        new_data = json.dumps(checkdetails)
+        filename = "../data/per-check-%s.json" % checkid
+        try:
+            old_data = open(filename).read()
+        except IOError:
+            old_data = None
+        if new_data != old_data:
+            open(filename, "w").write(new_data)
 
     def save(self):
         """ Save data to services.json """

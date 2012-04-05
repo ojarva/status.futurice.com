@@ -16,6 +16,7 @@
 <span class="hl kwa">import</span> time
 <span class="hl kwa">import</span> os
 <span class="hl kwa">import</span> logging
+<span class="hl kwa">from</span> dateutil <span class="hl kwa">import</span> rrule
 
 <span class="hl kwa">try</span><span class="hl opt">:</span>
     <span class="hl slc"># cPickle is much faster than pickle</span>
@@ -53,6 +54,15 @@
         filename <span class="hl opt">=</span> <span class="hl str">&quot;%s%s&quot;</span> <span class="hl opt">% (</span>self<span class="hl opt">.</span>cache_directory<span class="hl opt">,</span> what<span class="hl opt">)</span>
         pickle<span class="hl opt">.</span><span class="hl kwd">dump</span><span class="hl opt">(</span>data<span class="hl opt">,</span> <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">))</span>
         logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache set: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_performance</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> resolution<span class="hl opt">):</span>
+        keyname <span class="hl opt">=</span> <span class="hl str">&quot;performance-%s-%s-%s-%s&quot;</span> <span class="hl opt">% (</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> resolution<span class="hl opt">)</span>
+        cached <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">)</span>
+        <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> cached
+        data <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_performance</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">,</span> resolution<span class="hl opt">=</span>resolution<span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> data<span class="hl opt">)</span>
+        <span class="hl kwa">return</span> data
 
     <span class="hl kwa">def</span> <span class="hl kwd">get_checks</span><span class="hl opt">(</span>self<span class="hl opt">, **</span>kwargs<span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get list of checks and check details (status, last check </span>
@@ -212,13 +222,25 @@
                      <span class="hl str">&quot;uptime_total&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span>
                      <span class="hl str">&quot;downtime_total&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">}</span>
 
-        <span class="hl kwa">for</span> check <span class="hl kwa">in</span> checks<span class="hl opt">:</span>
+        today <span class="hl opt">=</span> datetime<span class="hl opt">.</span>date<span class="hl opt">.</span><span class="hl kwd">today</span><span class="hl opt">()</span>
+        monday <span class="hl opt">=</span> today <span class="hl opt">-</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>days<span class="hl opt">=</span>today<span class="hl opt">.</span><span class="hl kwd">weekday</span><span class="hl opt">())</span>
+        begin <span class="hl opt">=</span> monday <span class="hl opt">-</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>days<span class="hl opt">=</span><span class="hl num">112</span><span class="hl opt">)</span>
+       
+        weeks <span class="hl opt">= []</span>
+        <span class="hl kwa">for</span> dt <span class="hl kwa">in</span> rrule<span class="hl opt">.</span><span class="hl kwd">rrule</span><span class="hl opt">(</span>rrule<span class="hl opt">.</span>WEEKLY<span class="hl opt">,</span> dtstart<span class="hl opt">=</span>begin<span class="hl opt">,</span> until<span class="hl opt">=</span>monday<span class="hl opt">-</span>datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>days<span class="hl opt">=</span><span class="hl num">1</span><span class="hl opt">)):</span>
+            week_sunday <span class="hl opt">=</span> dt <span class="hl opt">+</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>days<span class="hl opt">=</span><span class="hl num">7</span><span class="hl opt">) -</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>seconds<span class="hl opt">=</span><span class="hl num">1</span><span class="hl opt">)</span>
+            weeks<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">((</span>dt<span class="hl opt">,</span> week_sunday<span class="hl opt">))</span>
 
+        <span class="hl kwa">for</span> check <span class="hl kwa">in</span> checks<span class="hl opt">:</span>
+            
             self<span class="hl opt">.</span>cdata<span class="hl opt">[</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">] = {</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;down&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;up&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">},</span>
                                     <span class="hl str">&quot;dates&quot;</span><span class="hl opt">: [],</span>
                                     <span class="hl str">&quot;avgms&quot;</span><span class="hl opt">: []}</span>
 
             self<span class="hl opt">.</span><span class="hl kwd">populate_check_keywords</span><span class="hl opt">(</span>check<span class="hl opt">)</span>
+
+
+
 
             <span class="hl kwa">if</span> check<span class="hl opt">.</span>status <span class="hl opt">==</span> <span class="hl str">&quot;up&quot;</span><span class="hl opt">:</span>
                 self<span class="hl opt">.</span>data<span class="hl opt">[</span><span class="hl str">&quot;services_up&quot;</span><span class="hl opt">] +=</span> <span class="hl num">1</span>
@@ -233,11 +255,28 @@
                 self<span class="hl opt">.</span><span class="hl kwd">get_check_outages</span><span class="hl opt">(</span>check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> today_night<span class="hl opt">,</span> counter<span class="hl opt">)</span>
                 counter <span class="hl opt">+=</span> <span class="hl num">1</span>
 
+            checkdetails <span class="hl opt">= {</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>cdata<span class="hl opt">[</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">]};</span>
+            checkdetails<span class="hl opt">[</span><span class="hl str">&quot;per_day&quot;</span><span class="hl opt">] = []</span>
+            <span class="hl kwa">for</span> <span class="hl opt">(</span>week_start<span class="hl opt">,</span> week_end<span class="hl opt">)</span> <span class="hl kwa">in</span> weeks<span class="hl opt">:</span>
+                details <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_performance</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> time<span class="hl opt">.</span><span class="hl kwd">mktime</span><span class="hl opt">(</span>week_start<span class="hl opt">.</span><span class="hl kwd">timetuple</span><span class="hl opt">()),</span> time<span class="hl opt">.</span><span class="hl kwd">mktime</span><span class="hl opt">(</span>week_end<span class="hl opt">.</span><span class="hl kwd">timetuple</span><span class="hl opt">()),</span> <span class="hl str">&quot;day&quot;</span><span class="hl opt">).</span>content<span class="hl opt">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl opt">]</span>
+                <span class="hl kwa">for</span> item <span class="hl kwa">in</span> details<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;days&quot;</span><span class="hl opt">):</span>
+                    checkdetails<span class="hl opt">[</span><span class="hl str">&quot;per_day&quot;</span><span class="hl opt">].</span><span class="hl kwd">append</span><span class="hl opt">(</span>item<span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">save_check</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> checkdetails<span class="hl opt">)</span>
+
         self<span class="hl opt">.</span><span class="hl kwd">calculate_uptime_data</span><span class="hl opt">()</span>
 
         self<span class="hl opt">.</span>data<span class="hl opt">[</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">] = {</span><span class="hl str">&quot;unix&quot;</span><span class="hl opt">:</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">(),</span> 
              <span class="hl str">&quot;human&quot;</span><span class="hl opt">:</span> datetime<span class="hl opt">.</span>datetime<span class="hl opt">.</span><span class="hl kwd">now</span><span class="hl opt">().</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="hl opt">)}</span>
 
+    <span class="hl kwa">def</span> <span class="hl kwd">save_check</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> checkdetails<span class="hl opt">):</span>
+        new_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>checkdetails<span class="hl opt">)</span>
+        filename <span class="hl opt">=</span> <span class="hl str">&quot;../data/per-check-%s.json&quot;</span> <span class="hl opt">%</span> checkid
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            old_data <span class="hl opt">=</span> <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">()</span>
+        <span class="hl kwa">except</span> <span class="hl kwc">IOError</span><span class="hl opt">:</span>
+            old_data <span class="hl opt">=</span> <span class="hl kwa">None</span>
+        <span class="hl kwa">if</span> new_data <span class="hl opt">!=</span> old_data<span class="hl opt">:</span>
+            <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">).</span><span class="hl kwd">write</span><span class="hl opt">(</span>new_data<span class="hl opt">)</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">save</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Save data to services.json &quot;&quot;&quot;</span>

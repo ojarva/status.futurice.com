@@ -1,4 +1,4 @@
-all: sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest 
+all: sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/servicedetails.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest 
 
 
 cache.manifest: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js js/printers.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php js/main.min.js js/combined.raphael.min.js carousel_images.php pages/printers.php
@@ -24,6 +24,10 @@ js/combined.raphael.js: js/r-800-raphael.js js/r-801-raphaelg.js js/r-801-raphae
 js/services.min.js: js/services.js
 	yui-compressor js/services.js > js/services.min.js
 	chmod 644 js/services.min.js
+
+js/servicedetails.min.js: js/servicedetails.js
+	yui-compressor js/servicedetails.js > js/servicedetails.min.js
+	chmod 644 js/servicedetails.min.js
 
 js/printers.min.js: js/printers.js
 	yui-compressor js/printers.js > js/printers.min.js

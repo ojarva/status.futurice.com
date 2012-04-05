@@ -148,6 +148,13 @@ class PingdomConnection(object):
             
         return pingdom_checks
 
+    def get_performance(self, checkid, **kwargs):
+        starttime = int(kwargs.get("timefrom", 0))
+        endtime = int(kwargs.get("timeto", time.time()))
+        resolution = kwargs.get("resolution", "day")
+        response = PingdomRequest(self, 'summary.performance/%s?from=%s&to=%s&includeuptime=true&resolution=%s' % (checkid, starttime, endtime, resolution)).fetch()
+        return response
+
     def get_outages(self, checkid, **kwargs):
         starttime = int(kwargs.get("timefrom", 0))
         endtime = int(kwargs.get("timeto", time.time()))
