@@ -16,8 +16,7 @@ $pages = array(array("/", "Home"),
 	array("/page/network-map", "Network map"),
 	array("/page/it-tickets", "IT tickets"),
 	array("/page/printers", "Printers"),
-	array("/page/what", "What?"),
-	array("/page/todo", "TODO"));
+	array("/page/what", "What?"));
 
 function callback($buffer) {
  $buffer = str_replace("\r\n", " ", $buffer);
