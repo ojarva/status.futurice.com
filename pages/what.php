@@ -2,8 +2,8 @@
 <div class="hero-unit">
 <h1>What and why?</h1>
 
-<p>Many things improve only with small steps. And many things require great amount of work, money and 
-goodwill. Also, many small things bring in greater advantages. If this site inspires even few others to 
+<p>Many things can be improved only by taking very small. And many things require great amount of work, money and 
+goodwill. Also, many small things bring in much greater advantages. If this site inspires even few others to 
 share, it's already a good start.</p>
 
 </div>
@@ -21,9 +21,9 @@ share, it's already a good start.</p>
 	<div class="span4">
 		<h3>Do new things</h3>
 
-		<p>Too many things are being done certaing way just because "that's how it has always 
-been done". That's not how we can improve our work, our results and our environment. It's easier to be 
-proud of something if you can show it to others, send link to your friends, customers or elsewhere.</p>
+		<p>Too many things are being done certain way just because "that's how it has always
+been done". That's not how we can improve our work, our results and our environment. It's important to
+experiment.</p>
 
 	</div>
 </div>
