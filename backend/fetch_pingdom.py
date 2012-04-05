@@ -8,6 +8,7 @@ import datetime
 import time
 import os
 import logging
+import redis
 from dateutil import rrule
 
 try:
@@ -31,21 +32,26 @@ class Pingdomrun:
         self.cache_directory = "cache/"
         self.data = None
         self.cdata = None
+        self.redis = redis.Redis("localhost")
 
     def get_cache(self, what):
         """ Get pickled data from cache """
-        filename = "%s%s" % (self.cache_directory, what)
-        if os.path.exists(filename):
-            logging.debug("Cache hit: %s", what)
-            return pickle.load(open(filename))
-        logging.debug("Cache miss: %s", what)
-        return False
+        value = self.redis.get(what)
+        if not value:
+            logging.debug("Cache miss: %s", what)
+            return False
+        logging.debug("Cache hit: %s", what)
+        return pickle.loads(value)
 
-    def set_cache(self, what, data):
+    def set_cache(self, what, data, expire = None):
         """ Set (pickled) data to cache """
-        filename = "%s%s" % (self.cache_directory, what)
-        pickle.dump(data, open(filename, "w"))
-        logging.debug("Cache set: %s", what)
+        status = self.redis.set(what, pickle.dumps(data))
+        if status:
+            logging.debug("Cache set: %s", what)
+            if expire:
+                self.redis.expire(what, expire)
+        else:
+            logging.debug("Cache set for %s failed", what)
 
     def get_performance(self, checkid, timefrom, timeto, resolution):
         keyname = "performance-%s-%s-%s-%s" % (checkid, timefrom, timeto, resolution)
@@ -72,28 +78,34 @@ class Pingdomrun:
         self.set_cache("checks", checks)
         return checks
 
-    def get_averages(self, checkid, timefrom, timeto):
+    def get_averages(self, checkid, timefrom, timeto, expire=None):
         """ Get averages for single check and single timeframe """
         keyname = "averages-%s-%s-%s" % (checkid, timefrom, timeto)
+        if expire == None:
+            if timefrom - timeto < 82000:
+                expire = 86400
         cached = self.get_cache(keyname)
         if cached is not False:
             return cached
         averages = self.connection.get_check_averages(checkid, 
                                timefrom=timefrom, timeto=timeto)
-        self.set_cache(keyname, averages)
+        self.set_cache(keyname, averages, expire)
         logging.debug("Averages fetched for range %s-%s, check %s",
                              timefrom, timeto, checkid)
         return averages
 
-    def get_outages(self, checkid, timefrom, timeto):
+    def get_outages(self, checkid, timefrom, timeto, expire=None):
         """ Get outages for single check """
         keyname = "outages-%s-%s-%s" % (checkid, timefrom, timeto)
+        if expire == None:
+            if timefrom - timeto < 82000:
+                expire = 86400
         cached = self.get_cache(keyname)
         if cached is not False:
             return cached
         outages = self.connection.get_outages(checkid, 
                               timefrom=timefrom, timeto=timeto)
-        self.set_cache(keyname, outages)
+        self.set_cache(keyname, outages, expire)
         logging.debug("Outages fetched for range %s-%s, check %s",
                                timefrom, timeto, checkid)
         return outages
