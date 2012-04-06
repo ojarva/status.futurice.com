@@ -62,13 +62,18 @@ $("#carousel").carousel();
 
 <div class="row">
 	<div class="span4">
+		<h3>General</h3>
+
+		<p>Site is powered by bootstrap, jQuery, python and php running on Amazon EC2. All data is stored on redis database, except binary files (network map). All redis keys have expiration time, and redis is 
+configured with <i>maxmemory</i> directive. If key name is changed, redis cleans up automatically after a while. </p>
+
 		<h3>Services</h3>
 
 		<p>Services are monitored using <a href="http://pingdom.com">Pingdom</a>. In addition to 
 Pingdom, we use <a href="http://www.zabbix.com/">Zabbix</a> internally. Pingdom provides public 
 information pages, but those are rather limited, so we are using <a 
 href="http://pingdom.com/services/api-documentation-rest/">API</a> to fetch information to local copy 
-(JSON files in the disk). Tooltips are provided by <a 
+(JSON files in <a href="http://redis.io/">redis</a>). Tooltips are provided by <a 
 href="http://twitter.github.com/bootstrap/javascript.html#tooltips">Bootstrap plugin</a>. If we are doing 
 a good job with keeping our services up, we can be proud of it, and if not, we need to improve.</p>
 
@@ -162,6 +167,7 @@ quite a bit.</p>
 			<li><a href="http://code.google.com/p/python-twitter/">python-twitter</a></li>
 			<li><a href="http://oss.oetiker.ch/rrdtool/prog/rrdpython.en.html">rrdpython</a></li>
 			<li><a href="http://www.net-snmp.org/">net-snmp</a></li>
+			<li><a href="http://redis.io/">redis</a></li>
 		</ul>
 	</div>
 	<div class="span4">

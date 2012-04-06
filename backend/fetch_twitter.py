@@ -3,6 +3,9 @@
 import twitter
 import sys
 import json
+import time
+import hashlib
+import redis
 
 class TwitterInfo:
     """ Load user information and timeline from twitter 
@@ -11,8 +14,8 @@ class TwitterInfo:
     def __init__(self, username):
         self.username = username
         self.api = twitter.Api()
-        self.filename = "../data/twitter.json"
-        self.statusfilename = "../data/twitter_statuses.json"
+        self.redis = redis.Redis()
+        self.redis_key = "data:twitter:%s" % username
 
     def fetch(self):
         """ Fetch user information and save status, follower count 
@@ -22,21 +25,17 @@ class TwitterInfo:
               "followers": user.GetFollowersCount(), 
               "status_ago": user.status.GetRelativeCreatedAt(),
               "timestamp": user.status.GetCreatedAtInSeconds()})
-        try:
-            old_data = open(self.filename).read()
-        except IOError:
-            old_data = ""
-        if new_data != old_data:
-            open(self.filename, "w").write(new_data)
+        new_hash = hashlib.sha1(new_data).hexdigest() 
+        old_hash = self.redis.get(self.redis_key+"-hash")
+        if new_hash != old_hash:
+            max_lifetime = 3600 * 24 * 30
+            self.redis.setex("data:twitter.json", new_data, max_lifetime)
+            self.redis.setex("data:twitter.json-mtime", time.time(), max_lifetime)
+            self.redis.setex("data:twitter.json-hash", new_hash, max_lifetime)
 
-    def fetch_timeline(self):
-        """ Fetch user timeline and save it to json encoded file """
-        msg = self.api.GetUserTimeline(self.username)
-        new_data = json.dumps({"statuses": msg})
-        old_data = open(self.statusfilename).read()
- 
-        if new_data != old_data:
-            open(self.statusfilename, "w").write(new_data)
+            self.redis.setex(self.redis_key, new_data, max_lifetime)
+            self.redis.setex("%s-mtime" % self.redis_key, time.time(), max_lifetime)
+            self.redis.setex("%s-hash" % self.redis_key, new_hash, max_lifetime)
 
 def main(username):
     """ Run twitter information """

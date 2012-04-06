@@ -1,13 +1,15 @@
 <?
+$redis = new Redis();
+$redis->connect("localhost");
 $autofill = array();
-$tickets_json = json_decode(file_get_contents("ittickets.json"), true);
+$tickets_json = json_decode($redis->get("data:ittickets.json"), true);
 $autofill["unique_7d"] = $tickets_json["data"]["unique_manual_7d"];
-$services_json = json_decode(file_get_contents("services.json"), true);
+$services_json = json_decode($redis->get("data:services.json"), true);
 $autofill["services_up"] = $services_json["overall"]["services_up"];
 $autofill["services_unknown"] = $services_json["overall"]["services_unknown"];
 $autofill["services_down"] = $services_json["overall"]["services_down"];
 
-$lastmodified=max(filemtime(__FILE__), filemtime("services.json"), filemtime("ittickets.json"));
+$lastmodified = max(filemtime(__FILE__), $redis->get("data:services.json-mtime"), $redis->get("data:ittickets.json-mtime"));
 
 $etag = md5(serialize($autofill));
 Header("Content-Type: application/json");

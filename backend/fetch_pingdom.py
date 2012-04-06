@@ -9,6 +9,7 @@ import time
 import os
 import logging
 import redis
+import hashlib
 from dateutil import rrule
 
 try:
@@ -32,10 +33,11 @@ class Pingdomrun:
         self.cache_directory = "cache/"
         self.data = None
         self.cdata = None
-        self.redis = redis.Redis("localhost")
+        self.redis = redis.Redis()
 
     def get_cache(self, what):
         """ Get pickled data from cache """
+        what = "pingdomcache:%s" % what
         value = self.redis.get(what)
         if not value:
             logging.debug("Cache miss: %s", what)
@@ -43,13 +45,15 @@ class Pingdomrun:
         logging.debug("Cache hit: %s", what)
         return pickle.loads(value)
 
-    def set_cache(self, what, data, expire = None):
+    def set_cache(self, what, data, expire = 3600 * 24 * 30 * 24):
         """ Set (pickled) data to cache """
-        status = self.redis.set(what, pickle.dumps(data))
+        what = "pingdomcache:%s" % what
+        if expire:
+            status = self.redis.setex(what, pickle.dumps(data), expire)
+        else:
+            status = self.redis.set(what, pickle.dumps(data))
         if status:
             logging.debug("Cache set: %s", what)
-            if expire:
-                self.redis.expire(what, expire)
         else:
             logging.debug("Cache set for %s failed", what)
 
@@ -66,24 +70,17 @@ class Pingdomrun:
         """ Get list of checks and check details (status, last check 
           time, name etc.) """
 
-        if not kwargs.get("nocache", False):
-            cached = self.get_cache("checks")
-            if cached is not False:
-                logging.debug("Cache hit for checks")
-                return cached
-            logging.debug("Cache miss for checks")
-        else:
-            logging.debug("nocache was specified. Not checking cache")
+        cached = self.get_cache("checks")
+        if cached is not False:
+            logging.debug("Cache hit for checks")
+            return cached
         checks = self.connection.get_all_checks()
-        self.set_cache("checks", checks)
+        self.set_cache("checks", checks, 55)
         return checks
 
     def get_averages(self, checkid, timefrom, timeto, expire=None):
         """ Get averages for single check and single timeframe """
         keyname = "averages-%s-%s-%s" % (checkid, timefrom, timeto)
-        if expire == None:
-            if timefrom - timeto < 82000:
-                expire = 86400
         cached = self.get_cache(keyname)
         if cached is not False:
             return cached
@@ -97,9 +94,6 @@ class Pingdomrun:
     def get_outages(self, checkid, timefrom, timeto, expire=None):
         """ Get outages for single check """
         keyname = "outages-%s-%s-%s" % (checkid, timefrom, timeto)
-        if expire == None:
-            if timefrom - timeto < 82000:
-                expire = 86400
         cached = self.get_cache(keyname)
         if cached is not False:
             return cached
@@ -111,18 +105,16 @@ class Pingdomrun:
         return outages
 
     @staticmethod
-    def gen_daterange(today_night):
+    def gen_daterange():
         """ Returns list of tuples containing start of day (unix 
             timestamp), end of day (unix timestamp) and human readable 
             name for day """
-        today_last = int(time.mktime(datetime.datetime.now().timetuple()) / 1000 ) * 1000
+        begin = datetime.date.today() - datetime.timedelta(days=6)
         days_timeranges = []
-
-        for day in range(5, -1, -1):
-            new_end_time = today_night - 86400 * day
-            new_start_time = today_night - 86400 * (day + 1)
-            days_timeranges.append((new_start_time, new_end_time, datetime.datetime.fromtimestamp(new_start_time).strftime("%d.%m.")))
-        days_timeranges.append((today_night, today_last, datetime.datetime.fromtimestamp(today_last).strftime("%d.%m. %H:%M")))
+        for dt in rrule.rrule(rrule.DAILY, dtstart=begin, until=datetime.date.today()):
+            range_start = int(time.mktime(dt.timetuple()))
+            range_end = int(time.mktime((dt + datetime.timedelta(days=1) - datetime.timedelta(seconds=1)).timetuple()))
+            days_timeranges.append((range_start, range_end, dt.strftime("%d.%m.")))
         return days_timeranges
 
     def populate_check_keywords(self, check):
@@ -135,9 +127,12 @@ class Pingdomrun:
             except AttributeError:
                 pass
 
-    def get_check_averages(self, check, timefrom, timeto, counter):
+    def get_check_averages(self, check, timefrom, timeto, counter, temporary_cache=False):
         """ Get averages and calculate necessary data """
-        averages = self.get_averages(check.id, timefrom, timeto)
+        if temporary_cache:
+            averages = self.get_averages(check.id, timefrom, timeto, 1000)
+        else:
+            averages = self.get_averages(check.id, timefrom, timeto, 3600 * 24 * 450)
         avgresponse = 0
         avgcounter = 0
         for item in averages["summary"]["responsetime"]['avgresponse']:
@@ -163,9 +158,12 @@ class Pingdomrun:
                 self.uptime_classes[classkey]['down'] += averages["summary"]["status"]["totaldown"]
                 self.uptime_classes[classkey]['up'] += averages["summary"]["status"]["totalup"]
 
-    def get_check_outages(self, check, timefrom, timeto, today_night, counter):
+    def get_check_outages(self, check, timefrom, timeto, today_night, counter, temporary_cache=False):
         """ Get outages information for specific check """
-        outages = self.get_outages(check.id, timefrom, timeto)
+        if temporary_cache:
+            outages = self.get_outages(check.id, timefrom, timeto, 1000)
+        else:
+            outages = self.get_outages(check.id, timefrom, timeto, 3600 * 24 * 400)
         for item in outages['states']:
             if item["status"] == "down":
                 if item["timefrom"] > today_night:
@@ -206,7 +204,7 @@ class Pingdomrun:
         checks = self.get_checks(nocache=True)
 
         today_night = time.mktime(datetime.date.today().timetuple())
-        days_timeranges = Pingdomrun.gen_daterange(today_night)
+        days_timeranges = Pingdomrun.gen_daterange()
 
         self.cdata = {}
         self.data = {"autofill": {"overall": 0,
@@ -254,9 +252,12 @@ class Pingdomrun:
                 self.data["services_unknown"] += 1
 
             counter = 0
+            last = False
             for (timefrom, timeto, _) in days_timeranges:
-                self.get_check_averages(check, timefrom, timeto, counter)
-                self.get_check_outages(check, timefrom, timeto, today_night, counter)
+                if counter + 1 == len(days_timeranges):
+                    last = True
+                self.get_check_averages(check, timefrom, timeto, counter, last)
+                self.get_check_outages(check, timefrom, timeto, today_night, counter, last)
                 counter += 1
 
             checkdetails = {"autofill": self.cdata[check.id]};
@@ -272,26 +273,29 @@ class Pingdomrun:
         self.data["timestamp"] = {"unix": time.time(), 
              "human": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
+    def _save(self, filename, new_data, expire=None):
+        old_data = self.redis.get(filename)
+        if new_data != old_data:
+            hash = hashlib.sha1(new_data).hexdigest()
+            if expire:
+                self.redis.setex(filename, new_data, expire)
+                self.redis.setex(filename+"-mtime", time.time(), expire)
+                self.redis.setex(filename+"-hash", hash, expire)
+            else:
+                self.redis.set(filename, new_data)
+                self.redis.set(filename+"-mtime", time.time())
+                self.redis.set(filename+"-hash", hash)
+
     def save_check(self, checkid, checkdetails):
         new_data = json.dumps(checkdetails)
-        filename = "../data/per-check-%s.json" % checkid
-        try:
-            old_data = open(filename).read()
-        except IOError:
-            old_data = None
-        if new_data != old_data:
-            open(filename, "w").write(new_data)
+        filename = "data:per-check-%s.json" % checkid
+        self._save(filename, new_data, 3600*24*30)
 
     def save(self):
         """ Save data to services.json """
         new_data = json.dumps({"autofill": self.data.get("autofill", {}), "overall": self.data, "per_service": self.cdata})
-        filename = "../data/services.json"
-        try:
-            old_data = open(filename).read()
-        except IOError:
-            old_data = None
-        if new_data != old_data:
-            open(filename, "w").write(new_data)
+        filename = "data:services.json"
+        self._save(filename, new_data, 3600*24*30)
 
 
 def main():
