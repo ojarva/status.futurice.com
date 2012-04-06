@@ -10,22 +10,13 @@ $autofill["services_unknown"] = $services_json["overall"]["services_unknown"];
 $autofill["services_down"] = $services_json["overall"]["services_down"];
 
 $lastmodified = max(filemtime(__FILE__), $redis->get("data:services.json-mtime"), $redis->get("data:ittickets.json-mtime"));
+$content = json_encode(array("autofill" => $autofill));
+$hash = sha1($content);
 
-$etag = md5(serialize($autofill));
-Header("Content-Type: application/json");
-Header("Cache-Control: public; max-age=60");
-Header("Etag: ".$etag);
-Header("Last-Modified: ".gmdate("D, d M Y H:i:s", $lastmodified)." GMT");
-Header("Expires: ".gmdate("D, d M Y H:i:s", $lastmodified+60)." GMT");
-Header("Date: ".gmdate("D, d M Y H:i:s", $lastmodified)." GMT");
+$exptime = 3600 * 24 * 30;
 
-
-$etagHeader = (isset($_SERVER['HTTP_IF_NONE_MATCH']) ? trim($_SERVER['HTTP_IF_NONE_MATCH']) : false);
-if ($etagHeader == $etag) {
-       header("HTTP/1.1 304 Not Modified");
-       exit;
-}
-
-echo json_encode(array("autofill" => $autofill));
+$redis->setex("data:frontpage.json", $exptime, $content);
+$redis->setex("data:frontpage.json-mtime", $exptime, $lastmodified);
+$redis->setex("data:frontpage.json-hash", $exptime, $hash);
 
 ?>
