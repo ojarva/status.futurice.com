@@ -183,7 +183,12 @@ function get_last_data_timestamp(filename) {
                 if (data) { data = data.content; }
                 for (var key in data.autofill) {
                     if ($("#" + key) !== null) {
-                        $("#" + key).html(data.autofill[key]);
+                        if (data.autofill[key] != $("#"+key).html()) {
+                            $("#" + key).html(data.autofill[key]);
+                            var orig_color =$("#" + key).css("color");
+                            var orig_bgcolor =$("#" + key).css("background-color");
+                            $("#" + key).css("color", "#FFFDF9").css("background-color", "#FCF8E3").animate({color: orig_color, "background-color": orig_bgcolor}, 2000);
+                        }
                     }
                 }
             });
