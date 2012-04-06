@@ -41,7 +41,7 @@ $loadavg = trim(file_get_contents("/proc/loadavg"));
 $loadavg = explode(" ", $loadavg);
 $redis->mset(array("stats:server:load:1m" => $loadavg[0], "stats:server:load:5m" => $loadavg[1], "stats:server:load:15m" => $loadavg[2]));
 
-$traffic = trim(exec("ifconfig eth0 | grep 'RX bytes'"));
+$traffic = trim(exec("/sbin/ifconfig eth0 | grep 'RX bytes'"));
 // RX bytes:1218147977 (1.2 GB)  TX bytes:952382226 (952.3 MB)
 $traffic = explode("  ", $traffic);
 $sum = 0;
