@@ -11,6 +11,5 @@ What to do with these?
 * *fetch_pingdom.py* - fetches Pingdom data through rather good Pingdom API.
 * *fetch_twitter.py* - fetches information from Twitter. Give twitter username as first argument (*python fetch_twitter.py futurice*). Add this to crontab.
 * *monitor_and_upload_file.py* - if your weathermap generation runs on separate server, this script can be used to post image to status page. *upload_settings.py.example* is example configuration file for this.
-* *cache/* - cached JSON files from *fetch_pingdom.py*
 * *../upload.php* receiver script for network map images and *fetch_rt.py* script.
 * *printer_status.py* - fetch printer status using SNMP and post printer status, supplies and paper status to upload.php.
