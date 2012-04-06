@@ -16,6 +16,8 @@
 <span class="hl kwa">import</span> time
 <span class="hl kwa">import</span> os
 <span class="hl kwa">import</span> logging
+<span class="hl kwa">import</span> redis
+<span class="hl kwa">import</span> hashlib
 <span class="hl kwa">from</span> dateutil <span class="hl kwa">import</span> rrule
 
 <span class="hl kwa">try</span><span class="hl opt">:</span>
@@ -39,21 +41,37 @@
         self<span class="hl opt">.</span>cache_directory <span class="hl opt">=</span> <span class="hl str">&quot;cache/&quot;</span>
         self<span class="hl opt">.</span>data <span class="hl opt">=</span> <span class="hl kwa">None</span>
         self<span class="hl opt">.</span>cdata <span class="hl opt">=</span> <span class="hl kwa">None</span>
+        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">()</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">get_cache</span><span class="hl opt">(</span>self<span class="hl opt">,</span> what<span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get pickled data from cache &quot;&quot;&quot;</span>
-        filename <span class="hl opt">=</span> <span class="hl str">&quot;%s%s&quot;</span> <span class="hl opt">% (</span>self<span class="hl opt">.</span>cache_directory<span class="hl opt">,</span> what<span class="hl opt">)</span>
-        <span class="hl kwa">if</span> os<span class="hl opt">.</span>path<span class="hl opt">.</span><span class="hl kwd">exists</span><span class="hl opt">(</span>filename<span class="hl opt">):</span>
-            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache hit: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
-            <span class="hl kwa">return</span> pickle<span class="hl opt">.</span><span class="hl kwd">load</span><span class="hl opt">(</span><span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">))</span>
-        logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache miss: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
-        <span class="hl kwa">return False</span>
+        what <span class="hl opt">=</span> <span class="hl str">&quot;pingdomcache:%s&quot;</span> <span class="hl opt">%</span> what
+        value <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>what<span class="hl opt">)</span>
+        <span class="hl kwa">if not</span> value<span class="hl opt">:</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:miss&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miss&quot;</span><span class="hl opt">)</span>
+            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache miss: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
+            <span class="hl kwa">return False</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:hit&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:hit&quot;</span><span class="hl opt">)</span>
+        logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache hit: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
+        <span class="hl kwa">return</span> pickle<span class="hl opt">.</span><span class="hl kwd">loads</span><span class="hl opt">(</span>value<span class="hl opt">)</span>
 
-    <span class="hl kwa">def</span> <span class="hl kwd">set_cache</span><span class="hl opt">(</span>self<span class="hl opt">,</span> what<span class="hl opt">,</span> data<span class="hl opt">):</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">set_cache</span><span class="hl opt">(</span>self<span class="hl opt">,</span> what<span class="hl opt">,</span> data<span class="hl opt">,</span> expire <span class="hl opt">=</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span> <span class="hl opt">*</span> <span class="hl num">24</span><span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Set (pickled) data to cache &quot;&quot;&quot;</span>
-        filename <span class="hl opt">=</span> <span class="hl str">&quot;%s%s&quot;</span> <span class="hl opt">% (</span>self<span class="hl opt">.</span>cache_directory<span class="hl opt">,</span> what<span class="hl opt">)</span>
-        pickle<span class="hl opt">.</span><span class="hl kwd">dump</span><span class="hl opt">(</span>data<span class="hl opt">,</span> <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">))</span>
-        logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache set: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
+        what <span class="hl opt">=</span> <span class="hl str">&quot;pingdomcache:%s&quot;</span> <span class="hl opt">%</span> what
+        <span class="hl kwa">if</span> expire<span class="hl opt">:</span>
+            status <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span>what<span class="hl opt">,</span> pickle<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>data<span class="hl opt">),</span> expire<span class="hl opt">)</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            status <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwb">set</span><span class="hl opt">(</span>what<span class="hl opt">,</span> pickle<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>data<span class="hl opt">))</span>
+        <span class="hl kwa">if</span> status<span class="hl opt">:</span>
+            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache set: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:set&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:set&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache set for %s failed&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:setfailed&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:setfailed&quot;</span><span class="hl opt">)</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">get_performance</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> resolution<span class="hl opt">):</span>
         keyname <span class="hl opt">=</span> <span class="hl str">&quot;performance-%s-%s-%s-%s&quot;</span> <span class="hl opt">% (</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> resolution<span class="hl opt">)</span>
@@ -61,6 +79,8 @@
         <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl opt">:</span>
             <span class="hl kwa">return</span> cached
         data <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_performance</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">,</span> resolution<span class="hl opt">=</span>resolution<span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
         self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> data<span class="hl opt">)</span>
         <span class="hl kwa">return</span> data
 
@@ -68,19 +88,17 @@
         <span class="hl str">&quot;&quot;&quot; Get list of checks and check details (status, last check </span>
 <span class="hl str">          time, name etc.) &quot;&quot;&quot;</span>
 
-        <span class="hl kwa">if not</span> kwargs<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;nocache&quot;</span><span class="hl opt">,</span> <span class="hl kwa">False</span><span class="hl opt">):</span>
-            cached <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_cache</span><span class="hl opt">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl opt">)</span>
-            <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl opt">:</span>
-                logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache hit for checks&quot;</span><span class="hl opt">)</span>
-                <span class="hl kwa">return</span> cached
-            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache miss for checks&quot;</span><span class="hl opt">)</span>
-        <span class="hl kwa">else</span><span class="hl opt">:</span>
-            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;nocache was specified. Not checking cache&quot;</span><span class="hl opt">)</span>
+        cached <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_cache</span><span class="hl opt">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl opt">:</span>
+            logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache hit for checks&quot;</span><span class="hl opt">)</span>
+            <span class="hl kwa">return</span> cached
         checks <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_all_checks</span><span class="hl opt">()</span>
-        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl opt">,</span> checks<span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl opt">,</span> checks<span class="hl opt">,</span> <span class="hl num">55</span><span class="hl opt">)</span>
         <span class="hl kwa">return</span> checks
 
-    <span class="hl kwa">def</span> <span class="hl kwd">get_averages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">):</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">get_averages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> expire<span class="hl opt">=</span><span class="hl kwa">None</span><span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get averages for single check and single timeframe &quot;&quot;&quot;</span>
         keyname <span class="hl opt">=</span> <span class="hl str">&quot;averages-%s-%s-%s&quot;</span> <span class="hl opt">% (</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">)</span>
         cached <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">)</span>
@@ -88,12 +106,14 @@
             <span class="hl kwa">return</span> cached
         averages <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_check_averages</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> 
                                timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">)</span>
-        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> averages<span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> averages<span class="hl opt">,</span> expire<span class="hl opt">)</span>
         logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Averages fetched for range %s-%s, check %s&quot;</span><span class="hl opt">,</span>
                              timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> checkid<span class="hl opt">)</span>
         <span class="hl kwa">return</span> averages
 
-    <span class="hl kwa">def</span> <span class="hl kwd">get_outages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">):</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">get_outages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> expire<span class="hl opt">=</span><span class="hl kwa">None</span><span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get outages for single check &quot;&quot;&quot;</span>
         keyname <span class="hl opt">=</span> <span class="hl str">&quot;outages-%s-%s-%s&quot;</span> <span class="hl opt">% (</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">)</span>
         cached <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">)</span>
@@ -101,24 +121,24 @@
             <span class="hl kwa">return</span> cached
         outages <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_outages</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> 
                               timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">)</span>
-        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> outages<span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> outages<span class="hl opt">,</span> expire<span class="hl opt">)</span>
         logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Outages fetched for range %s-%s, check %s&quot;</span><span class="hl opt">,</span>
                                timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> checkid<span class="hl opt">)</span>
         <span class="hl kwa">return</span> outages
 
     <span class="hl kwb">&#64;staticmethod</span>
-    <span class="hl kwa">def</span> <span class="hl kwd">gen_daterange</span><span class="hl opt">(</span>today_night<span class="hl opt">):</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">gen_daterange</span><span class="hl opt">():</span>
         <span class="hl str">&quot;&quot;&quot; Returns list of tuples containing start of day (unix </span>
 <span class="hl str">            timestamp), end of day (unix timestamp) and human readable </span>
 <span class="hl str">            name for day &quot;&quot;&quot;</span>
-        today_last <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>time<span class="hl opt">.</span><span class="hl kwd">mktime</span><span class="hl opt">(</span>datetime<span class="hl opt">.</span>datetime<span class="hl opt">.</span><span class="hl kwd">now</span><span class="hl opt">().</span><span class="hl kwd">timetuple</span><span class="hl opt">()) /</span> <span class="hl num">1000</span> <span class="hl opt">) *</span> <span class="hl num">1000</span>
+        begin <span class="hl opt">=</span> datetime<span class="hl opt">.</span>date<span class="hl opt">.</span><span class="hl kwd">today</span><span class="hl opt">() -</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>days<span class="hl opt">=</span><span class="hl num">6</span><span class="hl opt">)</span>
         days_timeranges <span class="hl opt">= []</span>
-
-        <span class="hl kwa">for</span> day <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">, -</span><span class="hl num">1</span><span class="hl opt">, -</span><span class="hl num">1</span><span class="hl opt">):</span>
-            new_end_time <span class="hl opt">=</span> today_night <span class="hl opt">-</span> <span class="hl num">86400</span> <span class="hl opt">*</span> day
-            new_start_time <span class="hl opt">=</span> today_night <span class="hl opt">-</span> <span class="hl num">86400</span> <span class="hl opt">* (</span>day <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">)</span>
-            days_timeranges<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">((</span>new_start_time<span class="hl opt">,</span> new_end_time<span class="hl opt">,</span> datetime<span class="hl opt">.</span>datetime<span class="hl opt">.</span><span class="hl kwd">fromtimestamp</span><span class="hl opt">(</span>new_start_time<span class="hl opt">).</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%d.%m.&quot;</span><span class="hl opt">)))</span>
-        days_timeranges<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">((</span>today_night<span class="hl opt">,</span> today_last<span class="hl opt">,</span> datetime<span class="hl opt">.</span>datetime<span class="hl opt">.</span><span class="hl kwd">fromtimestamp</span><span class="hl opt">(</span>today_last<span class="hl opt">).</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%d.%m. %H:%M&quot;</span><span class="hl opt">)))</span>
+        <span class="hl kwa">for</span> dt <span class="hl kwa">in</span> rrule<span class="hl opt">.</span><span class="hl kwd">rrule</span><span class="hl opt">(</span>rrule<span class="hl opt">.</span>DAILY<span class="hl opt">,</span> dtstart<span class="hl opt">=</span>begin<span class="hl opt">,</span> until<span class="hl opt">=</span>datetime<span class="hl opt">.</span>date<span class="hl opt">.</span><span class="hl kwd">today</span><span class="hl opt">()):</span>
+            range_start <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>time<span class="hl opt">.</span><span class="hl kwd">mktime</span><span class="hl opt">(</span>dt<span class="hl opt">.</span><span class="hl kwd">timetuple</span><span class="hl opt">()))</span>
+            range_end <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>time<span class="hl opt">.</span><span class="hl kwd">mktime</span><span class="hl opt">((</span>dt <span class="hl opt">+</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>days<span class="hl opt">=</span><span class="hl num">1</span><span class="hl opt">) -</span> datetime<span class="hl opt">.</span><span class="hl kwd">timedelta</span><span class="hl opt">(</span>seconds<span class="hl opt">=</span><span class="hl num">1</span><span class="hl opt">)).</span><span class="hl kwd">timetuple</span><span class="hl opt">()))</span>
+            days_timeranges<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">((</span>range_start<span class="hl opt">,</span> range_end<span class="hl opt">,</span> dt<span class="hl opt">.</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%d.%m.&quot;</span><span class="hl opt">)))</span>
         <span class="hl kwa">return</span> days_timeranges
 
     <span class="hl kwa">def</span> <span class="hl kwd">populate_check_keywords</span><span class="hl opt">(</span>self<span class="hl opt">,</span> check<span class="hl opt">):</span>
@@ -131,9 +151,12 @@
             <span class="hl kwa">except</span> <span class="hl kwc">AttributeError</span><span class="hl opt">:</span>
                 <span class="hl kwa">pass</span>
 
-    <span class="hl kwa">def</span> <span class="hl kwd">get_check_averages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> counter<span class="hl opt">):</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">get_check_averages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> counter<span class="hl opt">,</span> temporary_cache<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get averages and calculate necessary data &quot;&quot;&quot;</span>
-        averages <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_averages</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">)</span>
+        <span class="hl kwa">if</span> temporary_cache<span class="hl opt">:</span>
+            averages <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_averages</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> <span class="hl num">1000</span><span class="hl opt">)</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            averages <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_averages</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">450</span><span class="hl opt">)</span>
         avgresponse <span class="hl opt">=</span> <span class="hl num">0</span>
         avgcounter <span class="hl opt">=</span> <span class="hl num">0</span>
         <span class="hl kwa">for</span> item <span class="hl kwa">in</span> averages<span class="hl opt">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;responsetime&quot;</span><span class="hl opt">][</span><span class="hl str">'avgresponse'</span><span class="hl opt">]:</span>
@@ -159,9 +182,12 @@
                 self<span class="hl opt">.</span>uptime_classes<span class="hl opt">[</span>classkey<span class="hl opt">][</span><span class="hl str">'down'</span><span class="hl opt">] +=</span> averages<span class="hl opt">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;totaldown&quot;</span><span class="hl opt">]</span>
                 self<span class="hl opt">.</span>uptime_classes<span class="hl opt">[</span>classkey<span class="hl opt">][</span><span class="hl str">'up'</span><span class="hl opt">] +=</span> averages<span class="hl opt">[</span><span class="hl str">&quot;summary&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;totalup&quot;</span><span class="hl opt">]</span>
 
-    <span class="hl kwa">def</span> <span class="hl kwd">get_check_outages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> today_night<span class="hl opt">,</span> counter<span class="hl opt">):</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">get_check_outages</span><span class="hl opt">(</span>self<span class="hl opt">,</span> check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> today_night<span class="hl opt">,</span> counter<span class="hl opt">,</span> temporary_cache<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get outages information for specific check &quot;&quot;&quot;</span>
-        outages <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_outages</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">)</span>
+        <span class="hl kwa">if</span> temporary_cache<span class="hl opt">:</span>
+            outages <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_outages</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> <span class="hl num">1000</span><span class="hl opt">)</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            outages <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_outages</span><span class="hl opt">(</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">400</span><span class="hl opt">)</span>
         <span class="hl kwa">for</span> item <span class="hl kwa">in</span> outages<span class="hl opt">[</span><span class="hl str">'states'</span><span class="hl opt">]:</span>
             <span class="hl kwa">if</span> item<span class="hl opt">[</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">] ==</span> <span class="hl str">&quot;down&quot;</span><span class="hl opt">:</span>
                 <span class="hl kwa">if</span> item<span class="hl opt">[</span><span class="hl str">&quot;timefrom&quot;</span><span class="hl opt">] &gt;</span> today_night<span class="hl opt">:</span>
@@ -202,7 +228,7 @@
         checks <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get_checks</span><span class="hl opt">(</span>nocache<span class="hl opt">=</span><span class="hl kwa">True</span><span class="hl opt">)</span>
 
         today_night <span class="hl opt">=</span> time<span class="hl opt">.</span><span class="hl kwd">mktime</span><span class="hl opt">(</span>datetime<span class="hl opt">.</span>date<span class="hl opt">.</span><span class="hl kwd">today</span><span class="hl opt">().</span><span class="hl kwd">timetuple</span><span class="hl opt">())</span>
-        days_timeranges <span class="hl opt">=</span> Pingdomrun<span class="hl opt">.</span><span class="hl kwd">gen_daterange</span><span class="hl opt">(</span>today_night<span class="hl opt">)</span>
+        days_timeranges <span class="hl opt">=</span> Pingdomrun<span class="hl opt">.</span><span class="hl kwd">gen_daterange</span><span class="hl opt">()</span>
 
         self<span class="hl opt">.</span>cdata <span class="hl opt">= {}</span>
         self<span class="hl opt">.</span>data <span class="hl opt">= {</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">: {</span><span class="hl str">&quot;overall&quot;</span><span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">,</span>
@@ -250,9 +276,12 @@
                 self<span class="hl opt">.</span>data<span class="hl opt">[</span><span class="hl str">&quot;services_unknown&quot;</span><span class="hl opt">] +=</span> <span class="hl num">1</span>
 
             counter <span class="hl opt">=</span> <span class="hl num">0</span>
+            last <span class="hl opt">=</span> <span class="hl kwa">False</span>
             <span class="hl kwa">for</span> <span class="hl opt">(</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> _<span class="hl opt">)</span> <span class="hl kwa">in</span> days_timeranges<span class="hl opt">:</span>
-                self<span class="hl opt">.</span><span class="hl kwd">get_check_averages</span><span class="hl opt">(</span>check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> counter<span class="hl opt">)</span>
-                self<span class="hl opt">.</span><span class="hl kwd">get_check_outages</span><span class="hl opt">(</span>check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> today_night<span class="hl opt">,</span> counter<span class="hl opt">)</span>
+                <span class="hl kwa">if</span> counter <span class="hl opt">+</span> <span class="hl num">1</span> <span class="hl opt">==</span> <span class="hl kwb">len</span><span class="hl opt">(</span>days_timeranges<span class="hl opt">):</span>
+                    last <span class="hl opt">=</span> <span class="hl kwa">True</span>
+                self<span class="hl opt">.</span><span class="hl kwd">get_check_averages</span><span class="hl opt">(</span>check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> counter<span class="hl opt">,</span> last<span class="hl opt">)</span>
+                self<span class="hl opt">.</span><span class="hl kwd">get_check_outages</span><span class="hl opt">(</span>check<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> today_night<span class="hl opt">,</span> counter<span class="hl opt">,</span> last<span class="hl opt">)</span>
                 counter <span class="hl opt">+=</span> <span class="hl num">1</span>
 
             checkdetails <span class="hl opt">= {</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>cdata<span class="hl opt">[</span>check<span class="hl opt">.</span><span class="hl kwb">id</span><span class="hl opt">]};</span>
@@ -268,26 +297,29 @@
         self<span class="hl opt">.</span>data<span class="hl opt">[</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">] = {</span><span class="hl str">&quot;unix&quot;</span><span class="hl opt">:</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">(),</span> 
              <span class="hl str">&quot;human&quot;</span><span class="hl opt">:</span> datetime<span class="hl opt">.</span>datetime<span class="hl opt">.</span><span class="hl kwd">now</span><span class="hl opt">().</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="hl opt">)}</span>
 
+    <span class="hl kwa">def</span> <span class="hl kwd">_save</span><span class="hl opt">(</span>self<span class="hl opt">,</span> filename<span class="hl opt">,</span> new_data<span class="hl opt">,</span> expire<span class="hl opt">=</span><span class="hl kwa">None</span><span class="hl opt">):</span>
+        old_data <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>filename<span class="hl opt">)</span>
+        <span class="hl kwa">if</span> new_data <span class="hl opt">!=</span> old_data<span class="hl opt">:</span>
+            <span class="hl kwb">hash</span> <span class="hl opt">=</span> hashlib<span class="hl opt">.</span><span class="hl kwd">sha1</span><span class="hl opt">(</span>new_data<span class="hl opt">).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()</span>
+            <span class="hl kwa">if</span> expire<span class="hl opt">:</span>
+                self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> new_data<span class="hl opt">,</span> expire<span class="hl opt">)</span>
+                self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span>filename<span class="hl opt">+</span><span class="hl str">&quot;-mtime&quot;</span><span class="hl opt">,</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">(),</span> expire<span class="hl opt">)</span>
+                self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span>filename<span class="hl opt">+</span><span class="hl str">&quot;-hash&quot;</span><span class="hl opt">,</span> <span class="hl kwb">hash</span><span class="hl opt">,</span> expire<span class="hl opt">)</span>
+            <span class="hl kwa">else</span><span class="hl opt">:</span>
+                self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwb">set</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> new_data<span class="hl opt">)</span>
+                self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwb">set</span><span class="hl opt">(</span>filename<span class="hl opt">+</span><span class="hl str">&quot;-mtime&quot;</span><span class="hl opt">,</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">())</span>
+                self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwb">set</span><span class="hl opt">(</span>filename<span class="hl opt">+</span><span class="hl str">&quot;-hash&quot;</span><span class="hl opt">,</span> <span class="hl kwb">hash</span><span class="hl opt">)</span>
+
     <span class="hl kwa">def</span> <span class="hl kwd">save_check</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> checkdetails<span class="hl opt">):</span>
         new_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>checkdetails<span class="hl opt">)</span>
-        filename <span class="hl opt">=</span> <span class="hl str">&quot;../data/per-check-%s.json&quot;</span> <span class="hl opt">%</span> checkid
-        <span class="hl kwa">try</span><span class="hl opt">:</span>
-            old_data <span class="hl opt">=</span> <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">()</span>
-        <span class="hl kwa">except</span> <span class="hl kwc">IOError</span><span class="hl opt">:</span>
-            old_data <span class="hl opt">=</span> <span class="hl kwa">None</span>
-        <span class="hl kwa">if</span> new_data <span class="hl opt">!=</span> old_data<span class="hl opt">:</span>
-            <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">).</span><span class="hl kwd">write</span><span class="hl opt">(</span>new_data<span class="hl opt">)</span>
+        filename <span class="hl opt">=</span> <span class="hl str">&quot;data:per-check-%s.json&quot;</span> <span class="hl opt">%</span> checkid
+        self<span class="hl opt">.</span><span class="hl kwd">_save</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> new_data<span class="hl opt">,</span> <span class="hl num">3600</span><span class="hl opt">*</span><span class="hl num">24</span><span class="hl opt">*</span><span class="hl num">30</span><span class="hl opt">)</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">save</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Save data to services.json &quot;&quot;&quot;</span>
         new_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">, {}),</span> <span class="hl str">&quot;overall&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">,</span> <span class="hl str">&quot;per_service&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>cdata<span class="hl opt">})</span>
-        filename <span class="hl opt">=</span> <span class="hl str">&quot;../data/services.json&quot;</span>
-        <span class="hl kwa">try</span><span class="hl opt">:</span>
-            old_data <span class="hl opt">=</span> <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">()</span>
-        <span class="hl kwa">except</span> <span class="hl kwc">IOError</span><span class="hl opt">:</span>
-            old_data <span class="hl opt">=</span> <span class="hl kwa">None</span>
-        <span class="hl kwa">if</span> new_data <span class="hl opt">!=</span> old_data<span class="hl opt">:</span>
-            <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">).</span><span class="hl kwd">write</span><span class="hl opt">(</span>new_data<span class="hl opt">)</span>
+        filename <span class="hl opt">=</span> <span class="hl str">&quot;data:services.json&quot;</span>
+        self<span class="hl opt">.</span><span class="hl kwd">_save</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> new_data<span class="hl opt">,</span> <span class="hl num">3600</span><span class="hl opt">*</span><span class="hl num">24</span><span class="hl opt">*</span><span class="hl num">30</span><span class="hl opt">)</span>
 
 
 <span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>

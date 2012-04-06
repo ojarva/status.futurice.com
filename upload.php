@@ -10,6 +10,9 @@ header("content-type: application/json");
 // Sample file is named as upload_settings.php.sample. Move it, and change password to something more complex.
 require_once("upload_settings.php");
 
+$redis = new Redis();
+$redis->connect("localhost");
+
 function response($success, $status) {
     return json_encode(array("success" => $success, "status" => $status));
 }
@@ -18,17 +21,19 @@ function response($success, $status) {
 if ($_POST["password"] != $password) {
     Header('HTTP/1.1 403 Forbidden');
     echo response(false, "Wrong password");
+    $redis->incr("stats:web:invalid");
+    $redis->incr("stats:web:upload:pwfail");
     exit(0);
 }
 $what = $_POST["what"];
 
 if (!in_array($what, $what_allowed)) {
     echo response(false, "Invalid target name");
+    $redis->incr("stats:web:invalid");
+    $redis->incr("stats:web:upload:targetnamefail");
     exit(0);
 }
 
-$redis = new Redis();
-$redis->connect("localhost");
 
 $pinfo = pathinfo($what);
 $expiration_time = 3600 * 24 * 30; // One month
@@ -39,6 +44,7 @@ if ($pinfo["extension"] == "json") {
     $redis->setex($filename, $expiration_time, $contents);
     $redis->setex($filename."-hash", $expiration_time, sha1($contents));
     $redis->setex($filename."-mtime", $expiration_time, time());
+    $redis->incr("stats:web:upload:success");
     echo response(true, "Upload succeeded");
 } else {
     $filename = "upload/".$what;
@@ -52,9 +58,12 @@ if ($pinfo["extension"] == "json") {
             $redis->setex($rediskey, $expiration_time, $contents);
             $redis->setex("$rediskey-hash", $expiration_time, sha1($contents));
             $redis->setex("$rediskey-mtime", $expiration_time, time());
+            $redis->incr("stats:web:upload:pngsuccess");
         }
+        $redis->incr("stats:web:upload:success");
     } else {
         echo response(false, "File upload failed: $filename\n");
+        $redis->incr("stats:web:upload:filefailed");
     }
 }
 $redis->close();

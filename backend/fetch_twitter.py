@@ -21,6 +21,8 @@ class TwitterInfo:
         """ Fetch user information and save status, follower count 
             and timestamp of status """
         user = self.api.GetUser(self.username)
+        self.redis.incr("stats:api:twitter:request")
+        self.redis.incr("stats:api:request")
         new_data = json.dumps({"status": user.status.GetText(), 
               "followers": user.GetFollowersCount(), 
               "status_ago": user.status.GetRelativeCreatedAt(),
@@ -36,7 +38,11 @@ class TwitterInfo:
             self.redis.setex(self.redis_key, new_data, max_lifetime)
             self.redis.setex("%s-mtime" % self.redis_key, time.time(), max_lifetime)
             self.redis.setex("%s-hash" % self.redis_key, new_hash, max_lifetime)
-
+            self.redis.incr("stats:cache:twitter:miss")
+            self.redis.incr("stats:cache:miss")
+        else:
+            self.redis.incr("stats:cache:twitter:hit")
+            self.redis.incr("stats:cache:hit")
 def main(username):
     """ Run twitter information """
     twitterinfo = TwitterInfo(username)

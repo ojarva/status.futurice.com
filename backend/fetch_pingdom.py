@@ -40,8 +40,12 @@ class Pingdomrun:
         what = "pingdomcache:%s" % what
         value = self.redis.get(what)
         if not value:
+            self.redis.incr("stats:cache:pingdom:miss")
+            self.redis.incr("stats:cache:miss")
             logging.debug("Cache miss: %s", what)
             return False
+        self.redis.incr("stats:cache:pingdom:hit")
+        self.redis.incr("stats:cache:hit")
         logging.debug("Cache hit: %s", what)
         return pickle.loads(value)
 
@@ -54,8 +58,12 @@ class Pingdomrun:
             status = self.redis.set(what, pickle.dumps(data))
         if status:
             logging.debug("Cache set: %s", what)
+            self.redis.incr("stats:cache:pingdom:set")
+            self.redis.incr("stats:cache:set")
         else:
             logging.debug("Cache set for %s failed", what)
+            self.redis.incr("stats:cache:pingdom:setfailed")
+            self.redis.incr("stats:cache:setfailed")
 
     def get_performance(self, checkid, timefrom, timeto, resolution):
         keyname = "performance-%s-%s-%s-%s" % (checkid, timefrom, timeto, resolution)
@@ -63,6 +71,8 @@ class Pingdomrun:
         if cached is not False:
             return cached
         data = self.connection.get_performance(checkid, timefrom=timefrom, timeto=timeto, resolution=resolution)
+        self.redis.incr("stats:api:pingdom:request")
+        self.redis.incr("stats:api:request")
         self.set_cache(keyname, data)
         return data
 
@@ -75,6 +85,8 @@ class Pingdomrun:
             logging.debug("Cache hit for checks")
             return cached
         checks = self.connection.get_all_checks()
+        self.redis.incr("stats:api:pingdom:request")
+        self.redis.incr("stats:api:request")
         self.set_cache("checks", checks, 55)
         return checks
 
@@ -86,6 +98,8 @@ class Pingdomrun:
             return cached
         averages = self.connection.get_check_averages(checkid, 
                                timefrom=timefrom, timeto=timeto)
+        self.redis.incr("stats:api:pingdom:request")
+        self.redis.incr("stats:api:request")
         self.set_cache(keyname, averages, expire)
         logging.debug("Averages fetched for range %s-%s, check %s",
                              timefrom, timeto, checkid)
@@ -99,6 +113,8 @@ class Pingdomrun:
             return cached
         outages = self.connection.get_outages(checkid, 
                               timefrom=timefrom, timeto=timeto)
+        self.redis.incr("stats:api:pingdom:request")
+        self.redis.incr("stats:api:request")
         self.set_cache(keyname, outages, expire)
         logging.debug("Outages fetched for range %s-%s, check %s",
                                timefrom, timeto, checkid)

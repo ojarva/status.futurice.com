@@ -1,7 +1,7 @@
-all: sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/servicedetails.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest 
+all: sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/servicedetails.min.js js/services.min.js js/main.min.js js/combined.raphael.min.js js/ittickets.min.js js/netmap.min.js js/printers.min.js cache.manifest  js/miscstats.min.js
 
 
-cache.manifest: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js js/printers.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php js/main.min.js js/combined.raphael.min.js carousel_images.php pages/printers.php
+cache.manifest: css/combined.min.css js/combined.min.js js/netmap.min.js js/ittickets.min.js js/services.min.js js/printers.min.js index.php pages/ittickets.php pages/main.php pages/netmap.php pages/services.php pages/todo.php pages/what.php js/main.min.js js/combined.raphael.min.js carousel_images.php pages/printers.php js/miscstats.min.js pages/miscstats.php
 	sed -i s/'\# version: .*'/"\# version: `date +%s`"/ cache.manifest
 
 css/combined.min.css: css/combined.css
@@ -24,6 +24,10 @@ js/combined.raphael.js: js/r-800-raphael.js js/r-801-raphaelg.js js/r-801-raphae
 js/services.min.js: js/services.js
 	yui-compressor js/services.js > js/services.min.js
 	chmod 644 js/services.min.js
+
+js/miscstats.min.js: js/miscstats.js
+	yui-compressor js/miscstats.js > js/miscstats.min.js
+	chmod 644 js/miscstats.min.js
 
 js/servicedetails.min.js: js/servicedetails.js
 	yui-compressor js/servicedetails.js > js/servicedetails.min.js
@@ -51,7 +55,7 @@ js/combined.min.js: js/combined.js
 	yui-compressor js/combined.js > js/combined.min.js
 	chmod 644 js/combined.min.js
 
-js/combined.js: js/bootstrap/000-jquery.js js/bootstrap/001-custom.js js/bootstrap/100-bootstrap.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-carousel.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/999-custom.js js/990-pagerefresh.js
+js/combined.js: js/bootstrap/000-jquery.js js/bootstrap/001-custom.js js/bootstrap/100-bootstrap.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-carousel.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-transition.js js/300-moment.js js/700-underscore.js js/999-custom.js js/990-pagerefresh.js js/400-jquery.color.js
 	cat js/bootstrap/000-jquery.js js/bootstrap/001-custom.js js/bootstrap/110-bootstrap-transition.js js/bootstrap/110-bootstrap-alert.js js/bootstrap/110-bootstrap-dropdown.js js/bootstrap/110-bootstrap-tab.js js/bootstrap/109-bootstrap-tooltip.js js/bootstrap/110-bootstrap-popover.js js/bootstrap/110-bootstrap-button.js js/bootstrap/110-bootstrap-collapse.js js/bootstrap/110-bootstrap-carousel.js > js/combined.js
 	cat js/???-*.js >> js/combined.js
 	chmod 644 js/combined.js

@@ -14,11 +14,11 @@ Header("Content-Type: text/event-stream");
 flush();
 if (isset($_GET["file"])) {
     $filename = "data:".basename($_GET["file"]);
-}
-
-if (!isset($filename)) {
+} else {
     echo "Event: error\n";
     echo "data: no filename set\n";
+    $redis->incr("stats:web:invalid");
+    $redis->incr("stats:web:sse:invalid");
     $redis->close();
     flush();
     exit();
@@ -26,10 +26,13 @@ if (!isset($filename)) {
 if ($redis->get($filename) === FALSE) {
     echo "Event: error\n";
     echo "data: invalid filename\n";
+    $redis->incr("stats:web:sse:invalid");
     $redis->close();
     flush();
     exit();
 }
+
+$redis->incr("stats:web:sse:started");
 
 $follow_files = array(array("filename" => "data:twitter.json", "event" => "changeevent", "redis" => true),
                       array("filename" => "cache.manifest", "event" => "manifestchange", "redis" => false),
@@ -47,6 +50,8 @@ foreach ($follow_files as $k => $v) {
 
 $counter = 1800;
 while ($counter > 0) {
+    $redis->incr("stats:web:sse:loop");
+
     clearstatcache();
     foreach ($follow_files as $k => $v) {
         if ($v["redis"]) {

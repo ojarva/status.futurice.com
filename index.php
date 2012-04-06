@@ -1,4 +1,7 @@
 <?php
+$redis = new Redis();
+$redis->connect("localhost");
+
 Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";
 if (isset($_GET["page"])) {
@@ -9,6 +12,10 @@ if (isset($_GET["page"])) {
  $temp = str_replace("-", "", $temp);
  if (file_exists("pages/$temp.php")) {
   $pagename = $temp;
+  $redis->incr("stats:web:pageview");
+ } else {
+  $redis->incr("stats:web:invalidpage");
+  $redis->incr("stats:web:invalid");
  }
 }
 $pages = array(array("/", "Home"),
@@ -16,6 +23,7 @@ $pages = array(array("/", "Home"),
 	array("/page/network-map", "Network map"),
 	array("/page/it-tickets", "IT tickets"),
 	array("/page/printers", "Printers"),
+	array("/page/misc-stats", "Server stats"),
 	array("/page/what", "What?"));
 
 function callback($buffer) {
