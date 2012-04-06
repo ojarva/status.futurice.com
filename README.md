@@ -48,7 +48,7 @@ To this code:
 * Whenever you make changes, run *make* on top directory to generate minified versions and to update application cache manifest timestamp
 * Modify *pages/what.php* to match with your ideologies and technologies used.
 * Add carousel (on what? page) images to *img/carousel/*. We recommend 1200x400, but you can use whatever resolution you want. UI doesn't scale images.
-* Add *upload_settings.php* with <?$password="some_randomly_generated_password";?>. Put this password to *rt_settings.py* too
+* Move *upload_settings.php.sample* to *upload_settings.php*. Change *$password*, and add same password to backend settings.
 
 Backend components (*backend/*)
 

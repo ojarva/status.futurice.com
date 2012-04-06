@@ -7,7 +7,7 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 header('Pragma: no-cache');
 header("content-type: application/json");
 
-// File contains $password = "secret password for upload authentication"; $what_allowed=array("allowed_files.json", "netmap.png", ...);
+// Sample file is named as upload_settings.php.sample. Move it, and change password to something more complex.
 require_once("upload_settings.php");
 
 function response($success, $status) {
