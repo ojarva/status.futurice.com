@@ -41,6 +41,48 @@ function get_last_data_timestamp(filename) {
     return parseInt(data);
 }
 
+function animate_change($elem, data, continueold) {
+    if (!continueold && $elem.data("animate-init")) {
+      return;
+    }
+
+    if (isNaN(data)) {
+        $elem.html(data);
+        $elem.data("animate-original-color", $elem.css("color"));
+        $elem.data("animate-original-bgcolor", $elem.css("background-color"));
+        $elem.css("color", "#FFFDF9").css("background-color", "#FCF8E3");
+        $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 2000);
+        return;
+    }
+
+    var tdata = parseFloat(data);
+    if (!$elem.data("animate-init")) {
+        $elem.data("animate-init", true);
+        if (!$elem.data("animate-original-color")) {
+            $elem.data("animate-original-color", $elem.css("color"));
+            $elem.data("animate-original-bgcolor", $elem.css("background-color"));
+        }
+        $elem.css("color", "#CCCCCC").css("background-color", "#FCF8E3");
+        $elem.data("animate-target", data);
+        new_data = parseFloat($elem.html());
+        if (isNaN(new_data)) { new_data = 0; }
+        $elem.data("animate-step", Math.max(1, (tdata - new_data) / 20));
+        tdata = new_data;
+    }
+    tdata = Math.min($elem.data("animate-target"), Math.floor(tdata + $elem.data("animate-step")));
+
+
+    if (tdata >= $elem.data("animate-target")) {
+        $elem.html($elem.data("animate-target"));
+        $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 2000);
+        $elem.removeData("animate-init");
+        return;
+    }
+
+    $elem.html(tdata);
+
+    setTimeout(function() { animate_change($elem, tdata, true)}, 100);
+}
 
 
 (function ( $) {
@@ -182,12 +224,10 @@ function get_last_data_timestamp(filename) {
                 var data = get_last_data(settings.filewatch);
                 if (data) { data = data.content; }
                 for (var key in data.autofill) {
-                    if ($("#" + key) !== null) {
-                        if (data.autofill[key] != $("#"+key).html()) {
-                            $("#" + key).html(data.autofill[key]);
-                            var orig_color =$("#" + key).css("color");
-                            var orig_bgcolor =$("#" + key).css("background-color");
-                            $("#" + key).css("color", "#FFFDF9").css("background-color", "#FCF8E3").animate({color: orig_color, "background-color": orig_bgcolor}, 2000);
+                    var $elem = $("#" + key);
+                    if ($elem) {
+                        if (data.autofill[key] != $elem.html()) {
+                            animate_change($elem, data.autofill[key]);
                         }
                     }
                 }
