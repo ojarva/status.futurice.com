@@ -15,7 +15,7 @@ Raphael.fn.sparkline = function (data) {
                 left: 5,
                 bottom: 5,
                 right: 5
-            },
+            }
         },
         graph_width = paper.width - graph_opts.padding.left - graph_opts.padding.right,
         graph_height = paper.height - graph_opts.padding.top - graph_opts.padding.bottom,
