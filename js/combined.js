@@ -11152,670 +11152,6 @@ function popover_placement(popover, container) {
         });
     }
 })(Date);
-/*
- * jQuery Color Animations v@VERSION
- * http://jquery.org/
- *
- * Copyright 2011 John Resig
- * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
- *
- * Date: @DATE
- */
-
-(function( jQuery, undefined ){
-	var stepHooks = "backgroundColor borderBottomColor borderLeftColor borderRightColor borderTopColor color outlineColor".split(" "),
-
-		// plusequals test for += 100 -= 100
-		rplusequals = /^([\-+])=\s*(\d+\.?\d*)/,
-		// a set of RE's that can match strings and generate color tuples.
-		stringParsers = [{
-				re: /rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)/,
-				parse: function( execResult ) {
-					return [
-						execResult[ 1 ],
-						execResult[ 2 ],
-						execResult[ 3 ],
-						execResult[ 4 ]
-					];
-				}
-			}, {
-				re: /rgba?\(\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)/,
-				parse: function( execResult ) {
-					return [
-						2.55 * execResult[1],
-						2.55 * execResult[2],
-						2.55 * execResult[3],
-						execResult[ 4 ]
-					];
-				}
-			}, {
-				re: /#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})/,
-				parse: function( execResult ) {
-					return [
-						parseInt( execResult[ 1 ], 16 ),
-						parseInt( execResult[ 2 ], 16 ),
-						parseInt( execResult[ 3 ], 16 )
-					];
-				}
-			}, {
-				re: /#([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])/,
-				parse: function( execResult ) {
-					return [
-						parseInt( execResult[ 1 ] + execResult[ 1 ], 16 ),
-						parseInt( execResult[ 2 ] + execResult[ 2 ], 16 ),
-						parseInt( execResult[ 3 ] + execResult[ 3 ], 16 )
-					];
-				}
-			}, {
-				re: /hsla?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)/,
-				space: "hsla",
-				parse: function( execResult ) {
-					return [
-						execResult[1],
-						execResult[2] / 100,
-						execResult[3] / 100,
-						execResult[4]
-					];
-				}
-			}],
-
-		// jQuery.Color( )
-		color = jQuery.Color = function( color, green, blue, alpha ) {
-			return new jQuery.Color.fn.parse( color, green, blue, alpha );
-		},
-		spaces = {
-			rgba: {
-				cache: "_rgba",
-				props: {
-					red: {
-						idx: 0,
-						type: "byte",
-						empty: true
-					},
-					green: {
-						idx: 1,
-						type: "byte",
-						empty: true
-					},
-					blue: {
-						idx: 2,
-						type: "byte",
-						empty: true
-					},
-					alpha: {
-						idx: 3,
-						type: "percent",
-						def: 1
-					}
-				}
-			},
-			hsla: {
-				cache: "_hsla",
-				props: {
-					hue: {
-						idx: 0,
-						type: "degrees",
-						empty: true
-					},
-					saturation: {
-						idx: 1,
-						type: "percent",
-						empty: true
-					},
-					lightness: {
-						idx: 2,
-						type: "percent",
-						empty: true
-					}
-				}
-			}
-		},
-		propTypes = {
-			"byte": {
-				floor: true,
-				min: 0,
-				max: 255
-			},
-			"percent": {
-				min: 0,
-				max: 1
-			},
-			"degrees": {
-				mod: 360,
-				floor: true
-			}
-		},
-		rgbaspace = spaces.rgba.props,
-		support = color.support = {},
-
-		// colors = jQuery.Color.names
-		colors,
-
-		// local aliases of functions called often
-		each = jQuery.each;
-
-	spaces.hsla.props.alpha = rgbaspace.alpha;
-
-	function clamp( value, prop, alwaysAllowEmpty ) {
-		var type = propTypes[ prop.type ] || {},
-			allowEmpty = prop.empty || alwaysAllowEmpty;
-
-		if ( allowEmpty && value == null ) {
-			return null;
-		}
-		if ( prop.def && value == null ) {
-			return prop.def;
-		}
-		if ( type.floor ) {
-			value = ~~value;
-		} else {
-			value = parseFloat( value );
-		}
-		if ( value == null || isNaN( value ) ) {
-			return prop.def;
-		}
-		if ( type.mod ) {
-			value = value % type.mod;
-			// -10 -> 350
-			return value < 0 ? type.mod + value : value;
-		}
-
-		// for now all property types without mod have min and max
-		return type.min > value ? type.min : type.max < value ? type.max : value;
-	}
-
-	function stringParse( string ) {
-		var inst = color(),
-			rgba = inst._rgba = [];
-
-		string = string.toLowerCase();
-
-		each( stringParsers, function( i, parser ) {
-			var match = parser.re.exec( string ),
-				values = match && parser.parse( match ),
-				parsed,
-				spaceName = parser.space || "rgba",
-				cache = spaces[ spaceName ].cache;
-
-
-			if ( values ) {
-				parsed = inst[ spaceName ]( values );
-
-				// if this was an rgba parse the assignment might happen twice
-				// oh well....
-				inst[ cache ] = parsed[ cache ];
-				rgba = inst._rgba = parsed._rgba;
-
-				// exit each( stringParsers ) here because we matched
-				return false;
-			}
-		});
-
-		// Found a stringParser that handled it
-		if ( rgba.length !== 0 ) {
-
-			// if this came from a parsed string, force "transparent" when alpha is 0
-			// chrome, (and maybe others) return "transparent" as rgba(0,0,0,0)
-			if ( Math.max.apply( Math, rgba ) === 0 ) {
-				jQuery.extend( rgba, colors.transparent );
-			}
-			return inst;
-		}
-
-		// named colors / default - filter back through parse function
-		if ( string = colors[ string ] ) {
-			return string;
-		}
-	}
-
-	color.fn = color.prototype = {
-		constructor: color,
-		parse: function( red, green, blue, alpha ) {
-			if ( red === undefined ) {
-				this._rgba = [ null, null, null, null ];
-				return this;
-			}
-			if ( red instanceof jQuery || red.nodeType ) {
-				red = red instanceof jQuery ? red.css( green ) : jQuery( red ).css( green );
-				green = undefined;
-			}
-
-			var inst = this,
-				type = jQuery.type( red ),
-				rgba = this._rgba = [],
-				source;
-
-			// more than 1 argument specified - assume ( red, green, blue, alpha )
-			if ( green !== undefined ) {
-				red = [ red, green, blue, alpha ];
-				type = "array";
-			}
-
-			if ( type === "string" ) {
-				return this.parse( stringParse( red ) || colors._default );
-			}
-
-			if ( type === "array" ) {
-				each( rgbaspace, function( key, prop ) {
-					rgba[ prop.idx ] = clamp( red[ prop.idx ], prop );
-				});
-				return this;
-			}
-
-			if ( type === "object" ) {
-				if ( red instanceof color ) {
-					each( spaces, function( spaceName, space ) {
-						if ( red[ space.cache ] ) {
-							inst[ space.cache ] = red[ space.cache ].slice();
-						}
-					});
-				} else {
-					each( spaces, function( spaceName, space ) {
-						each( space.props, function( key, prop ) {
-							var cache = space.cache;
-
-							// if the cache doesn't exist, and we know how to convert
-							if ( !inst[ cache ] && space.to ) {
-
-								// if the value was null, we don't need to copy it
-								// if the key was alpha, we don't need to copy it either
-								if ( red[ key ] == null || key === "alpha") {
-									return;
-								}
-								inst[ cache ] = space.to( inst._rgba );
-							}
-
-							// this is the only case where we allow nulls for ALL properties.
-							// call clamp with alwaysAllowEmpty
-							inst[ cache ][ prop.idx ] = clamp( red[ key ], prop, true );
-						});
-					});
-				}
-				return this;
-			}
-		},
-		is: function( compare ) {
-			var is = color( compare ),
-				same = true,
-				myself = this;
-
-			each( spaces, function( _, space ) {
-				var isCache = is[ space.cache ],
-					localCache;
-				if (isCache) {
-					localCache = myself[ space.cache ] || space.to && space.to( myself._rgba ) || [];
-					each( space.props, function( _, prop ) {
-						if ( isCache[ prop.idx ] != null ) {
-							same = ( isCache[ prop.idx ] == localCache[ prop.idx ] );
-							return same;
-						}
-					});
-				}
-				return same;
-			});
-			return same;
-		},
-		_space: function() {
-			var used = [],
-				inst = this;
-			each( spaces, function( spaceName, space ) {
-				if ( inst[ space.cache ] ) {
-					used.push( spaceName );
-				}
-			});
-			return used.pop();
-		},
-		transition: function( other, distance ) {
-			var end = color( other ),
-				spaceName = end._space(),
-				space = spaces[ spaceName ],
-				start = this[ space.cache ] || space.to( this._rgba ),
-				result = start.slice();
-
-			end = end[ space.cache ];
-			each( space.props, function( key, prop ) {
-				var index = prop.idx,
-					startValue = start[ index ],
-					endValue = end[ index ],
-					type = propTypes[ prop.type ] || {};
-
-				// if null, don't override start value
-				if ( endValue === null ) {
-					return;
-				}
-				// if null - use end
-				if ( startValue === null ) {
-					result[ index ] = endValue;
-				} else {
-					if ( type.mod ) {
-						if ( endValue - startValue > type.mod / 2 ) {
-							startValue += type.mod;
-						} else if ( startValue - endValue > type.mod / 2 ) {
-							startValue -= type.mod;
-						}
-					}
-					result[ prop.idx ] = clamp( ( endValue - startValue ) * distance + startValue, prop );
-				}
-			});
-			return this[ spaceName ]( result );
-		},
-		blend: function( opaque ) {
-			// if we are already opaque - return ourself
-			if ( this._rgba[ 3 ] === 1 ) {
-				return this;
-			}
-
-			var rgb = this._rgba.slice(),
-				a = rgb.pop(),
-				blend = color( opaque )._rgba;
-
-			return color( jQuery.map( rgb, function( v, i ) {
-				return ( 1 - a ) * blend[ i ] + a * v;
-			}));
-		},
-		toRgbaString: function() {
-			var prefix = "rgba(",
-				rgba = jQuery.map( this._rgba, function( v, i ) {
-					return v == null ? ( i > 2 ? 1 : 0 ) : v;
-				});
-
-			if ( rgba[ 3 ] === 1 ) {
-				rgba.pop();
-				prefix = "rgb(";
-			}
-
-			return prefix + rgba.join(",") + ")";
-		},
-		toHslaString: function() {
-			var prefix = "hsla(",
-				hsla = jQuery.map( this.hsla(), function( v, i ) {
-					if ( v == null ) {
-						v = i > 2 ? 1 : 0;
-					}
-
-					// catch 1 and 2
-					if ( i && i < 3 ) {
-						v = Math.round( v * 100 ) + "%";
-					}
-					return v;
-				});
-
-			if ( hsla[ 3 ] == 1 ) {
-				hsla.pop();
-				prefix = "hsl(";
-			}
-			return prefix + hsla.join(",") + ")";
-		},
-		toHexString: function( includeAlpha ) {
-			var rgba = this._rgba.slice(),
-				alpha = rgba.pop();
-
-			if ( includeAlpha ) {
-				rgba.push( ~~( alpha * 255 ) );
-			}
-
-			return "#" + jQuery.map( rgba, function( v, i ) {
-
-				// default to 0 when nulls exist
-				v = ( v || 0 ).toString( 16 );
-				return v.length == 1 ? "0" + v : v;
-			}).join("");
-		},
-		toString: function() {
-			return this._rgba[ 3 ] === 0 ? "transparent" : this.toRgbaString();
-		}
-	};
-	color.fn.parse.prototype = color.fn;
-
-	// hsla conversions adapted from:
-	// http://www.google.com/codesearch/p#OAMlx_jo-ck/src/third_party/WebKit/Source/WebCore/inspector/front-end/Color.js&d=7&l=193
-
-	function hue2rgb( p, q, h ) {
-		h = ( h + 1 ) % 1;
-		if ( h * 6 < 1 ) {
-			return p + (q - p) * 6 * h;
-		}
-		if ( h * 2 < 1) {
-			return q;
-		}
-		if ( h * 3 < 2 ) {
-			return p + (q - p) * ((2/3) - h) * 6;
-		}
-		return p;
-	}
-
-	spaces.hsla.to = function ( rgba ) {
-		if ( rgba[ 0 ] == null || rgba[ 1 ] == null || rgba[ 2 ] == null ) {
-			return [ null, null, null, rgba[ 3 ] ];
-		}
-		var r = rgba[ 0 ] / 255,
-			g = rgba[ 1 ] / 255,
-			b = rgba[ 2 ] / 255,
-			a = rgba[ 3 ],
-			max = Math.max( r, g, b ),
-			min = Math.min( r, g, b ),
-			diff = max - min,
-			add = max + min,
-			l = add * 0.5,
-			h, s;
-
-		if ( min === max ) {
-			h = 0;
-		} else if ( r === max ) {
-			h = ( 60 * ( g - b ) / diff ) + 360;
-		} else if ( g === max ) {
-			h = ( 60 * ( b - r ) / diff ) + 120;
-		} else {
-			h = ( 60 * ( r - g ) / diff ) + 240;
-		}
-
-		if ( l === 0 || l === 1 ) {
-			s = l;
-		} else if ( l <= 0.5 ) {
-			s = diff / add;
-		} else {
-			s = diff / ( 2 - add );
-		}
-		return [ Math.round(h) % 360, s, l, a == null ? 1 : a ];
-	};
-
-	spaces.hsla.from = function ( hsla ) {
-		if ( hsla[ 0 ] == null || hsla[ 1 ] == null || hsla[ 2 ] == null ) {
-			return [ null, null, null, hsla[ 3 ] ];
-		}
-		var h = hsla[ 0 ] / 360,
-			s = hsla[ 1 ],
-			l = hsla[ 2 ],
-			a = hsla[ 3 ],
-			q = l <= 0.5 ? l * ( 1 + s ) : l + s - l * s,
-			p = 2 * l - q,
-			r, g, b;
-
-		return [
-			Math.round( hue2rgb( p, q, h + ( 1 / 3 ) ) * 255 ),
-			Math.round( hue2rgb( p, q, h ) * 255 ),
-			Math.round( hue2rgb( p, q, h - ( 1 / 3 ) ) * 255 ),
-			a
-		];
-	};
-
-
-	each( spaces, function( spaceName, space ) {
-		var props = space.props,
-			cache = space.cache,
-			to = space.to,
-			from = space.from;
-
-		// makes rgba() and hsla()
-		color.fn[ spaceName ] = function( value ) {
-
-			// generate a cache for this space if it doesn't exist
-			if ( to && !this[ cache ] ) {
-				this[ cache ] = to( this._rgba );
-			}
-			if ( value === undefined ) {
-				return this[ cache ].slice();
-			}
-
-			var type = jQuery.type( value ),
-				arr = ( type === "array" || type === "object" ) ? value : arguments,
-				local = this[ cache ].slice(),
-				ret;
-
-			each( props, function( key, prop ) {
-				var val = arr[ type === "object" ? key : prop.idx ];
-				if ( val == null ) {
-					val = local[ prop.idx ];
-				}
-				local[ prop.idx ] = clamp( val, prop );
-			});
-
-			if ( from ) {
-				ret = color( from( local ) );
-				ret[ cache ] = local;
-				return ret;
-			} else {
-				return color( local );
-			}
-		};
-
-		// makes red() green() blue() alpha() hue() saturation() lightness()
-		each( props, function( key, prop ) {
-			// alpha is included in more than one space
-			if ( color.fn[ key ] ) {
-				return;
-			}
-			color.fn[ key ] = function( value ) {
-				var vtype = jQuery.type( value ),
-					fn = ( key === 'alpha' ? ( this._hsla ? 'hsla' : 'rgba' ) : spaceName ),
-					local = this[ fn ](),
-					cur = local[ prop.idx ],
-					match;
-
-				if ( vtype === "undefined" ) {
-					return cur;
-				}
-
-				if ( vtype === "function" ) {
-					value = value.call( this, cur );
-					vtype = jQuery.type( value );
-				}
-				if ( value == null && prop.empty ) {
-					return this;
-				}
-				if ( vtype === "string" ) {
-					match = rplusequals.exec( value );
-					if ( match ) {
-						value = cur + parseFloat( match[ 2 ] ) * ( match[ 1 ] === "+" ? 1 : -1 );
-					}
-				}
-				local[ prop.idx ] = value;
-				return this[ fn ]( local );
-			};
-		});
-	});
-
-	// add .fx.step functions
-	each( stepHooks, function( i, hook ) {
-		jQuery.cssHooks[ hook ] = {
-			set: function( elem, value ) {
-				var parsed;
-
-				if ( jQuery.type( value ) !== 'string' || ( parsed = stringParse( value ) ) )
-				{
-					value = color( parsed || value );
-					if ( !support.rgba && value._rgba[ 3 ] !== 1 ) {
-						var backgroundColor,
-							curElem = hook === "backgroundColor" ? elem.parentNode : elem;
-						do {
-							backgroundColor = jQuery.curCSS( curElem, "backgroundColor" );
-						} while (
-							( backgroundColor === "" || backgroundColor === "transparent" ) &&
-							( curElem = curElem.parentNode ) &&
-							curElem.style
-						);
-
-						value = value.blend( backgroundColor && backgroundColor !== "transparent" ?
-							backgroundColor :
-							"_default" );
-					}
-
-					value = value.toRgbaString();
-				}
-				elem.style[ hook ] = value;
-			}
-		};
-		jQuery.fx.step[ hook ] = function( fx ) {
-			if ( !fx.colorInit ) {
-				fx.start = color( fx.elem, hook );
-				fx.end = color( fx.end );
-				fx.colorInit = true;
-			}
-			jQuery.cssHooks[ hook ].set( fx.elem, fx.start.transition( fx.end, fx.pos ) );
-		};
-	});
-
-	// detect rgba support
-	jQuery(function() {
-		var div = document.createElement( "div" ),
-			div_style = div.style;
-
-		div_style.cssText = "background-color:rgba(1,1,1,.5)";
-		support.rgba = div_style.backgroundColor.indexOf( "rgba" ) > -1;
-	});
-
-	// Some named colors to work with
-	// From Interface by Stefan Petre
-	// http://interface.eyecon.ro/
-	colors = jQuery.Color.names = {
-		aqua: "#00ffff",
-		azure: "#f0ffff",
-		beige: "#f5f5dc",
-		black: "#000000",
-		blue: "#0000ff",
-		brown: "#a52a2a",
-		cyan: "#00ffff",
-		darkblue: "#00008b",
-		darkcyan: "#008b8b",
-		darkgrey: "#a9a9a9",
-		darkgreen: "#006400",
-		darkkhaki: "#bdb76b",
-		darkmagenta: "#8b008b",
-		darkolivegreen: "#556b2f",
-		darkorange: "#ff8c00",
-		darkorchid: "#9932cc",
-		darkred: "#8b0000",
-		darksalmon: "#e9967a",
-		darkviolet: "#9400d3",
-		fuchsia: "#ff00ff",
-		gold: "#ffd700",
-		green: "#008000",
-		indigo: "#4b0082",
-		khaki: "#f0e68c",
-		lightblue: "#add8e6",
-		lightcyan: "#e0ffff",
-		lightgreen: "#90ee90",
-		lightgrey: "#d3d3d3",
-		lightpink: "#ffb6c1",
-		lightyellow: "#ffffe0",
-		lime: "#00ff00",
-		magenta: "#ff00ff",
-		maroon: "#800000",
-		navy: "#000080",
-		olive: "#808000",
-		orange: "#ffa500",
-		pink: "#ffc0cb",
-		purple: "#800080",
-		violet: "#800080",
-		red: "#ff0000",
-		silver: "#c0c0c0",
-		white: "#ffffff",
-		yellow: "#ffff00",
-		transparent: [ null, null, null, 0 ],
-		_default: "#ffffff"
-	};
-})( jQuery );
 //     Underscore.js 1.2.0
 //     (c) 2011 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.
@@ -12747,6 +12083,152 @@ function popover_placement(popover, container) {
   };
 
 })();
+/**
+ * jQuery.browser.mobile (http://detectmobilebrowser.com/)
+ *
+ * jQuery.browser.mobile will be true if the browser is a mobile device
+ *
+ **/
+(function(a){jQuery.browser.mobile=/android.+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|e\-|e\/|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(di|rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|xda(\-|2|g)|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))})(navigator.userAgent||navigator.vendor||window.opera);
+
+
+function hide_popovers() {
+    $(".popover").each(function() {
+        if ($(this).hasClass("in") && $(this).hasClass("fade")) {
+            $(this).remove();
+        }
+    });
+}
+
+$(document).ready(function () {
+    var onlinestatus = window.navigator.onLine,
+        key;
+    if (onlinestatus !== false) {
+        onlinestatus = true;
+    }
+    if (!onlinestatus) {
+        $("#notify-box").append("<div class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
+    }
+    $("#reload-button").data("action", "update");
+    try {
+        $("#reload-button").click(function() {
+            if ($(this).data("action") == "update") {
+                $("#reload-button").data("pressed", true);
+                check_appcache_update();
+            } else {
+                window.location.reload();
+            }
+            return false;
+        });
+     } catch (e) {}
+});
+
+function check_appcache_update() {
+    try {
+        window.applicationCache.update();
+    } catch (e) {}
+}
+
+
+// Check if a new cache is available on page load.
+window.addEventListener('load', function(e) {
+
+    window.applicationCache.addEventListener('updateready', function(e) {
+        if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
+            // Browser downloaded a new app cache.
+            // Swap it in and reload the page
+            try {
+                window.applicationCache.swapCache(); // Bug with firefox.
+            } catch (e) {}
+            $("#cache-status").show();
+            $("#reload-button").html("New version available");
+            $("#reload-button").data("action", "reload");
+            $("#reload-button").removeClass("disabled");
+            if (confirm('A new version of this site is available. Load it?')) {
+                window.location.reload();
+            }
+        } else {
+            // Manifest didn't changed. Nothing new to server.
+        }
+    }, false);
+}, false);
+
+
+try {
+    window.applicationCache.addEventListener("progress", function(e) {
+        $("#reload-button").html("Downloading...");
+        $("#cache-update-status").show();
+        $("#cache-update-status > .progress > .bar").css("width", (e.loaded / e.total*100)+"%");
+        if (e.loaded == e.total) {
+            $("#cache-update-status").hide();
+        }
+    }, false);
+
+    window.applicationCache.addEventListener("cached", function(e) {
+        $("#reload-button").html("Page cached");
+        $("#reload-button").removeClass("disabled");
+    }, false);
+    window.applicationCache.addEventListener("obsolete", function(e) {
+        if (confirm("You're running old version. Do you want to reload now?")) {
+            window.location.reload();
+        }
+        $("#reload-button").html("Obsolete version");
+        $("#reload-button").removeClass("disabled");
+        $("#reload-button").data("action", "reload");
+    }, false);
+    window.applicationCache.addEventListener("noupdate", function(e) {
+        $("#reload-button").html("No update available");
+        setTimeout('$("#reload-button").html("Check for updates")', 1000);
+        if ($("#reload-button").data("pressed")) {
+            $("#next-reload").data("reload-timestamp", 0);
+            $("#reload-button").data("pressed", false);
+        }
+        $("#reload-button").removeClass("disabled");
+    }, false);
+
+    window.applicationCache.addEventListener("checking", function(e) {
+        $("#reload-button").addClass("disabled");
+        $("#reload-button").html("Checking...");
+    }, false);
+
+    window.applicationCache.addEventListener("error", function(e) {
+        console.log(e);
+    }, false);
+
+} catch(e) {
+    $("#cache-update-status").hide();
+    $("#cache-status").hide();
+}
+
+jQuery.fn.urlize = function() {
+    if (this.length > 0) {
+        this.each(function(i, obj){
+            // making links active
+            var x = $(obj).html();
+            var list = x.match( /\b(http:\/\/|www\.|http:\/\/www\.)[^ <]{2,200}\b/g );
+            if (list) {
+                for (var i = 0; i < list.length; i++ ) {
+                    var prot = list[i].indexOf('http://') === 0 || list[i].indexOf('https://') === 0 ? '' : 'http://';
+                    x = x.replace( list[i], "<a target='_blank' href='" + prot + list[i] + "'>"+ list[i] + "</a>" );
+                }
+
+            }
+            $(obj).html(x);
+        });
+    }
+};
+
+function update_twitter() {
+    var data = $("body").data("pagerefresh-twitter").content;
+    $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
+    $("#twitter_status").urlize();
+}
+
+$(document).ready(function() {
+    hide_popovers();
+    $("[rel=popover]").popover({"placement": popover_placement});
+    setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
+});
 function set_last_data(filename, data) {
     data = JSON.stringify(data);
     if (localStorage) {
@@ -12794,11 +12276,13 @@ function animate_change($elem, data, continueold) {
     if (!continueold && $elem.data("animate-init")) {
       return;
     }
+    if (!$elem.data("animate-original-color")) {
+        $elem.data("animate-original-color", $elem.css("color"));
+        $elem.data("animate-original-bgcolor", $elem.css("background-color"));
+    }
 
     if (isNaN(data)) {
         $elem.html(data);
-        $elem.data("animate-original-color", $elem.css("color"));
-        $elem.data("animate-original-bgcolor", $elem.css("background-color"));
         $elem.css("color", "#FFFDF9").css("background-color", "#FCF8E3");
         $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 2000);
         return;
@@ -12807,10 +12291,6 @@ function animate_change($elem, data, continueold) {
     var tdata = parseFloat(data);
     if (!$elem.data("animate-init")) {
         $elem.data("animate-init", true);
-        if (!$elem.data("animate-original-color")) {
-            $elem.data("animate-original-color", $elem.css("color"));
-            $elem.data("animate-original-bgcolor", $elem.css("background-color"));
-        }
         $elem.css("color", "#CCCCCC").css("background-color", "#FCF8E3");
         $elem.data("animate-target", data);
         new_data = parseFloat($elem.html());
@@ -13034,7 +12514,7 @@ function animate_change($elem, data, continueold) {
                 return;
             }
             setTimeout('$("'+settings.update_button_id+'").removeClass("disabled");$("'+settings.spinner_id+'").hide();', 1000);
-        },
+        }
     }
 
     $.fn.pagerefresh = function( method ) {
@@ -13048,149 +12528,667 @@ function animate_change($elem, data, continueold) {
         }
     };
 }) ( jQuery );
-/**
- * jQuery.browser.mobile (http://detectmobilebrowser.com/)
+/*
+ * jQuery Color Animations v@VERSION
+ * http://jquery.org/
  *
- * jQuery.browser.mobile will be true if the browser is a mobile device
+ * Copyright 2011 John Resig
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
  *
- **/
-(function(a){jQuery.browser.mobile=/android.+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|e\-|e\/|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(di|rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|xda(\-|2|g)|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))})(navigator.userAgent||navigator.vendor||window.opera);
+ * Date: @DATE
+ */
+
+(function( jQuery, undefined ){
+	var stepHooks = "backgroundColor borderBottomColor borderLeftColor borderRightColor borderTopColor color outlineColor".split(" "),
+
+		// plusequals test for += 100 -= 100
+		rplusequals = /^([\-+])=\s*(\d+\.?\d*)/,
+		// a set of RE's that can match strings and generate color tuples.
+		stringParsers = [{
+				re: /rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)/,
+				parse: function( execResult ) {
+					return [
+						execResult[ 1 ],
+						execResult[ 2 ],
+						execResult[ 3 ],
+						execResult[ 4 ]
+					];
+				}
+			}, {
+				re: /rgba?\(\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)/,
+				parse: function( execResult ) {
+					return [
+						2.55 * execResult[1],
+						2.55 * execResult[2],
+						2.55 * execResult[3],
+						execResult[ 4 ]
+					];
+				}
+			}, {
+				re: /#([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})/,
+				parse: function( execResult ) {
+					return [
+						parseInt( execResult[ 1 ], 16 ),
+						parseInt( execResult[ 2 ], 16 ),
+						parseInt( execResult[ 3 ], 16 )
+					];
+				}
+			}, {
+				re: /#([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])/,
+				parse: function( execResult ) {
+					return [
+						parseInt( execResult[ 1 ] + execResult[ 1 ], 16 ),
+						parseInt( execResult[ 2 ] + execResult[ 2 ], 16 ),
+						parseInt( execResult[ 3 ] + execResult[ 3 ], 16 )
+					];
+				}
+			}, {
+				re: /hsla?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\%\s*,\s*(\d+(?:\.\d+)?)\%\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)/,
+				space: "hsla",
+				parse: function( execResult ) {
+					return [
+						execResult[1],
+						execResult[2] / 100,
+						execResult[3] / 100,
+						execResult[4]
+					];
+				}
+			}],
+
+		// jQuery.Color( )
+		color = jQuery.Color = function( color, green, blue, alpha ) {
+			return new jQuery.Color.fn.parse( color, green, blue, alpha );
+		},
+		spaces = {
+			rgba: {
+				cache: "_rgba",
+				props: {
+					red: {
+						idx: 0,
+						type: "byte",
+						empty: true
+					},
+					green: {
+						idx: 1,
+						type: "byte",
+						empty: true
+					},
+					blue: {
+						idx: 2,
+						type: "byte",
+						empty: true
+					},
+					alpha: {
+						idx: 3,
+						type: "percent",
+						def: 1
+					}
+				}
+			},
+			hsla: {
+				cache: "_hsla",
+				props: {
+					hue: {
+						idx: 0,
+						type: "degrees",
+						empty: true
+					},
+					saturation: {
+						idx: 1,
+						type: "percent",
+						empty: true
+					},
+					lightness: {
+						idx: 2,
+						type: "percent",
+						empty: true
+					}
+				}
+			}
+		},
+		propTypes = {
+			"byte": {
+				floor: true,
+				min: 0,
+				max: 255
+			},
+			"percent": {
+				min: 0,
+				max: 1
+			},
+			"degrees": {
+				mod: 360,
+				floor: true
+			}
+		},
+		rgbaspace = spaces.rgba.props,
+		support = color.support = {},
+
+		// colors = jQuery.Color.names
+		colors,
+
+		// local aliases of functions called often
+		each = jQuery.each;
+
+	spaces.hsla.props.alpha = rgbaspace.alpha;
+
+	function clamp( value, prop, alwaysAllowEmpty ) {
+		var type = propTypes[ prop.type ] || {},
+			allowEmpty = prop.empty || alwaysAllowEmpty;
+
+		if ( allowEmpty && value == null ) {
+			return null;
+		}
+		if ( prop.def && value == null ) {
+			return prop.def;
+		}
+		if ( type.floor ) {
+			value = ~~value;
+		} else {
+			value = parseFloat( value );
+		}
+		if ( value == null || isNaN( value ) ) {
+			return prop.def;
+		}
+		if ( type.mod ) {
+			value = value % type.mod;
+			// -10 -> 350
+			return value < 0 ? type.mod + value : value;
+		}
+
+		// for now all property types without mod have min and max
+		return type.min > value ? type.min : type.max < value ? type.max : value;
+	}
+
+	function stringParse( string ) {
+		var inst = color(),
+			rgba = inst._rgba = [];
+
+		string = string.toLowerCase();
+
+		each( stringParsers, function( i, parser ) {
+			var match = parser.re.exec( string ),
+				values = match && parser.parse( match ),
+				parsed,
+				spaceName = parser.space || "rgba",
+				cache = spaces[ spaceName ].cache;
 
 
-function hide_popovers() {
-    $(".popover").each(function() {
-        if ($(this).hasClass("in") && $(this).hasClass("fade")) {
-            $(this).remove();
-        }
-    });
-}
+			if ( values ) {
+				parsed = inst[ spaceName ]( values );
 
-$(document).ready(function () {
-    var onlinestatus = window.navigator.onLine,
-        key;
-    if (onlinestatus !== false) {
-        onlinestatus = true;
-    }
-    if (!onlinestatus) {
-        $("#notify-box").append("<div class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
-    }
-    $("#reload-button").data("action", "update");
-    try {
-        $("#reload-button").click(function() {
-            if ($(this).data("action") == "update") {
-                $("#reload-button").data("pressed", true);
-                check_appcache_update();
-            } else {
-                window.location.reload();
-            }
-            return false;
-        });
-     } catch (e) {}
-});
+				// if this was an rgba parse the assignment might happen twice
+				// oh well....
+				inst[ cache ] = parsed[ cache ];
+				rgba = inst._rgba = parsed._rgba;
 
-function check_appcache_update() {
-    try {
-        window.applicationCache.update();
-    } catch (e) {}
-}
+				// exit each( stringParsers ) here because we matched
+				return false;
+			}
+		});
+
+		// Found a stringParser that handled it
+		if ( rgba.length !== 0 ) {
+
+			// if this came from a parsed string, force "transparent" when alpha is 0
+			// chrome, (and maybe others) return "transparent" as rgba(0,0,0,0)
+			if ( Math.max.apply( Math, rgba ) === 0 ) {
+				jQuery.extend( rgba, colors.transparent );
+			}
+			return inst;
+		}
+
+		// named colors / default - filter back through parse function
+		if ( string = colors[ string ] ) {
+			return string;
+		}
+	}
+
+	color.fn = color.prototype = {
+		constructor: color,
+		parse: function( red, green, blue, alpha ) {
+			if ( red === undefined ) {
+				this._rgba = [ null, null, null, null ];
+				return this;
+			}
+			if ( red instanceof jQuery || red.nodeType ) {
+				red = red instanceof jQuery ? red.css( green ) : jQuery( red ).css( green );
+				green = undefined;
+			}
+
+			var inst = this,
+				type = jQuery.type( red ),
+				rgba = this._rgba = [],
+				source;
+
+			// more than 1 argument specified - assume ( red, green, blue, alpha )
+			if ( green !== undefined ) {
+				red = [ red, green, blue, alpha ];
+				type = "array";
+			}
+
+			if ( type === "string" ) {
+				return this.parse( stringParse( red ) || colors._default );
+			}
+
+			if ( type === "array" ) {
+				each( rgbaspace, function( key, prop ) {
+					rgba[ prop.idx ] = clamp( red[ prop.idx ], prop );
+				});
+				return this;
+			}
+
+			if ( type === "object" ) {
+				if ( red instanceof color ) {
+					each( spaces, function( spaceName, space ) {
+						if ( red[ space.cache ] ) {
+							inst[ space.cache ] = red[ space.cache ].slice();
+						}
+					});
+				} else {
+					each( spaces, function( spaceName, space ) {
+						each( space.props, function( key, prop ) {
+							var cache = space.cache;
+
+							// if the cache doesn't exist, and we know how to convert
+							if ( !inst[ cache ] && space.to ) {
+
+								// if the value was null, we don't need to copy it
+								// if the key was alpha, we don't need to copy it either
+								if ( red[ key ] == null || key === "alpha") {
+									return;
+								}
+								inst[ cache ] = space.to( inst._rgba );
+							}
+
+							// this is the only case where we allow nulls for ALL properties.
+							// call clamp with alwaysAllowEmpty
+							inst[ cache ][ prop.idx ] = clamp( red[ key ], prop, true );
+						});
+					});
+				}
+				return this;
+			}
+		},
+		is: function( compare ) {
+			var is = color( compare ),
+				same = true,
+				myself = this;
+
+			each( spaces, function( _, space ) {
+				var isCache = is[ space.cache ],
+					localCache;
+				if (isCache) {
+					localCache = myself[ space.cache ] || space.to && space.to( myself._rgba ) || [];
+					each( space.props, function( _, prop ) {
+						if ( isCache[ prop.idx ] != null ) {
+							same = ( isCache[ prop.idx ] == localCache[ prop.idx ] );
+							return same;
+						}
+					});
+				}
+				return same;
+			});
+			return same;
+		},
+		_space: function() {
+			var used = [],
+				inst = this;
+			each( spaces, function( spaceName, space ) {
+				if ( inst[ space.cache ] ) {
+					used.push( spaceName );
+				}
+			});
+			return used.pop();
+		},
+		transition: function( other, distance ) {
+			var end = color( other ),
+				spaceName = end._space(),
+				space = spaces[ spaceName ],
+				start = this[ space.cache ] || space.to( this._rgba ),
+				result = start.slice();
+
+			end = end[ space.cache ];
+			each( space.props, function( key, prop ) {
+				var index = prop.idx,
+					startValue = start[ index ],
+					endValue = end[ index ],
+					type = propTypes[ prop.type ] || {};
+
+				// if null, don't override start value
+				if ( endValue === null ) {
+					return;
+				}
+				// if null - use end
+				if ( startValue === null ) {
+					result[ index ] = endValue;
+				} else {
+					if ( type.mod ) {
+						if ( endValue - startValue > type.mod / 2 ) {
+							startValue += type.mod;
+						} else if ( startValue - endValue > type.mod / 2 ) {
+							startValue -= type.mod;
+						}
+					}
+					result[ prop.idx ] = clamp( ( endValue - startValue ) * distance + startValue, prop );
+				}
+			});
+			return this[ spaceName ]( result );
+		},
+		blend: function( opaque ) {
+			// if we are already opaque - return ourself
+			if ( this._rgba[ 3 ] === 1 ) {
+				return this;
+			}
+
+			var rgb = this._rgba.slice(),
+				a = rgb.pop(),
+				blend = color( opaque )._rgba;
+
+			return color( jQuery.map( rgb, function( v, i ) {
+				return ( 1 - a ) * blend[ i ] + a * v;
+			}));
+		},
+		toRgbaString: function() {
+			var prefix = "rgba(",
+				rgba = jQuery.map( this._rgba, function( v, i ) {
+					return v == null ? ( i > 2 ? 1 : 0 ) : v;
+				});
+
+			if ( rgba[ 3 ] === 1 ) {
+				rgba.pop();
+				prefix = "rgb(";
+			}
+
+			return prefix + rgba.join(",") + ")";
+		},
+		toHslaString: function() {
+			var prefix = "hsla(",
+				hsla = jQuery.map( this.hsla(), function( v, i ) {
+					if ( v == null ) {
+						v = i > 2 ? 1 : 0;
+					}
+
+					// catch 1 and 2
+					if ( i && i < 3 ) {
+						v = Math.round( v * 100 ) + "%";
+					}
+					return v;
+				});
+
+			if ( hsla[ 3 ] == 1 ) {
+				hsla.pop();
+				prefix = "hsl(";
+			}
+			return prefix + hsla.join(",") + ")";
+		},
+		toHexString: function( includeAlpha ) {
+			var rgba = this._rgba.slice(),
+				alpha = rgba.pop();
+
+			if ( includeAlpha ) {
+				rgba.push( ~~( alpha * 255 ) );
+			}
+
+			return "#" + jQuery.map( rgba, function( v, i ) {
+
+				// default to 0 when nulls exist
+				v = ( v || 0 ).toString( 16 );
+				return v.length == 1 ? "0" + v : v;
+			}).join("");
+		},
+		toString: function() {
+			return this._rgba[ 3 ] === 0 ? "transparent" : this.toRgbaString();
+		}
+	};
+	color.fn.parse.prototype = color.fn;
+
+	// hsla conversions adapted from:
+	// http://www.google.com/codesearch/p#OAMlx_jo-ck/src/third_party/WebKit/Source/WebCore/inspector/front-end/Color.js&d=7&l=193
+
+	function hue2rgb( p, q, h ) {
+		h = ( h + 1 ) % 1;
+		if ( h * 6 < 1 ) {
+			return p + (q - p) * 6 * h;
+		}
+		if ( h * 2 < 1) {
+			return q;
+		}
+		if ( h * 3 < 2 ) {
+			return p + (q - p) * ((2/3) - h) * 6;
+		}
+		return p;
+	}
+
+	spaces.hsla.to = function ( rgba ) {
+		if ( rgba[ 0 ] == null || rgba[ 1 ] == null || rgba[ 2 ] == null ) {
+			return [ null, null, null, rgba[ 3 ] ];
+		}
+		var r = rgba[ 0 ] / 255,
+			g = rgba[ 1 ] / 255,
+			b = rgba[ 2 ] / 255,
+			a = rgba[ 3 ],
+			max = Math.max( r, g, b ),
+			min = Math.min( r, g, b ),
+			diff = max - min,
+			add = max + min,
+			l = add * 0.5,
+			h, s;
+
+		if ( min === max ) {
+			h = 0;
+		} else if ( r === max ) {
+			h = ( 60 * ( g - b ) / diff ) + 360;
+		} else if ( g === max ) {
+			h = ( 60 * ( b - r ) / diff ) + 120;
+		} else {
+			h = ( 60 * ( r - g ) / diff ) + 240;
+		}
+
+		if ( l === 0 || l === 1 ) {
+			s = l;
+		} else if ( l <= 0.5 ) {
+			s = diff / add;
+		} else {
+			s = diff / ( 2 - add );
+		}
+		return [ Math.round(h) % 360, s, l, a == null ? 1 : a ];
+	};
+
+	spaces.hsla.from = function ( hsla ) {
+		if ( hsla[ 0 ] == null || hsla[ 1 ] == null || hsla[ 2 ] == null ) {
+			return [ null, null, null, hsla[ 3 ] ];
+		}
+		var h = hsla[ 0 ] / 360,
+			s = hsla[ 1 ],
+			l = hsla[ 2 ],
+			a = hsla[ 3 ],
+			q = l <= 0.5 ? l * ( 1 + s ) : l + s - l * s,
+			p = 2 * l - q,
+			r, g, b;
+
+		return [
+			Math.round( hue2rgb( p, q, h + ( 1 / 3 ) ) * 255 ),
+			Math.round( hue2rgb( p, q, h ) * 255 ),
+			Math.round( hue2rgb( p, q, h - ( 1 / 3 ) ) * 255 ),
+			a
+		];
+	};
 
 
-// Check if a new cache is available on page load.
-window.addEventListener('load', function(e) {
+	each( spaces, function( spaceName, space ) {
+		var props = space.props,
+			cache = space.cache,
+			to = space.to,
+			from = space.from;
 
-    window.applicationCache.addEventListener('updateready', function(e) {
-        if (window.applicationCache.status == window.applicationCache.UPDATEREADY) {
-            // Browser downloaded a new app cache.
-            // Swap it in and reload the page
-            try {
-                window.applicationCache.swapCache(); // Bug with firefox.
-            } catch (e) {}
-            $("#cache-status").show();
-            $("#reload-button").html("New version available");
-            $("#reload-button").data("action", "reload");
-            $("#reload-button").removeClass("disabled");
-            if (confirm('A new version of this site is available. Load it?')) {
-                window.location.reload();
-            }
-        } else {
-            // Manifest didn't changed. Nothing new to server.
-        }
-    }, false);
-}, false);
+		// makes rgba() and hsla()
+		color.fn[ spaceName ] = function( value ) {
 
+			// generate a cache for this space if it doesn't exist
+			if ( to && !this[ cache ] ) {
+				this[ cache ] = to( this._rgba );
+			}
+			if ( value === undefined ) {
+				return this[ cache ].slice();
+			}
 
-try {
-    window.applicationCache.addEventListener("progress", function(e) {
-        $("#reload-button").html("Downloading...");
-        $("#cache-update-status").show();
-        $("#cache-update-status > .progress > .bar").css("width", (e.loaded / e.total*100)+"%");
-        if (e.loaded == e.total) {
-            $("#cache-update-status").hide();
-        }
-    }, false);
+			var type = jQuery.type( value ),
+				arr = ( type === "array" || type === "object" ) ? value : arguments,
+				local = this[ cache ].slice(),
+				ret;
 
-    window.applicationCache.addEventListener("cached", function(e) {
-        $("#reload-button").html("Page cached");
-        $("#reload-button").removeClass("disabled");
-    }, false);
-    window.applicationCache.addEventListener("obsolete", function(e) {
-        if (confirm("You're running old version. Do you want to reload now?")) {
-            window.location.reload();
-        }
-        $("#reload-button").html("Obsolete version");
-        $("#reload-button").removeClass("disabled");
-        $("#reload-button").data("action", "reload");
-    }, false);
-    window.applicationCache.addEventListener("noupdate", function(e) {
-        $("#reload-button").html("No update available");
-        setTimeout('$("#reload-button").html("Check for updates")', 1000);
-        if ($("#reload-button").data("pressed")) {
-            $("#next-reload").data("reload-timestamp", 0);
-            $("#reload-button").data("pressed", false);
-        }
-        $("#reload-button").removeClass("disabled");
-    }, false);
+			each( props, function( key, prop ) {
+				var val = arr[ type === "object" ? key : prop.idx ];
+				if ( val == null ) {
+					val = local[ prop.idx ];
+				}
+				local[ prop.idx ] = clamp( val, prop );
+			});
 
-    window.applicationCache.addEventListener("checking", function(e) {
-        $("#reload-button").addClass("disabled");
-        $("#reload-button").html("Checking...");
-    }, false);
+			if ( from ) {
+				ret = color( from( local ) );
+				ret[ cache ] = local;
+				return ret;
+			} else {
+				return color( local );
+			}
+		};
 
-    window.applicationCache.addEventListener("error", function(e) {
-        console.log(e);
-    }, false);
+		// makes red() green() blue() alpha() hue() saturation() lightness()
+		each( props, function( key, prop ) {
+			// alpha is included in more than one space
+			if ( color.fn[ key ] ) {
+				return;
+			}
+			color.fn[ key ] = function( value ) {
+				var vtype = jQuery.type( value ),
+					fn = ( key === 'alpha' ? ( this._hsla ? 'hsla' : 'rgba' ) : spaceName ),
+					local = this[ fn ](),
+					cur = local[ prop.idx ],
+					match;
 
-} catch(e) {
-    $("#cache-update-status").hide();
-    $("#cache-status").hide();
-}
+				if ( vtype === "undefined" ) {
+					return cur;
+				}
 
-jQuery.fn.urlize = function() {
-    if (this.length > 0) {
-        this.each(function(i, obj){
-            // making links active
-            var x = $(obj).html();
-            var list = x.match( /\b(http:\/\/|www\.|http:\/\/www\.)[^ <]{2,200}\b/g );
-            if (list) {
-                for (var i = 0; i < list.length; i++ ) {
-                    var prot = list[i].indexOf('http://') === 0 || list[i].indexOf('https://') === 0 ? '' : 'http://';
-                    x = x.replace( list[i], "<a target='_blank' href='" + prot + list[i] + "'>"+ list[i] + "</a>" );
-                }
+				if ( vtype === "function" ) {
+					value = value.call( this, cur );
+					vtype = jQuery.type( value );
+				}
+				if ( value == null && prop.empty ) {
+					return this;
+				}
+				if ( vtype === "string" ) {
+					match = rplusequals.exec( value );
+					if ( match ) {
+						value = cur + parseFloat( match[ 2 ] ) * ( match[ 1 ] === "+" ? 1 : -1 );
+					}
+				}
+				local[ prop.idx ] = value;
+				return this[ fn ]( local );
+			};
+		});
+	});
 
-            }
-            $(obj).html(x);
-        });
-    }
-};
+	// add .fx.step functions
+	each( stepHooks, function( i, hook ) {
+		jQuery.cssHooks[ hook ] = {
+			set: function( elem, value ) {
+				var parsed;
 
-function update_twitter() {
-    var data = $("body").data("pagerefresh-twitter").content;
-    $("#twitter_footer").html("<blockquote><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote>");
-    $("#twitter_status").urlize();
-}
+				if ( jQuery.type( value ) !== 'string' || ( parsed = stringParse( value ) ) )
+				{
+					value = color( parsed || value );
+					if ( !support.rgba && value._rgba[ 3 ] !== 1 ) {
+						var backgroundColor,
+							curElem = hook === "backgroundColor" ? elem.parentNode : elem;
+						do {
+							backgroundColor = jQuery.curCSS( curElem, "backgroundColor" );
+						} while (
+							( backgroundColor === "" || backgroundColor === "transparent" ) &&
+							( curElem = curElem.parentNode ) &&
+							curElem.style
+						);
 
-$(document).ready(function() {
-    hide_popovers();
-    $("[rel=popover]").popover({"placement": popover_placement});
-    setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
-});
+						value = value.blend( backgroundColor && backgroundColor !== "transparent" ?
+							backgroundColor :
+							"_default" );
+					}
+
+					value = value.toRgbaString();
+				}
+				elem.style[ hook ] = value;
+			}
+		};
+		jQuery.fx.step[ hook ] = function( fx ) {
+			if ( !fx.colorInit ) {
+				fx.start = color( fx.elem, hook );
+				fx.end = color( fx.end );
+				fx.colorInit = true;
+			}
+			jQuery.cssHooks[ hook ].set( fx.elem, fx.start.transition( fx.end, fx.pos ) );
+		};
+	});
+
+	// detect rgba support
+	jQuery(function() {
+		var div = document.createElement( "div" ),
+			div_style = div.style;
+
+		div_style.cssText = "background-color:rgba(1,1,1,.5)";
+		support.rgba = div_style.backgroundColor.indexOf( "rgba" ) > -1;
+	});
+
+	// Some named colors to work with
+	// From Interface by Stefan Petre
+	// http://interface.eyecon.ro/
+	colors = jQuery.Color.names = {
+		aqua: "#00ffff",
+		azure: "#f0ffff",
+		beige: "#f5f5dc",
+		black: "#000000",
+		blue: "#0000ff",
+		brown: "#a52a2a",
+		cyan: "#00ffff",
+		darkblue: "#00008b",
+		darkcyan: "#008b8b",
+		darkgrey: "#a9a9a9",
+		darkgreen: "#006400",
+		darkkhaki: "#bdb76b",
+		darkmagenta: "#8b008b",
+		darkolivegreen: "#556b2f",
+		darkorange: "#ff8c00",
+		darkorchid: "#9932cc",
+		darkred: "#8b0000",
+		darksalmon: "#e9967a",
+		darkviolet: "#9400d3",
+		fuchsia: "#ff00ff",
+		gold: "#ffd700",
+		green: "#008000",
+		indigo: "#4b0082",
+		khaki: "#f0e68c",
+		lightblue: "#add8e6",
+		lightcyan: "#e0ffff",
+		lightgreen: "#90ee90",
+		lightgrey: "#d3d3d3",
+		lightpink: "#ffb6c1",
+		lightyellow: "#ffffe0",
+		lime: "#00ff00",
+		magenta: "#ff00ff",
+		maroon: "#800000",
+		navy: "#000080",
+		olive: "#808000",
+		orange: "#ffa500",
+		pink: "#ffc0cb",
+		purple: "#800080",
+		violet: "#800080",
+		red: "#ff0000",
+		silver: "#c0c0c0",
+		white: "#ffffff",
+		yellow: "#ffff00",
+		transparent: [ null, null, null, 0 ],
+		_default: "#ffffff"
+	};
+})( jQuery );
