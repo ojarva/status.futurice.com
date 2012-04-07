@@ -290,9 +290,10 @@ class Pingdomrun:
              "human": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
     def _save(self, filename, new_data, expire=None):
-        old_data = self.redis.get(filename)
-        if new_data != old_data:
-            hash = hashlib.sha1(new_data).hexdigest()
+        old_data = self.redis.get(filename+"-hash")
+        hash = hashlib.sha1(new_data).hexdigest()
+        if old_data != hash:
+            self.redis.publish("pubsub:"+filename, json.dumps({"hash": hash, "mtime": time.time()}))
             if expire:
                 self.redis.setex(filename, new_data, expire)
                 self.redis.setex(filename+"-mtime", time.time(), expire)

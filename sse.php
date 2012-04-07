@@ -8,7 +8,7 @@
 
 set_time_limit(0);
 $redis = new Redis();
-$redis->connect("localhost");
+$redis->connect('127.0.0.1', 6379, 0);
 
 Header("Content-Type: text/event-stream");
 flush();
@@ -48,44 +48,46 @@ foreach ($follow_files as $k => $v) {
     }
 }
 
-$counter = 1800;
-while ($counter > 0) {
-    $redis->incr("stats:web:sse:loop");
 
-    clearstatcache();
+function listen_pubsub($redis, $chan, $msg) {
+    global $follow_files;
+    $redis->incr("stats:web:sse:pubsub_received");
+    $msg_decode = json_decode($msg, true);
     foreach ($follow_files as $k => $v) {
-        if ($v["redis"]) {
-            $new_hash = $redis->get($v["filename"]."-hash");
+        if ($chan == "pubsub:".$v["filename"]) {
+            $new_hash = $msg_decode["hash"];
             if ($new_hash != $v["hash"]) {
-                $new_mtime = $redis->get($v["filename"]."-mtime");
+                $redis->incr("stats:web:sse:event_sent");
+                $new_mtime = $msg_decode["mtime"];
                 echo "event: ".$v["event"]."\n";
-                echo "data: {'timestamp': $new_mtime, 'old_timestamp': ".$v["mtime"].", 'filename': ".$v["filename"]."}\n\n";
-                $counter = $counter - 3;
+                echo "data: {\"timestamp\": $new_mtime, \"old_timestamp\": ".$v["mtime"].", \"filename\": \"".$v["filename"]."\"}\n\n";
                 ob_flush();
                 flush();
                 $follow_files[$k]["hash"] = $new_hash;
                 $follow_files[$k]["mtime"] = $new_mtime;
             }
-        } else {
-            $new_mtime = filemtime($v["filename"]);
-            if ($new_mtime != $v["mtime"]) {
-                $hash = sha1_file($v["filename"]);
-                if ($hash != $v["hash"]) {
-                    echo "event: ".$v["event"]."\n";
-                    echo "data: {'timestamp': $new_mtime, 'old_timestamp': ".$v["mtime"].", 'filename': ".$v["filename"]."}\n\n";
-                    ob_flush();
-                    flush();
-                    $follow_files[$k]["hash"] = $hash;
-                    if ($v["event"] == "manifestchange") {
-                        $counter = 5;
-                    }
-                }
-                $follow_files[$k]["mtime"] = $new_mtime;
-            }
+            break;
         }
     }
-    usleep(1000000);
+}
+
+$redis_subscribe = array();
+foreach ($follow_files as $k => $v) {
+    $redis_subscribe[] = "pubsub:".$v["filename"];
+}
+
+$redis->subscribe($redis_subscribe, 'listen_pubsub');
+
+$counter = 1800;
+while ($counter > 0) {
+    $redis->incr("stats:web:sse:loop");
+    if ($counter % 60 == 0) {
+        echo "event: nop\ndata: nop\n\n";
+        ob_flush();
+        flush();
+    }
     $counter--;
+    sleep(1);
 }
 $redis->close();
 ?>

@@ -10,6 +10,15 @@ $autofill["services_unknown"] = $services_json["overall"]["services_unknown"];
 $autofill["services_down"] = $services_json["overall"]["services_down"];
 
 $lastmodified = max(filemtime(__FILE__), $redis->get("data:services.json-mtime"), $redis->get("data:ittickets.json-mtime"));
+if ($lastmodified <= $redis->get("data:frontpage.json-mtime")) {
+    $redis->incr("stats:cache:frontpage:hit");
+    $redis->incr("stats:cache:hit");
+    exit();
+} else {
+    $redis->incr("stats:cache:frontpage:miss");
+    $redis->incr("stats:cache:miss");
+}
+
 $content = json_encode(array("autofill" => $autofill));
 $hash = sha1($content);
 
@@ -18,5 +27,6 @@ $exptime = 3600 * 24 * 30;
 $redis->setex("data:frontpage.json", $exptime, $content);
 $redis->setex("data:frontpage.json-mtime", $exptime, $lastmodified);
 $redis->setex("data:frontpage.json-hash", $exptime, $hash);
+$redis->publish("data:frontpage.json", json_encode(array("hash" => $hash, "mtime" => $lastmodified)));
 
 ?>

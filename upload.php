@@ -41,10 +41,13 @@ $expiration_time = 3600 * 24 * 30; // One month
 if ($pinfo["extension"] == "json") {
     $filename = "data:".$what; // Already validated
     $contents = file_get_contents($_FILES["data"]["tmp_name"]);
+    $hash = sha1($contents);
+    $timestamp = time();
     $redis->setex($filename, $expiration_time, $contents);
-    $redis->setex($filename."-hash", $expiration_time, sha1($contents));
-    $redis->setex($filename."-mtime", $expiration_time, time());
+    $redis->setex($filename."-hash", $expiration_time, $hash);
+    $redis->setex($filename."-mtime", $expiration_time, $timestamp);
     $redis->incr("stats:web:upload:success");
+    $redis->publish("pubsub:$what", json_encode(array("hash" => $hash, "mtime" => $timestamp)));
     echo response(true, "Upload succeeded");
 } else {
     $filename = "upload/".$what;
@@ -55,9 +58,12 @@ if ($pinfo["extension"] == "json") {
             exec("advpng -z1 \"$filename\"");
             $contents = json_encode( array("timestamp" => time()) );
             $rediskey = "data:".$pinfo["filename"].".json";
+            $hash = sha1($contents);
+            $mtime = time();
             $redis->setex($rediskey, $expiration_time, $contents);
-            $redis->setex("$rediskey-hash", $expiration_time, sha1($contents));
-            $redis->setex("$rediskey-mtime", $expiration_time, time());
+            $redis->setex("$rediskey-hash", $expiration_time, $hash);
+            $redis->setex("$rediskey-mtime", $expiration_time, $mtime);
+            $redis->publish("pubsub:$rediskey", json_encode(array("hash" => $hash, "mtime" => $mtime)));
             $redis->incr("stats:web:upload:pngsuccess");
         }
         $redis->incr("stats:web:upload:success");

@@ -38,6 +38,9 @@ class TwitterInfo:
             self.redis.setex(self.redis_key, new_data, max_lifetime)
             self.redis.setex("%s-mtime" % self.redis_key, time.time(), max_lifetime)
             self.redis.setex("%s-hash" % self.redis_key, new_hash, max_lifetime)
+
+            self.redis.publish("pubsub:data:twitter.json", json.dumps({"hash": new_hash, "mtime": time.time()}))
+
             self.redis.incr("stats:cache:twitter:miss")
             self.redis.incr("stats:cache:miss")
         else:

@@ -1,13 +1,14 @@
 <?
 $redis = new Redis();
 $redis->connect("localhost");
+
 $autofill = array();
 $keys = array();
 $uptime = trim(file_get_contents("/proc/uptime"));
 $uptime = explode(" ", $uptime);
-$uptime = intval($uptime[0]);
+$uptime_original = intval($uptime[0]);
+$uptime = $uptime_original;
 
-$redis->set("stats:server:uptime", $uptime);
 
 if ($uptime > 86400) {
   $uptime = round($uptime / 86400, 1) . " days";
@@ -16,7 +17,7 @@ if ($uptime > 86400) {
 } else {
    $uptime = round($uptime / 60)." minutes";
 }
-$redis->set("stats:server:uptime:readable", $uptime);
+$redis->mset(array("stats:server:uptime:readable" =>  $uptime, "stats:server:uptime" => $uptime));
 
 $redis_info = array();
 $redis_final = array();
@@ -74,18 +75,36 @@ foreach ($keys as $k => $v) {
 
 $content = json_encode(array("autofill" => $autofill));
 $hash = sha1($content);
+
+if ($hash == $redis->get("data:miscstats.json-hash")) {
+    $redis->incr("stats:cache:miscstats:hit");
+    $redis->incr("stats:cache:hit");
+    exit();
+} else {
+    $redis->incr("stats:cache:miscstats:miss");
+    $redis->incr("stats:cache:miss");
+}
+
 $exptime = 3600 * 24 * 30;
 
+$mtime = time();
 $redis->setex("data:miscstats.json", $exptime, $content);
-$redis->setex("data:miscstats.json-mtime", $exptime, time());
+$redis->setex("data:miscstats.json-mtime", $exptime, $mtime);
 $redis->setex("data:miscstats.json-hash", $exptime, $hash);
+
+$redis->publish("pubsub:data:miscstats.json", json_encode(array("hash" => $hash, "mtime" => $mtime)));
 
 foreach ($autofill as $k => $v) {
     if (!is_numeric($v)) { continue; }
     $v = round(floatval($v) * 100);
     $filename = "miscstats_graphs/$k.rrd";
     if (!file_exists($filename)) {
-        exec("rrdtool create $filename --step 60 -- DS:valueg:GAUGE:300:U:U DS:valuec:COUNTER:300:U:U RRA:AVERAGE:0.5:1:120 RRA:AVERAGE:0.5:5:8640 RRA:AVERAGE:0.5:60:12760 RRA:MAX:0.5:5:8640 RRA:MAX:0.5:60:12760 RRA:MIN:0.5:5:8640 RRA:MIN:0.5:60:12760");
+        exec("rrdtool create $filename --step 60 -- DS:valueg:GAUGE:300:U:U DS:valuec:COUNTER:300:U:U ".
+             " RRA:AVERAGE:0.5:1:120 RRA:AVERAGE:0.5:5:8640 RRA:AVERAGE:0.5:60:4320 RRA:AVERAGE:0.5:720:1600 RRA:AVERAGE:0.5:1440:2000" .
+             " RRA:MIN:0.5:1:120 RRA:MIN:0.5:5:8640 RRA:MIN:0.5:60:4320 RRA:MIN:0.5:720:1600 RRA:MIN:0.5:1440:2000" .
+             " RRA:MAX:0.5:1:120 RRA:MAX:0.5:5:8640 RRA:MAX:0.5:60:4320 RRA:MAX:0.5:720:1600 RRA:MAX:0.5:1440:2000" .
+             " RRA:LAST:0.5:1:120 RRA:LAST:0.5:5:8640 RRA:LAST:0.5:60:4320 RRA:LAST:0.5:720:1600 RRA:LAST:0.5:1440:2000"
+        );
     }
     exec("rrdtool update $filename N:$v:$v");
 }
