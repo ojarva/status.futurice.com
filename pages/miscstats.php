@@ -90,3 +90,10 @@
 		<h2 id="stats_redis_keyspace_misses"><img src="/img/loading-inline.gif"></h2>
 	</div>
 </div>
+
+<div class="row" style="padding-top: 2em">
+	<div class="span12">
+		<ul class="thumbnails" id="graphs">
+		</ul>
+	</div>
+</div>
