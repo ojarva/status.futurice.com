@@ -45,11 +45,13 @@ function animate_change($elem, data, continueold) {
     if (!continueold && $elem.data("animate-init")) {
       return;
     }
+    if (!$elem.data("animate-original-color")) {
+        $elem.data("animate-original-color", $elem.css("color"));
+        $elem.data("animate-original-bgcolor", $elem.css("background-color"));
+    }
 
     if (isNaN(data)) {
         $elem.html(data);
-        $elem.data("animate-original-color", $elem.css("color"));
-        $elem.data("animate-original-bgcolor", $elem.css("background-color"));
         $elem.css("color", "#FFFDF9").css("background-color", "#FCF8E3");
         $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 2000);
         return;
@@ -58,10 +60,6 @@ function animate_change($elem, data, continueold) {
     var tdata = parseFloat(data);
     if (!$elem.data("animate-init")) {
         $elem.data("animate-init", true);
-        if (!$elem.data("animate-original-color")) {
-            $elem.data("animate-original-color", $elem.css("color"));
-            $elem.data("animate-original-bgcolor", $elem.css("background-color"));
-        }
         $elem.css("color", "#CCCCCC").css("background-color", "#FCF8E3");
         $elem.data("animate-target", data);
         new_data = parseFloat($elem.html());
@@ -285,7 +283,7 @@ function animate_change($elem, data, continueold) {
                 return;
             }
             setTimeout('$("'+settings.update_button_id+'").removeClass("disabled");$("'+settings.spinner_id+'").hide();', 1000);
-        },
+        }
     }
 
     $.fn.pagerefresh = function( method ) {
