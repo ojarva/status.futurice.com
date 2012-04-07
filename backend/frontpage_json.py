@@ -15,6 +15,7 @@ class Frontpage:
         ret["services_up"] = services_json["overall"]["services_up"];
         ret["services_unknown"] = services_json["overall"]["services_unknown"];
         ret["services_down"] = services_json["overall"]["services_down"];
+        return ret
 
     def run(self):
         content = {"autofill": self.get_data()}
