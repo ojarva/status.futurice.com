@@ -13,3 +13,5 @@ What to do with these?
 * *monitor_and_upload_file.py* - if your weathermap generation runs on separate server, this script can be used to post image to status page. *upload_settings.py.example* is example configuration file for this.
 * *../upload.php* receiver script for network map images and *fetch_rt.py* script.
 * *printer_status.py* - fetch printer status using SNMP and post printer status, supplies and paper status to upload.php.
+* *frontpage_json.py* - generator for frontpage.json (combination of services.json and ittickets.json)
+* *miscstats_json.py* - generator for server statistics page, and related RRD graphs.

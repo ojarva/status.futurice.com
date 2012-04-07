@@ -54,10 +54,13 @@ To this code:
 Backend components (*backend/*)
 
 * Move *pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
-* Add *fetch_pingdom.py* to crontab
-* Add *fetch_twitter.py* to crontab. First argument is your twitter username.
+* Add *fetch_pingdom.py* to crontab (suggestion: every minute - fetches only current statuses every minute, other details less often)
+* Add *fetch_twitter.py* to crontab. First argument is your twitter username. (suggestion: once per few minutes)
+* Add *frontpage_json.py* to crontab (suggestion: every minute)
+* Add *miscstats_json.py* to crontab (suggestion: every minute)
 * If your weathermap runs on separate server, run *monitor_and_upload_file.py* there.
 * *printer_status.py* fetches printer status using SNMP. Configure *printer_settings.py.sample*. Requires net-snmp package.
+
 
 Relevant sites/documents
 ------------------------
