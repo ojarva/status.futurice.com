@@ -8,7 +8,7 @@ PER_PAGE_JS_DEST=$(PER_PAGE_JS:.js=.min.js)
 JS_COMPILER=java -jar /var/www/closure/compiler.jar
 #JS_COMPILER=yui-compressor 
 
-ALL_FILES=sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/combined.raphael.min.js 
+ALL_FILES=sources/index.php.html sources/fetch_pingdom.py.html sources/fetch_rt.py.html css/combined.min.css js/combined.min.js js/combined.raphael.min.js pages/main.php pages/ittickets.php pages/services.php pages/miscstats.php pages/what.php pages/netmap.php
 ALL_FILES+=${PER_PAGE_JS_DEST}
 
 all: ${ALL_FILES} cache.manifest
