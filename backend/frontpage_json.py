@@ -33,11 +33,12 @@ class Frontpage:
 
         contente = json.dumps(content)
         hash = hashlib.sha1(contente).hexdigest()
-        exptime = 3600 * 24 * 30;
-        self.redis.setex("data:frontpage.json", contente, exptime)
-        self.redis.setex("data:frontpage.json-mtime", lastmodified, exptime)
-        self.redis.setex("data:frontpage.json-hash", hash, exptime)
-        self.redis.publish("data:frontpage.json", json.dumps({"hash": hash, "mtime": lastmodified}))
+        exptime = 3600 * 24 * 30
+        rediskey = "data:frontpage.json"
+        self.redis.setex(rediskey, contente, exptime)
+        self.redis.setex("%s-mtime" % rediskey, lastmodified, exptime)
+        self.redis.setex("%s-hash" % rediskey, hash, exptime)
+        self.redis.publish("pubsub:%s" % rediskey, json.dumps({"hash": hash, "mtime": lastmodified}))
 
 
 def main():
