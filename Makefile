@@ -5,6 +5,7 @@ COMBINED_CSS=css/bootstrap.min.css css/custom.css css/bootstrap-responsive.min.c
 PER_PAGE_JS=js/services.js js/miscstats.js js/printers.js js/netmap.js js/ittickets.js js/servicedetails.js
 PER_PAGE_JS_DEST=$(PER_PAGE_JS:.js=.min.js)
 
+#JS_COMPILER=cat
 JS_COMPILER=java -jar /var/www/closure/compiler.jar
 #JS_COMPILER=yui-compressor 
 
