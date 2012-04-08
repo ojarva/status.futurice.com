@@ -3,6 +3,38 @@
 <h1>Miscellaneous stats <span id="update_data"></span></h1>
 
 <div class="row">
+	<div class="span12"><h2>Your usage</h2></div>
+</div>
+
+<div class="row">
+	<div class="span2">
+		<h2><small>Pageviews</small></h2>
+		<h2 id="your_session_web_pageview"><img src="/img/loading-inline.gif"></h2>
+	</div>
+	<div class="span2">
+		<h2><small>... from your IP</small></h2>
+		<h2 id="your_ip_web_pageview"><img src="/img/loading-inline.gif"></h2>
+	</div>
+	<div class="span2">
+		<h2><small>Static files</small></h2>
+		<h2 id="your_session_static_served"><img src="/img/loading-inline.gif"></h2>
+	</div>
+	<div class="span2">
+		<h2><small>... from your IP</small></h2>
+		<h2 id="your_ip_static_served"><img src="/img/loading-inline.gif"></h2>
+	</div>
+	<div class="span2">
+		<h2><small>Data files</small></h2>
+		<h2 id="your_session_web_json_processed"><img src="/img/loading-inline.gif"></h2>
+	</div>
+	<div class="span2">
+		<h2><small>... from your IP</small></h2>
+		<h2 id="your_ip_web_json_processed"><img src="/img/loading-inline.gif"></h2>
+	</div>
+
+</div>
+<hr>
+<div class="row" style="padding-top:2em">
 	<div class="span12"><h2>Web</h2></div>
 </div>
 

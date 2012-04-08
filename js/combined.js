@@ -12272,6 +12272,18 @@ function get_last_data_timestamp(filename) {
     return parseInt(data);
 }
 
+
+function handle_autofill(data) {
+    for (var key in data.autofill) {
+        var $elem = $("#" + key);
+        if ($elem) {
+            if (data.autofill[key] != $elem.html()) {
+                animate_change($elem, data.autofill[key]);
+            }
+        }
+    }
+}
+
 function animate_change($elem, data, continueold) {
     if (!continueold && $elem.data("animate-init")) {
       return;
@@ -12343,44 +12355,34 @@ function animate_change($elem, data, continueold) {
             });
 
             if (EventSource && settings.filewatch) {
-                var source = new EventSource("/sse.php?file="+settings.filewatch);
-                source.addEventListener('message', function(e) {
-                }, false);
-
-                source.addEventListener('changeevent', function(e) {
-                    $(settings.next_reload_id).data("reload-timestamp", 0);
-                }, false);
-
-                source.addEventListener('manifestchange', function(e) {
-                    try { window.window.applicationCache.update(); } catch (e) {}
-                }, false);
-
-                source.addEventListener('open', function(e) {
-                }, false);
-
-                source.addEventListener('error', function(e) {
-                    if (e.eventPhase == EventSource.CLOSED) {
-                        // Connection was closed.
-                    }
-                }, false);
                 $(this).pagerefresh("savesetting", "sse", true);
                 settings.sse = true;
+
+                $(this).pagerefresh("enableSSE", settings.thiselem);
+                $(this).data("sserunning", true);
             }
 
-            if (!settings.sse) {
-                $(window).blur(function () {
-                    var next_reload = $(settings.next_reload_id).data("reload-timestamp");
-                    if (next_reload) {
-                        var max_timeout = (new Date()).getTime() + settings.long_timeout * 1000 + settings.short_timeout * 1000;
-                        var proposed_timeout = next_reload + (settings.long_timeout * 1000);
-                        $(settings.next_reload_id).data("reload-timestamp", Math.min(max_timeout, proposed_timeout));
-                    } else {
-                        $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
-                    }
-                    settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.long_timeout);
-                });
+            $(window).blur(function () {
+                var asettings = settings.thiselem.data("pagerefresh_settings");
+                if (asettings.sse && asettings.thiselem.data("sserunning")) {
+                    $(this).pagerefresh("disableSSE", settings.thiselem);
+                } 
+                var next_reload = $(settings.next_reload_id).data("reload-timestamp");
+                if (next_reload) {
+                    var max_timeout = (new Date()).getTime() + settings.long_timeout * 1000 + settings.short_timeout * 1000;
+                    var proposed_timeout = next_reload + (settings.long_timeout * 1000);
+                    $(settings.next_reload_id).data("reload-timestamp", Math.min(max_timeout, proposed_timeout));
+                } else {
+                    $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
+                }
+                settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.long_timeout);
+            });
 
-                $(window).focus(function () {
+            $(window).focus(function () {
+                var asettings = settings.thiselem.data("pagerefresh_settings");
+                if (asettings.sse && !settings.thiselem.data("sserunning")) {
+                    $(this).pagerefresh("enableSSE", settings.thiselem);
+                } else {
                     var next_reload = $(settings.next_reload_id).data("reload-timestamp");
                     if (next_reload) {
                         $(settings.next_reload_id).data("reload-timestamp", next_reload - settings.long_timeout * 1000);
@@ -12388,11 +12390,46 @@ function animate_change($elem, data, continueold) {
                         $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.short_timeout * 1000);
                     }
                     settings.thiselem.pagerefresh("savesetting", "current_timeout", settings.short_timeout);
-                });
-            } // !sse
+                }
+            });
 
             $(this).pagerefresh("update");
         },
+
+        disableSSE : function (element) {
+            var ssesource = element.data("ssesource");
+            if (ssesource) {
+                ssesource.close();
+                element.data("sserunning", false);
+            }
+        }, 
+
+        enableSSE : function (element) {
+            var settings = element.data("pagerefresh_settings");
+            var source = new EventSource("/sse.php?file="+settings.filewatch);
+            settings.thiselem.data("sserunning", true);
+
+            source.addEventListener('message', function(e) {
+            }, false);
+
+            source.addEventListener('changeevent', function(e) {
+                $(settings.next_reload_id).data("reload-timestamp", 0);
+            }, false);
+
+            source.addEventListener('manifestchange', function(e) {
+                try { window.window.applicationCache.update(); } catch (e) {}
+            }, false);
+
+            source.addEventListener('open', function(e) {
+                settings.thiselem.pagerefresh("savesetting", "sse", true);
+            }, false);
+
+            source.addEventListener('error', function(e) {
+                settings.thiselem.pagerefresh("savesetting", "sse", false);
+            }, false);
+            settings.thiselem.data("ssesource", source);
+        },
+
         savesetting : function (key, value) {
             var settings = $(this).data("pagerefresh_settings");
             if (!settings) {
@@ -12414,7 +12451,7 @@ function animate_change($elem, data, continueold) {
             }
 
             var next_reload = $(settings.next_reload_id).data("reload-timestamp");
-            if (settings.sse) {
+            if (settings.thiselem.data("sserunning")) {
                 if (moment(next_reload) < moment()) {
                     $(settings.next_reload_id).html("Next reload right now");
                     $(this).pagerefresh("fetch");
@@ -12452,14 +12489,7 @@ function animate_change($elem, data, continueold) {
                 }
                 var data = get_last_data(settings.filewatch);
                 if (data) { data = data.content; }
-                for (var key in data.autofill) {
-                    var $elem = $("#" + key);
-                    if ($elem) {
-                        if (data.autofill[key] != $elem.html()) {
-                            animate_change($elem, data.autofill[key]);
-                        }
-                    }
-                }
+                handle_autofill(data);
             });
         },
         fetch: function ( ) {
