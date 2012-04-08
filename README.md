@@ -38,6 +38,7 @@ On server running this site:
 * Install python, highlight, redis, python-redis, python-dateutil, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor, rrdtool, python-rrdtool and make (*apt-get install python python-redis redis-server python-dateutil highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool*).
 * Configure apache2 (*a2enmod php5 rewrite headers deflate expires*)
 * Install PhpRedis: https://github.com/nicolasff/phpredis
+* Install pecl_http: http://pecl.php.net/package/pecl_http (*sudo pecl install pecl_http*)
 
 On your RT server:
 
