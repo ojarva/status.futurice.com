@@ -128,12 +128,12 @@ function animate_change($elem, data, continueold) {
                 settings.sse = true;
 
                 $(this).pagerefresh("enableSSE", settings.thiselem);
-                $(this).pagerefresh("savesetting", "sserunning", false);
+                $(this).data("sserunning", true);
             }
 
             $(window).blur(function () {
                 var asettings = settings.thiselem.data("pagerefresh_settings");
-                if (asettings.sse && asettings.sserunning) {
+                if (asettings.sse && asettings.thiselem.data("sserunning")) {
                     $(this).pagerefresh("disableSSE", settings.thiselem);
                 } 
                 var next_reload = $(settings.next_reload_id).data("reload-timestamp");
@@ -149,7 +149,7 @@ function animate_change($elem, data, continueold) {
 
             $(window).focus(function () {
                 var asettings = settings.thiselem.data("pagerefresh_settings");
-                if (asettings.sse && !asettings.sserunning) {
+                if (asettings.sse && !settings.thiselem.data("sserunning")) {
                     $(this).pagerefresh("enableSSE", settings.thiselem);
                 } else {
                     var next_reload = $(settings.next_reload_id).data("reload-timestamp");
@@ -166,19 +166,17 @@ function animate_change($elem, data, continueold) {
         },
 
         disableSSE : function (element) {
-            var settings = element.data("pagerefresh_settings");
-            if (settings.ssesource) {
-                settings.ssesource.close();
-                element.pagerefresh("savesetting", "sserunning", false);
+            var ssesource = element.data("ssesource");
+            if (ssesource) {
+                ssesource.close();
+                element.data("sserunning", false);
             }
         }, 
 
         enableSSE : function (element) {
             var settings = element.data("pagerefresh_settings");
-
             var source = new EventSource("/sse.php?file="+settings.filewatch);
-            element.pagerefresh("savesetting", "ssesource", source);
-            element.pagerefresh("savesetting", "sserunning", true);
+            settings.thiselem.data("sserunning", true);
 
             source.addEventListener('message', function(e) {
             }, false);
@@ -198,6 +196,7 @@ function animate_change($elem, data, continueold) {
             source.addEventListener('error', function(e) {
                 settings.thiselem.pagerefresh("savesetting", "sse", false);
             }, false);
+            settings.thiselem.data("ssesource", source);
         },
 
         savesetting : function (key, value) {
@@ -221,7 +220,7 @@ function animate_change($elem, data, continueold) {
             }
 
             var next_reload = $(settings.next_reload_id).data("reload-timestamp");
-            if (settings.sserunning) {
+            if (settings.thiselem.data("sserunning")) {
                 if (moment(next_reload) < moment()) {
                     $(settings.next_reload_id).html("Next reload right now");
                     $(this).pagerefresh("fetch");
