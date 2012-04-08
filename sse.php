@@ -6,12 +6,16 @@
  * caniuse.com browser compatibility: http://caniuse.com/#feat=eventsource
  */
 
+ini_set("default_socket_timeout", -1);
 set_time_limit(0);
 $redis = new Redis();
 $redis->connect('127.0.0.1', 6379, 0);
+require_once("lib/userstats.php");
 
 Header("Content-Type: text/event-stream");
+header('Cache-Control: no-cache');
 flush();
+ob_flush();
 if (isset($_GET["file"])) {
     $filename = "data:".basename($_GET["file"]);
 } else {
@@ -19,6 +23,8 @@ if (isset($_GET["file"])) {
     echo "data: no filename set\n";
     $redis->incr("stats:web:invalid");
     $redis->incr("stats:web:sse:invalid");
+    stat_update("web:invalid");
+    stat_update("web:sse:invalid");
     $redis->close();
     flush();
     exit();
@@ -26,13 +32,17 @@ if (isset($_GET["file"])) {
 if ($redis->get($filename) === FALSE) {
     echo "Event: error\n";
     echo "data: invalid filename\n";
+    $redis->incr("stats:web:invalid");
     $redis->incr("stats:web:sse:invalid");
+    stat_update("web:invalid");
+    stat_update("web:sse:invalid");
     $redis->close();
     flush();
     exit();
 }
 
 $redis->incr("stats:web:sse:started");
+stat_update("web:sse:started");
 
 $follow_files = array(array("filename" => "data:twitter.json", "event" => "changeevent", "redis" => true),
                       array("filename" => "cache.manifest", "event" => "manifestchange", "redis" => false),
@@ -51,6 +61,7 @@ foreach ($follow_files as $k => $v) {
 
 function listen_pubsub($redis, $chan, $msg) {
     global $follow_files;
+    stat_update("web:sse:pubsub_received");
     $redis->incr("stats:web:sse:pubsub_received");
     $msg_decode = json_decode($msg, true);
     foreach ($follow_files as $k => $v) {
@@ -58,6 +69,7 @@ function listen_pubsub($redis, $chan, $msg) {
             $new_hash = $msg_decode["hash"];
             if ($new_hash != $v["hash"]) {
                 $redis->incr("stats:web:sse:event_sent");
+                stat_update("web:sse:event_sent");
                 $new_mtime = $msg_decode["mtime"];
                 echo "event: ".$v["event"]."\n";
                 echo "data: {\"timestamp\": $new_mtime, \"old_timestamp\": ".$v["mtime"].", \"filename\": \"".$v["filename"]."\"}\n\n";
