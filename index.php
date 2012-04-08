@@ -8,20 +8,20 @@ require_once("lib/userstats.php");
 Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";
 if (isset($_GET["page"])) {
- $temp = basename($_GET["page"]);
- if ($temp == "network-map") {
-  $pagename = "netmap";
- }
- $temp = str_replace("-", "", $temp);
- if (file_exists("pages/$temp.php")) {
-  $pagename = $temp;
-  $redis->incr("stats:web:pageview");
-  stat_update("web:pageview");
- } else {
-  $redis->incr("stats:web:invalidpage");
-  $redis->incr("stats:web:invalid");
-  stat_update("web:invalid");
- }
+    $temp = basename($_GET["page"]);
+    if ($temp == "network-map") {
+        $pagename = "netmap";
+    }
+    $temp = str_replace("-", "", $temp);
+    if (file_exists("pages/$temp.php")) {
+        $pagename = $temp;
+        $redis->incr("stats:web:pageview");
+        stat_update("web:pageview");
+    } else {
+        $redis->incr("stats:web:invalidpage");
+        $redis->incr("stats:web:invalid");
+        stat_update("web:invalid");
+    }
 }
 $pages = array(array("/", "Home"),
 	array("/page/services", "Services"),
@@ -32,11 +32,11 @@ $pages = array(array("/", "Home"),
 	array("/page/what", "What?"));
 
 function callback($buffer) {
- $buffer = str_replace("\r\n", " ", $buffer);
- $buffer = str_replace("\n", " ", $buffer);
- $buffer = str_replace("\t", " ", $buffer);
- $buffer = preg_replace( '/\s+/', ' ', $buffer);
- return $buffer;
+    $buffer = str_replace("\r\n", " ", $buffer);
+    $buffer = str_replace("\n", " ", $buffer);
+    $buffer = str_replace("\t", " ", $buffer);
+    $buffer = preg_replace( '/\s+/', ' ', $buffer);
+    return $buffer;
 }
 ob_start("callback");
 ?>
@@ -56,7 +56,7 @@ ob_start("callback");
 
     <link href="/css/combined.min.css" rel="stylesheet">
     <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="/js/html5.js"></script>
     <![endif]-->
     <script src="/js/combined.min.js"></script>
   </head>
