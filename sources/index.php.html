@@ -10,6 +10,9 @@
 <span class="hl kwc">$redis</span> <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Redis</span><span class="hl opt">();</span>
 <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">connect</span><span class="hl opt">(</span><span class="hl str">&quot;localhost&quot;</span><span class="hl opt">);</span>
 
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;lib/userstats.php&quot;</span><span class="hl opt">);</span>
+
+
 <span class="hl kwd">Header</span><span class="hl opt">(</span><span class="hl str">&quot;Content-Type: text/html; charset=utf-8&quot;</span><span class="hl opt">);</span>
 <span class="hl kwc">$pagename</span> <span class="hl opt">=</span> <span class="hl str">&quot;main&quot;</span><span class="hl opt">;</span>
 <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;page&quot;</span><span class="hl opt">])) {</span>
@@ -21,9 +24,11 @@
  <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwd">file_exists</span><span class="hl opt">(</span><span class="hl str">&quot;pages/$temp.php&quot;</span><span class="hl opt">)) {</span>
   <span class="hl kwc">$pagename</span> <span class="hl opt">=</span> <span class="hl kwc">$temp</span><span class="hl opt">;</span>
   <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:pageview&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:pageview&quot;</span><span class="hl opt">);</span>
  <span class="hl opt">}</span> <span class="hl kwa">else</span> <span class="hl opt">{</span>
   <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalidpage&quot;</span><span class="hl opt">);</span>
   <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:invalid&quot;</span><span class="hl opt">);</span>
  <span class="hl opt">}</span>
 <span class="hl opt">}</span>
 <span class="hl kwc">$pages</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Home&quot;</span><span class="hl opt">),</span>

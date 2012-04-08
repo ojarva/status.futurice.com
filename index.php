@@ -2,6 +2,9 @@
 $redis = new Redis();
 $redis->connect("localhost");
 
+require_once("lib/userstats.php");
+
+
 Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";
 if (isset($_GET["page"])) {
@@ -13,9 +16,11 @@ if (isset($_GET["page"])) {
  if (file_exists("pages/$temp.php")) {
   $pagename = $temp;
   $redis->incr("stats:web:pageview");
+  stat_update("web:pageview");
  } else {
   $redis->incr("stats:web:invalidpage");
   $redis->incr("stats:web:invalid");
+  stat_update("web:invalid");
  }
 }
 $pages = array(array("/", "Home"),
