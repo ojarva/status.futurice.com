@@ -2,32 +2,33 @@
 
 <h1>Miscellaneous stats <span id="update_data"></span></h1>
 
-<div class="row">
+
+<div class="row" style="padding-top:2em">
 	<div class="span12"><h2>Your usage</h2></div>
 </div>
 
 <div class="row">
-	<div class="span2">
+	<div class="span2" rel="popover" data-original-title="What?" data-content="This is the number of pageviews server has recorded for your current session. Application cache reduces actual page loads from the server greatly.">
 		<h2><small>Pageviews</small></h2>
 		<h2 id="your_session_web_pageview"><img src="/img/loading-inline.gif"></h2>
 	</div>
-	<div class="span2">
+	<div class="span2" rel="popover" data-original-title="What?" data-content="This is the number of page views from your IP - it might include others too.">
 		<h2><small>... from your IP</small></h2>
 		<h2 id="your_ip_web_pageview"><img src="/img/loading-inline.gif"></h2>
 	</div>
-	<div class="span2">
+	<div class="span2" rel="popover" data-original-title="What?" data-content="Number of static files your browser has downloaded.">
 		<h2><small>Static files</small></h2>
 		<h2 id="your_session_static_served"><img src="/img/loading-inline.gif"></h2>
 	</div>
-	<div class="span2">
+	<div class="span2" rel="popover" data-original-title="What?" data-content=".. and number of static files from your IP address.">
 		<h2><small>... from your IP</small></h2>
 		<h2 id="your_ip_static_served"><img src="/img/loading-inline.gif"></h2>
 	</div>
-	<div class="span2">
+	<div class="span2" rel="popover" data-original-title="What?" data-content="Number of data files (for example, service status information) your browser has downloaded so far.">
 		<h2><small>Data files</small></h2>
 		<h2 id="your_session_web_json_processed"><img src="/img/loading-inline.gif"></h2>
 	</div>
-	<div class="span2">
+	<div class="span2" rel="popover" data-original-title="What?" data-content="Number of data files downloaded from your current IP address.">
 		<h2><small>... from your IP</small></h2>
 		<h2 id="your_ip_web_json_processed"><img src="/img/loading-inline.gif"></h2>
 	</div>
@@ -120,6 +121,29 @@
 	<div class="span3" rel="popover" data-original-title="What?" data-content="Number of misses (queries for keys that didn't exist)">
 		<h2><small>redis misses</small></h2>
 		<h2 id="stats_redis_keyspace_misses"><img src="/img/loading-inline.gif"></h2>
+	</div>
+</div>
+
+<hr>
+<div class="row" style="padding-top:2em">
+	<div class="span12"><h2>Your browser</h2></div>
+</div>
+<div class="row">
+	<div class="span3" rel="popover" data-original-title="What?" data-content="Event source provides instant updates to page content. All modern browsers support it (not Internet Explorer).">
+		<h2><small>Event source</small></h2>
+		<h2 id="your_browser_eventsource"></h2>
+	</div>
+	<div class="span3" rel="popover" data-original-title="What?" data-content="Local storage provides a way to store data on your computer - in this service it's for shorter page loading times.">
+		<h2><small>localStorage</small></h2>
+		<h2 id="your_browser_localstorage"></h2>
+	</div>
+	<div class="span3" rel="popover" data-original-title="What?" data-content="Desktop notifications show small notification on your desktop when some service goes down. You have to specifically allow these - it's off by default.">
+		<h2><small>Desktop notifications</small></h2>
+		<h2 id="your_browser_notifications"></h2>
+	</div>
+	<div class="span3" rel="popover" data-original-title="What?" data-content="Application cache stores whole site (just about 2MB, it's pretty small) on your browser, which means very or instant fast page loads">
+		<h2><small>Application cache</small></h2>
+		<h2 id="your_browser_appcache"></h2>
 	</div>
 </div>
 

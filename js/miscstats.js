@@ -12,6 +12,22 @@ String.prototype.hashCode = function(){
 }
 
 function fetch_data() {
+    function fetch_initial() {
+        var items = [[localStorage, "localstorage"], [EventSource, "eventsource"], [window.applicationCache, "appcache"], [window.webkitNotifications, "notifications"]];
+        for (var item in items) {
+             if (items[item][0]) {
+                 $("#your_browser_"+items[item][1]).html("Supported");
+             } else {
+                 $("#your_browser_"+items[item][1]).html("Supported");
+             }
+        }
+    }
+
+    if (!$("body").data("miscstats-fetch-initial-done")) {
+        $("body").data("miscstats-fetch-initial-done", true);
+        fetch_initial();
+    }
+
     var graphs = [
         "?p=disk&pi=xvda1&t=disk_ops",
         "?p=load&pi=&t=load",
