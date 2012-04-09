@@ -39,6 +39,12 @@
 	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/misc-stats&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Server stats&quot;</span><span class="hl opt">),</span>
 	<span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;/page/what&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;What?&quot;</span><span class="hl opt">));</span>
 
+<span class="hl kwc">$manifestenabled</span> <span class="hl opt">=</span> false<span class="hl opt">;</span>
+<span class="hl kwa">foreach</span> <span class="hl opt">(</span><span class="hl kwc">$pages</span> <span class="hl kwa">as</span> <span class="hl kwc">$k</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$v</span><span class="hl opt">) {</span>
+    <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$_SERVER</span><span class="hl opt">[</span><span class="hl str">&quot;REQUEST_URI&quot;</span><span class="hl opt">] ==</span> <span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]) {</span>
+        <span class="hl kwc">$manifestenabled</span> <span class="hl opt">=</span> true<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+<span class="hl opt">}</span>
 <span class="hl kwa">function</span> <span class="hl kwd">callback</span><span class="hl opt">(</span><span class="hl kwc">$buffer</span><span class="hl opt">) {</span>
     <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
     <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
@@ -50,7 +56,7 @@
 ?<span class="hl opt">&gt;</span>
 
 <span class="hl opt">&lt;!</span>DOCTYPE html<span class="hl opt">&gt;</span>
-<span class="hl opt">&lt;</span>html lang<span class="hl opt">=</span><span class="hl str">&quot;en&quot;</span> manifest<span class="hl opt">=</span><span class="hl str">&quot;/cache.manifest&quot;</span><span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;</span>html lang<span class="hl opt">=</span><span class="hl str">&quot;en&quot;</span><span class="hl opt">&lt;</span>?<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$manifestenabled</span><span class="hl opt">) {</span>?<span class="hl opt">&gt;</span> manifest<span class="hl opt">=</span><span class="hl str">&quot;/cache.manifest&quot;</span><span class="hl opt">&lt;</span>?<span class="hl opt">}</span>?<span class="hl opt">&gt;&gt;</span>
   <span class="hl opt">&lt;</span>head<span class="hl opt">&gt;</span>
     <span class="hl opt">&lt;</span>meta charset<span class="hl opt">=</span><span class="hl str">&quot;utf-8&quot;</span><span class="hl opt">&gt;</span>
     <span class="hl opt">&lt;</span>title<span class="hl opt">&gt;</span>status<span class="hl opt">.</span>futurice<span class="hl opt">.</span>com<span class="hl opt">&lt;/</span>title<span class="hl opt">&gt;</span>

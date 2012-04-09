@@ -31,6 +31,12 @@ $pages = array(array("/", "Home"),
 	array("/page/misc-stats", "Server stats"),
 	array("/page/what", "What?"));
 
+$manifestenabled = false;
+foreach ($pages as $k => $v) {
+    if ($_SERVER["REQUEST_URI"] == $v[0]) {
+        $manifestenabled = true;
+    }
+}
 function callback($buffer) {
     $buffer = str_replace("\r\n", " ", $buffer);
     $buffer = str_replace("\n", " ", $buffer);
@@ -42,7 +48,7 @@ ob_start("callback");
 ?>
 
 <!DOCTYPE html>
-<html lang="en" manifest="/cache.manifest">
+<html lang="en"<?if ($manifestenabled) {?> manifest="/cache.manifest"<?}?>>
   <head>
     <meta charset="utf-8">
     <title>status.futurice.com</title>
