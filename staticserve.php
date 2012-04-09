@@ -16,6 +16,7 @@ $filename = $_GET["filename"];
 $pathinfo = pathinfo($filename);
 $dir = $pathinfo["dirname"];
 if (!in_array($dir, array("css", "js", "img")) || !file_exists($filename)) {
+    error_log("staticserve.php: Invalid directory or file ($filename) doesn't exist");
     $redis->incr("stats:web:static:invalid");
     $redis->incr("stats:web:invalid");
     stat_update("web:static:invalid");
