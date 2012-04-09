@@ -56,8 +56,17 @@ foreach ($follow_files as $k => $v) {
         $follow_files[$k]["mtime"] = filemtime($v["filename"]);
         $follow_files[$k]["hash"] = sha1_file($v["filename"]);
     }
+    send_event($redis, $v["event"], $follow_files[$k]["mtime"], 0, $v["filename"]);
 }
 
+function send_event($redis, $event, $new_mtime, $old_mtime, $filename) {
+    $redis->incr("stats:web:sse:event_sent");
+    stat_update("web:sse:event_sent");
+    echo "event: ".$event."\n";
+    echo "data: {\"timestamp\": $new_mtime, \"old_timestamp\": ".$old_mtime.", \"filename\": \"".$filename."\"}\n\n";
+    ob_flush();
+    flush();
+}
 
 function listen_pubsub($redis, $chan, $msg) {
     global $follow_files;
@@ -68,13 +77,8 @@ function listen_pubsub($redis, $chan, $msg) {
         if ($chan == "pubsub:".$v["filename"]) {
             $new_hash = $msg_decode["hash"];
             if ($new_hash != $v["hash"]) {
-                $redis->incr("stats:web:sse:event_sent");
-                stat_update("web:sse:event_sent");
                 $new_mtime = $msg_decode["mtime"];
-                echo "event: ".$v["event"]."\n";
-                echo "data: {\"timestamp\": $new_mtime, \"old_timestamp\": ".$v["mtime"].", \"filename\": \"".$v["filename"]."\"}\n\n";
-                ob_flush();
-                flush();
+                send_event($redis, $v["event"], $new_mtime, $v["mtime"], $v["filename"]);
                 $follow_files[$k]["hash"] = $new_hash;
                 $follow_files[$k]["mtime"] = $new_mtime;
             }
