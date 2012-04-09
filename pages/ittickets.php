@@ -5,38 +5,19 @@
                 overflow: auto;
                 clear: left;
             }
-            .invisible {
-                visibility: hidden;
-            }
             .hidden {
                 display: none;
             }
-            #legend,
-            #legend2 {
-                -moz-border-radius: 2px;
-                -webkit-border-radius: 2px;
-                width: 1em;
-                height: 1em;
-                border: solid 1px #000;
-                margin-right: .3em;
-                line-height: 1;
-            }
-            #name,
             #name2 {
                 float: left;
                 clear: left;
             }
-            #name div,
             #name2 div {
                 float: left;
             }
             #placeholder {
                 clear: left;
                 color: #999;
-            }
-            em {
-                color: #666;
-                font-style: normal;
             }
 </style>
 
