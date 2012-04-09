@@ -12237,6 +12237,8 @@ $(document).ready(function() {
     $("[rel=popover]").popover({"placement": popover_placement});
     setInterval("check_appcache_update();", 1000 * 60 * 30); // Check for new application cache twice per hour.
 });
+// Sequence diagram for client polling: docs/clientpolling.png
+
 function set_last_data(filename, data) {
     data = JSON.stringify(data);
     if (localStorage) {
@@ -12247,7 +12249,6 @@ function set_last_data(filename, data) {
 }
 
 function set_last_data_timestamp(filename, data) {
-    console.log("Setting last timestamp for "+filename+" to "+data);
     if (localStorage) {
         localStorage.setItem(filename+"-timestamp", data);
     } else {
@@ -12447,9 +12448,7 @@ function animate_change($elem, data, continueold) {
                 settings.thiselem.data("sserunning", true);
                 if (get_last_data_timestamp(settings.filewatch) < data.timestamp - 20) {
                     $(settings.next_reload_id).data("reload-timestamp", 0);
-                    console.log("v2 Local storage version is older than newest on the server: ", get_last_data_timestamp(settings.filewatch), data.timestamp - 20);
                 } else {
-                    console.log("Local storage version is newer than newest on the server. Skip.");
                 }
             }, false);
 
