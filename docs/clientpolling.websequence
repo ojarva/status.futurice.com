@@ -1,0 +1,25 @@
+Client->Server: Request page
+activate Server
+Server->Redis: update statistics
+Server->Client: Serve page
+deactivate Server
+Client->Client: render page data from localStorage
+alt SSE available
+Client->SSE Server: SSE connection
+activate SSE Server
+SSE Server->Redis: update statistics
+SSE Server->Redis: Fetch data file hashes and modification times
+Redis->SSE Server: reply
+SSE Server->Redis: subscribe to file change notifications
+SSE Server->Client: update event for requested data files
+Client->Client: compare SSE reply timestamps to local storage versions
+Client->Server: if server version is newer, fetch data
+activate Server
+else SSE not available
+Client->Server: periodically poll server for new data with timestamp
+end
+Server->Redis: update statistics
+Server->Client: Construct reply, send data only if mtime>client timestamp
+deactivate Server
+Client->Client: Update page if server sent anything.
+

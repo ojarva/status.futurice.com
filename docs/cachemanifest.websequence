@@ -1,0 +1,25 @@
+Client->Server: Request page
+note over Server
+    If URL is valid,
+    include cache manifest
+end note   
+activate Server
+Server->Client: Serve page
+deactivate Server
+Client->Server: fetch cache manifest
+activate Server
+Server->Client: serve
+deactivate Server
+Client->Client: parse cache manifest
+loop Fetch cache
+    Client->Server: Request cache manifest entry
+    activate Server
+    Server->Client: reply
+    deactivate Server
+    note over Client: if fetch fails, abort.
+end
+opt No errors during fetch
+    Client->Client: swap new cache into use
+    note over Client: ask user to reload the page
+end
+
