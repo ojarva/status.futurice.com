@@ -15,7 +15,7 @@ ALL_FILES+=${PER_PAGE_JS_DEST}
 all: ${ALL_FILES} cache.manifest
 
 
-cache.manifest: ${ALL_FILES}
+cache.manifest: ${ALL_FILES} cache.manifest
 	sed -i s/'\# version: .*'/"\# version: `date +%s`"/ $@
 	redis-cli publish "pubsub:cache.manifest" "{\"mtime\": `date +%s`, \"hash\": \"`cat $@ | md5sum | awk {'print $1'}`\"}"
 
