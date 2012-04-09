@@ -117,8 +117,6 @@ function animate_change($elem, data, continueold) {
 
             $(this).data("pagerefresh_settings", settings);
 
-            $(settings.next_reload_id).data("reload-timestamp", 0);
-
             $(settings.update_button_id).click(function() {
                  settings.thiselem.pagerefresh("fetch");
             });
@@ -128,7 +126,12 @@ function animate_change($elem, data, continueold) {
                 settings.sse = true;
 
                 $(this).pagerefresh("enableSSE", settings.thiselem);
-                $(this).data("sserunning", true);
+            }
+
+            if (settings.sse) {
+                $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
+            } else {
+                $(settings.next_reload_id).data("reload-timestamp", 0);
             }
 
             $(window).blur(function () {
@@ -182,18 +185,22 @@ function animate_change($elem, data, continueold) {
             }, false);
 
             source.addEventListener('changeevent', function(e) {
+                settings.thiselem.data("sserunning", true);
                 $(settings.next_reload_id).data("reload-timestamp", 0);
             }, false);
 
             source.addEventListener('manifestchange', function(e) {
+                settings.thiselem.data("sserunning", true);
                 try { window.window.applicationCache.update(); } catch (e) {}
             }, false);
 
             source.addEventListener('open', function(e) {
+                settings.thiselem.data("sserunning", true);
                 settings.thiselem.pagerefresh("savesetting", "sse", true);
             }, false);
 
             source.addEventListener('error', function(e) {
+                settings.thiselem.data("sserunning", false);
                 settings.thiselem.pagerefresh("savesetting", "sse", false);
             }, false);
             settings.thiselem.data("ssesource", source);

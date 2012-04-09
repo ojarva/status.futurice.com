@@ -12100,15 +12100,23 @@ function hide_popovers() {
     });
 }
 
-$(document).ready(function () {
-    var onlinestatus = window.navigator.onLine,
-        key;
+function setOnline() {
+    var onlinestatus = window.navigator.onLine;
     if (onlinestatus !== false) {
         onlinestatus = true;
     }
+    $("#onlinealert").alert("close");
+    $("#onlinealert").remove();
     if (!onlinestatus) {
-        $("#notify-box").append("<div class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
+        $("#notify-box").append("<div id='onlinealert' class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
+        $("#notify-box").alert();
     }
+}
+$(document).ready(function () {
+    setOnline();
+    addEventListener("online", function(){setOnline();}, false);
+    addEventListener("offline", function(){setOnline();}, false);
+
     $("#reload-button").data("action", "update");
     try {
         $("#reload-button").click(function() {
@@ -12348,8 +12356,6 @@ function animate_change($elem, data, continueold) {
 
             $(this).data("pagerefresh_settings", settings);
 
-            $(settings.next_reload_id).data("reload-timestamp", 0);
-
             $(settings.update_button_id).click(function() {
                  settings.thiselem.pagerefresh("fetch");
             });
@@ -12359,7 +12365,12 @@ function animate_change($elem, data, continueold) {
                 settings.sse = true;
 
                 $(this).pagerefresh("enableSSE", settings.thiselem);
-                $(this).data("sserunning", true);
+            }
+
+            if (settings.sse) {
+                $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
+            } else {
+                $(settings.next_reload_id).data("reload-timestamp", 0);
             }
 
             $(window).blur(function () {
@@ -12413,18 +12424,22 @@ function animate_change($elem, data, continueold) {
             }, false);
 
             source.addEventListener('changeevent', function(e) {
+                settings.thiselem.data("sserunning", true);
                 $(settings.next_reload_id).data("reload-timestamp", 0);
             }, false);
 
             source.addEventListener('manifestchange', function(e) {
+                settings.thiselem.data("sserunning", true);
                 try { window.window.applicationCache.update(); } catch (e) {}
             }, false);
 
             source.addEventListener('open', function(e) {
+                settings.thiselem.data("sserunning", true);
                 settings.thiselem.pagerefresh("savesetting", "sse", true);
             }, false);
 
             source.addEventListener('error', function(e) {
+                settings.thiselem.data("sserunning", false);
                 settings.thiselem.pagerefresh("savesetting", "sse", false);
             }, false);
             settings.thiselem.data("ssesource", source);
