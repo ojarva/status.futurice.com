@@ -695,41 +695,46 @@ body {
   padding-top: 60px;
 }
 
-.dt .status {
- display: inline-block;
- width: 24px;
- height: 24px;
-}
 
-span.icon {
+.serviceicon {
  display: inline-block;
  text-indent: -999em;
  font-size: 0;
  width: 24px;
  height: 24px;
+ background: url(../img/ui-images.png);
+ background-position: 0px 0px;
+ background-repeat: no-repeat;
+ display: block;
 }
 
-span.icon.green {
- background-image: url(../img/green.png);
+.status.down {
+  background-position: 0px 0px;
 }
 
-span.icon.yellow {
- background-image: url(../img/yellow.png);
+.status.up {
+  background-position:  -52px -26px;
 }
 
-span.icon.grey {
- background-image: url(../img/unknown.png);
+.status.paused {
+  background-position:  0px -26px;
 }
 
-.dt .status.up {
- background-image: url(../img/up.png);
-}
-.dt .status.paused {
- background-image: url(../img/paused.png);
+.serviceicon.green {
+  background-position:  -26px 0px;
 }
 
-.dt .status.down {
- background-image: url(../img/down.png);
+.serviceicon.red {
+  background-position:  -26px -26px;
+}
+
+.serviceicon.unknown {
+  background-position:  -52px 0px;
+}
+
+
+.serviceicon.yellow {
+  background-position:  0px -52px;
 }
 .clearfix{*zoom:1;}.clearfix:before,.clearfix:after{display:table;content:"";}
 .clearfix:after{clear:both;}

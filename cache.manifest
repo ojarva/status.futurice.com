@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# version: 1333958036
+# version: 1333961879
 
 /
 /page/main
@@ -13,24 +13,18 @@ CACHE MANIFEST
 /js/services.min.js
 /js/ittickets.min.js
 /js/servicedetails.min.js
+
 /js/combined.min.js
 /js/combined.raphael.min.js
 /css/combined.min.css
 
-/img/down.png
 /img/glyphicons-halflings.png
 /img/glyphicons-halflings-white.png
-/img/green.png
 /img/loading.gif
 /img/loading-inline.gif
 /img/loading-inline-micro.gif
 /img/loading-mini.gif
-/img/paused.png
-/img/red.png
-/img/ui-combined.png
-/img/unknown.png
-/img/up.png
-/img/yellow.png
+/img/ui-images.png
 
 /img/carousel/01.jpg
 /img/carousel/02.jpg
