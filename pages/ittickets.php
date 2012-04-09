@@ -76,7 +76,7 @@
 		<h2><small>Open tickets</small></h2>
 		<h2 id="open_tickets"><img src="/img/loading-inline.gif"></h2>
 	</div>
-	<div class="span3" id="total-tickets-popover">
+	<div class="span3" data-content="This is the total number of tickets since March 2010, including automatic messages" data-original-title="What?" data-placement="top">
 		<h2><small>Total number of tickets</small></h2>
 		<h2 id="all_tickets"><img src="/img/loading-inline.gif"></h2>
 	</div>

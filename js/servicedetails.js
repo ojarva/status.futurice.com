@@ -22,8 +22,6 @@ function automatic_moment_update() {
     setTimeout("automatic_moment_update()", 1000);
 }
 
-
-
 function fetch_data() {
     var data = $("body").data("pagerefresh-data").content;
     $("#last_error").data("moment-timeout", data.autofill.lasterrortime*1000);

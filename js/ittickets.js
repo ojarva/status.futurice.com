@@ -16,14 +16,6 @@ function fetch_data() {
         $("#emailpieholder").empty();
         draw_dots_chart(ticketdata.dots.all);
 
-        var $ticketid = $("#total-tickets-popover");
-        $ticketid.data('content', "This is the total number of tickets since March 2010 ("+moment("2010-03-15", "YYYY-MM-DD").fromNow()+"), including automatic messages");
-        $ticketid.data("original-title", "What?");
-        $ticketid.data("placement", "top");
-        $ticketid.attr("rel", "popover");
-        hide_popovers();
-        $ticketid.popover({"placement": popover_placement});
-
         $("#dots_all").addClass("active");
 
     }
@@ -31,11 +23,18 @@ function fetch_data() {
     function draw_dots_chart(datain) {
         $dotschart.empty();
         var r = Raphael("dotschart");
-        var xs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+        var xs = [];
             ys = [];
             data = datain.date_stats,
             axisy = datain.ytitles;
             axisx = datain.xtitles;
+
+        for (var a = 0; a < 7; a++) {
+            for (var i = 0; i < 24; i++) {
+                xs.push(i);
+            }
+        }
+
         for (var y = 0; y < 7; y++) {
             for (var i = 0; i < 24; i++) {
                 ys.push(y);
