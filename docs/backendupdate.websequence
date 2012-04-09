@@ -1,13 +1,15 @@
 Backend->Backend: Fetch&Parse data
-opt Cache data
-    Backend->Redis: store to cache:...
-end
-opt Remote backend
+alt Remote backend
     note over Backend
         upload data to upload.php
         from now on, upload.php
         handles everything
     end note
+else Local backend
+opt Cache data
+    Backend->Redis: store to cache:...
+end
+Backend->Redis: Update stats:
 end
 opt Binary data
     note over Backend
@@ -15,14 +17,14 @@ opt Binary data
          save json stub to Redis.
     end note
 end
-Backend->Redis: save json to data:...
-Backend->Redis: save hash to data:...-hash
-Backend->Redis: save timestamp to data:...-mtime
-Backend->Redis: send pubsub to pubsub:data:...
+Backend->Redis: save json to data:X
+Backend->Redis: save hash to data:X-hash
+Backend->Redis: save timestamp to data:X-mtime
+Backend->Redis: send pubsub to pubsub:data:X
 note over Backend,Redis: Notification includes timestamp, hash and filename
-SSE->Redis: subscribed to pubsub:data:...
+note over SSE,Client: browser subscribed to X
+note over Redis,SSE: subscribed to pubsub:data:X
 Redis->SSE: pubsub notification
-
 opt Hash changed from previous one
 SSE->Client: Send changeevent
 note over SSE,Client
