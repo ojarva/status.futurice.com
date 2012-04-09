@@ -1,3 +1,5 @@
+// Sequence diagram for client polling: docs/clientpolling.png
+
 function set_last_data(filename, data) {
     data = JSON.stringify(data);
     if (localStorage) {
@@ -8,6 +10,7 @@ function set_last_data(filename, data) {
 }
 
 function set_last_data_timestamp(filename, data) {
+    console.log("Setting last timestamp for "+filename+" to "+data);
     if (localStorage) {
         localStorage.setItem(filename+"-timestamp", data);
     } else {
@@ -121,6 +124,24 @@ function animate_change($elem, data, continueold) {
                  settings.thiselem.pagerefresh("fetch");
             });
 
+
+            if (!$("body").data(settings.filewatch+"-localstorage-loaded")) {
+                $("body").data(settings.filewatch+"-localstorage-loaded", true);
+                data = get_last_data(settings.filewatch);
+                if (data) {
+                    $("body").data("pagerefresh-data", data);
+                    eval(settings.refresh_callback);
+                    settings.thiselem.pagerefresh("autofill");
+                    settings.thiselem.pagerefresh("fetch_done", $("body").data("pagerefresh-data").content_timestamp*1000);
+                }
+                twitter = get_last_data("twitter.json");
+                if (twitter) {
+                    $("body").data("pagerefresh-twitter", twitter);
+                    eval(settings.refresh_twitter_callback);
+                }
+            }
+
+
             if (EventSource && settings.filewatch) {
                 $(this).pagerefresh("savesetting", "sse", true);
                 settings.sse = true;
@@ -185,8 +206,14 @@ function animate_change($elem, data, continueold) {
             }, false);
 
             source.addEventListener('changeevent', function(e) {
+                var data = JSON.parse(e.data);
                 settings.thiselem.data("sserunning", true);
-                $(settings.next_reload_id).data("reload-timestamp", 0);
+                if (get_last_data_timestamp(settings.filewatch) < data.timestamp - 20) {
+                    $(settings.next_reload_id).data("reload-timestamp", 0);
+                    console.log("v2 Local storage version is older than newest on the server: ", get_last_data_timestamp(settings.filewatch), data.timestamp - 20);
+                } else {
+                    console.log("Local storage version is newer than newest on the server. Skip.");
+                }
             }, false);
 
             source.addEventListener('manifestchange', function(e) {
@@ -274,24 +301,11 @@ function animate_change($elem, data, continueold) {
                 console.log("No settings available (fetch)");
                 return;
             }
+
             $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.current_timeout * 1000);
             $(settings.spinner_id).show();
             $(settings.update_button_id).addClass("disabled");
 
-            if (!$("body").data(settings.filewatch+"-localstorage-loaded")) {
-                $("body").data(settings.filewatch+"-localstorage-loaded", true);
-                data = get_last_data(settings.filewatch);
-                if (data) {
-                    $("body").data("pagerefresh-data", data);
-                    eval(settings.refresh_callback);
-                    settings.thiselem.pagerefresh("autofill");
-                }
-                twitter = get_last_data("twitter.json");
-                if (twitter) {
-                    $("body").data("pagerefresh-twitter", twitter);
-                    eval(settings.refresh_twitter_callback);
-                }
-            }
             var url = "/json.php?filename="+settings.filewatch+"&last_data="+get_last_data_timestamp(settings.filewatch);
             $.get(url, function(data) {
                 if (data.status == "success") {
