@@ -15,15 +15,23 @@ function hide_popovers() {
     });
 }
 
-$(document).ready(function () {
-    var onlinestatus = window.navigator.onLine,
-        key;
+function setOnline() {
+    var onlinestatus = window.navigator.onLine;
     if (onlinestatus !== false) {
         onlinestatus = true;
     }
+    $("#onlinealert").alert("close");
+    $("#onlinealert").remove();
     if (!onlinestatus) {
-        $("#notify-box").append("<div class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
+        $("#notify-box").append("<div id='onlinealert' class='alert alert-block'><a class='close' data-dismiss='alert'>×</a><h4 class='alert-heading'>Running in offline mode</h4>Your browser is in offline mode, and this page comes from application cache. Data shown in these pages is not up-to-date or it might not ever load.</div>");
+        $("#notify-box").alert();
     }
+}
+$(document).ready(function () {
+    setOnline();
+    addEventListener("online", function(){setOnline();}, false);
+    addEventListener("offline", function(){setOnline();}, false);
+
     $("#reload-button").data("action", "update");
     try {
         $("#reload-button").click(function() {
