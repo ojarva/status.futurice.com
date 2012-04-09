@@ -24,6 +24,11 @@ directly. That's the only time critical page - if everything something is broken
 and RT statistics are not working, but [services status page](http://status.futurice.com/page/services) 
 shows up-to-date information.
 
+Basic documentation:
+
+* [Hosted at github](https://github.com/ojarva/status.futurice.com/tree/master/docs)
+* [Redis prefixes](https://github.com/ojarva/status.futurice.com/blob/master/docs/redis_key_prefixes.md)
+
 How to install
 --------------
 
@@ -39,6 +44,7 @@ On server running this site:
 * Configure apache2 (*a2enmod php5 rewrite headers deflate expires*)
 * Install PhpRedis: https://github.com/nicolasff/phpredis
 * Install pecl_http: http://pecl.php.net/package/pecl_http (*sudo pecl install pecl_http*)
+* Change PHP session handler to redis (it'll not work with default settings).
 
 On your RT server:
 
@@ -72,4 +78,5 @@ This list is just some useful documents and links used while creating this servi
 * [Server-sent events](http://www.html5rocks.com/en/tutorials/eventsource/basics/) and [W3 EventSource draft](http://www.w3.org/TR/eventsource/)
 * [caniuse.com](http://caniuse.com/)
 * [Web notifications](http://www.w3.org/TR/notifications/)
+* [Local storage](http://dev.w3.org/html5/webstorage/)
 * [Pingdom API](http://www.pingdom.com/services/api-documentation-rest/)
