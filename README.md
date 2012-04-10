@@ -30,48 +30,91 @@ Basic documentation:
 * [Hosted at github](https://github.com/ojarva/status.futurice.com/tree/master/docs)
 * [Redis prefixes](https://github.com/ojarva/status.futurice.com/blob/master/docs/redis_key_prefixes.md)
 
-How to install
---------------
+Installation instructions
+=========================
 
-External systems:
+External systems
+----------------
 
-* Configure Pingdom
-* Install and configure RT (if you want to use "IT tickets" page)
-* Configure [network weathermap](http://www.network-weathermap.com/)
+Configure Pingdom. Get API key from Pingdom control panel.
 
-On server running this site:
+On server running this site
+---------------------------
 
-* Install python, highlight, redis, python-redis, python-dateutil, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor, rrdtool, python-rrdtool and make (*apt-get install python python-redis redis-server python-dateutil highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool*).
-* Configure apache2 (*a2enmod php5 rewrite headers deflate expires*)
-* Install PhpRedis: https://github.com/nicolasff/phpredis
-* Install pecl_http: http://pecl.php.net/package/pecl_http (*sudo pecl install pecl_http*)
-* Change PHP session handler to redis (it'll not work with default settings).
+Install following packages: python, highlight, collectd, redis, python-redis, python-dateutil, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor, rrdtool, python-rrdtool and make. In Debian/Ubuntu:
 
-On your RT server:
+```
+sudo apt-get install collectd python python-redis redis-server python-dateutil highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool
+```
 
-* Move *backend/rt_settings.py.example* to *backend/rt_settings.py* and configure relevant variables
-* Add *backend/fetch_rt.py* to crontab (preferrably on separate server running RT)
+Configure apache2:
 
-To this code:
+```
+sudo a2enmod php5 rewrite headers deflate expires
+```
+
+Install PhpRedis: https://github.com/nicolasff/phpredis
+
+Install pecl_http: http://pecl.php.net/package/pecl_http
+
+```
+sudo pecl install pecl_http
+```
+
+Change PHP session handler to redis (it'll not work with default settings). In Debian/Ubuntu, */etc/php5/apache2/php.ini*:
+
+```
+   session.save_handler = redis
+   session.save_path = "tcp://localhost:6379?prefix=phpsession:&timeout=2"
+```
+
+To this code
+------------
 
 * Whenever you make changes, run *make* on top directory to generate minified versions and to update application cache manifest timestamp
+* Modify *pages/main.php* (for example company name)
 * Modify *pages/what.php* to match with your ideologies and technologies used.
-* Add carousel (on what? page) images to *img/carousel/*. We recommend 1200x400, but you can use whatever resolution you want. UI doesn't scale images.
 * Move *upload_settings.php.sample* to *upload_settings.php*. Change *$password*, and add same password to backend settings.
+* Optional: add carousel (on ["What?"](http://status.futurice.com/page/what) page) images to *img/carousel/*. See *img/carousel/README.md* for more information.
+
+On your RT server
+-----------------
+
+For security reasons, it might be good idea to run RT on separate server.
+
+* Install and configure [RT](http://bestpractical.com/rt/) (if you want to use "IT tickets" page)
+* Copy *backend/rt_settings.py.example* to your RT server. Rename it to *rt_settings.py* and configure relevant variables
+* Copy *backend/fetch_rt.py* to your RT server. Add it to crontab.
+
+Network weathermap
+------------------
+
+* Configure [network weathermap](http://www.network-weathermap.com/)
+* For output image, something like 900x950px is good.
+* *backend/monitor_and_upload_file.py* handles file upload, if network weathermap runs on separate server (recommended).
+
+Printer statuses
+----------------
+
+It's recommended to run printer status update from separate server - server running public status pages shouldn't have access to printers at all.
+
+* Enable SNMP on your printers. **Some printer drivers use SNMP too - changing community might break something**.
+* Don't enable write access for this script.
+* *printer_status.py* fetches printer status using SNMP. Configure *printer_settings.py.sample*. Requires net-snmp package.
+
 
 Backend components (*backend/*)
+-------------------------------
 
 * Move *pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
 * Add *fetch_pingdom.py* to crontab (suggestion: every minute - fetches only current statuses every minute, other details less often)
 * Add *fetch_twitter.py* to crontab. First argument is your twitter username. (suggestion: once per few minutes)
 * Add *frontpage_json.py* to crontab (suggestion: every minute)
 * Add *miscstats_json.py* to crontab (suggestion: every minute)
-* If your weathermap runs on separate server, run *monitor_and_upload_file.py* there.
-* *printer_status.py* fetches printer status using SNMP. Configure *printer_settings.py.sample*. Requires net-snmp package.
 
 
 Relevant sites/documents
-------------------------
+========================
 
 This list is just some useful documents and links used while creating this services.
 
