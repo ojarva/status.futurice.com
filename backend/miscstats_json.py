@@ -24,26 +24,7 @@ class Miscstats:
         return {"stats:server:uptime": uptime_original, "stats.server:uptime:readable": uptime}
 
     def get_redis_info(self):
-        p = subprocess.Popen(["redis-cli", "info"], stdout=subprocess.PIPE)
-        (content, _) = p.communicate()
-        ret = {}
-        content = content.replace("\r", "")
-        content = content.split("\n")
-        for line in content:
-            line = line.split(":")
-            if len(line) != 2:
-                continue
-            try:
-                value = float(line[1])
-            except ValueError, TypeError:
-                value = line[1]
-            if line[0] == "db0":
-                splitvalue = value.split(",")
-                for a in splitvalue:
-                    a = a.split("=")
-                    ret["stats:redis:%s:%s" % (line[0], a[0])] = float(a[1])
-            ret["stats:redis:%s" % line[0]] = value
-        return ret
+        return self.redis.info()
 
     def get_load_avg(self):
         content = open("/proc/loadavg").read().strip()
@@ -93,6 +74,16 @@ class Miscstats:
         def format_key(keyname):
             return keyname.replace(":", "_")
 
+        def format_value(value):
+            try:
+                value = float(value)
+                if value.is_integer():
+                    value = int(value)
+                
+            except:
+                pass
+            return value
+
         set_values = {}
         set_values.update(self.get_uptime())
         set_values.update(self.get_redis_info())
@@ -100,13 +91,11 @@ class Miscstats:
         set_values.update(self.get_traffic())
         self.redis.mset(set_values)
 
-        p = subprocess.Popen(["/usr/bin/redis-cli", "keys", 'stats:*'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (keysraw, errors) = p.communicate()
-        keys = keysraw.split("\n")
+        keys = self.redis.keys("stats:*")
         values = self.redis.mget(keys)
+        values_done = map(format_value, values)
         keys_done = map(format_key, keys)
-        final_values = dict(zip(keys_done, values))
-        del final_values[""]
+        final_values = dict(zip(keys_done, values_done))
 
         content = json.dumps({"autofill": final_values})
 
@@ -137,9 +126,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-"""
-
-
-?>
-"""
