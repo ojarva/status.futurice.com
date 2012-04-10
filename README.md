@@ -33,6 +33,8 @@ Basic documentation:
 Installation instructions
 =========================
 
+See also *docs/* directory for more information.
+
 External systems
 ----------------
 
@@ -64,8 +66,8 @@ sudo pecl install pecl_http
 Change PHP session handler to redis (it'll not work with default settings). In Debian/Ubuntu, */etc/php5/apache2/php.ini*:
 
 ```
-   session.save_handler = redis
-   session.save_path = "tcp://localhost:6379?prefix=phpsession:&timeout=2"
+session.save_handler = redis
+session.save_path = "tcp://localhost:6379?prefix=phpsession:&timeout=2"
 ```
 
 To this code
@@ -106,12 +108,20 @@ It's recommended to run printer status update from separate server - server runn
 Backend components (*backend/*)
 -------------------------------
 
+* **Don't run any of the scripts under root**
 * Move *pingdom_settings.py.example* to *backend/pingdom_settings.py* and configure relevant variables.
 * Add *fetch_pingdom.py* to crontab (suggestion: every minute - fetches only current statuses every minute, other details less often)
 * Add *fetch_twitter.py* to crontab. First argument is your twitter username. (suggestion: once per few minutes)
 * Add *frontpage_json.py* to crontab (suggestion: every minute)
 * Add *miscstats_json.py* to crontab (suggestion: every minute)
 
+This is what we have in crontab for regular user owning all files under */var/www*:
+
+```
+* * * * * cd /var/www/backend; python fetch_pingdom.py
+* * * * * cd /var/www/backend; python frontpage_json.py; python miscstats_json.py
+*/3 * * * * cd /var/www/backend; python fetch_twitter.py futurice
+```
 
 Relevant sites/documents
 ========================
