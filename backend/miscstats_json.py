@@ -24,7 +24,10 @@ class Miscstats:
         return {"stats:server:uptime": uptime_original, "stats.server:uptime:readable": uptime}
 
     def get_redis_info(self):
-        return self.redis.info()
+        ret = {}
+        for k, v in self.redis.info().items():
+            ret["stats:redis:%s" % k] = v
+        return ret
 
     def get_load_avg(self):
         content = open("/proc/loadavg").read().strip()
