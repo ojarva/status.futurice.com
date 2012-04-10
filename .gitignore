@@ -4,3 +4,5 @@
 *.pyc
 upload/*
 img/carousel/*
+*.js.min
+*.js.min2
