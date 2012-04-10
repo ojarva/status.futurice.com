@@ -10,6 +10,8 @@ COMBINED_JS_DEST=$(COMBINED_JS:.js=.js.min)
 
 SOURCE_RENDER=sources/index.php.html sources/backend/fetch_pingdom.py.html sources/backend/fetch_rt.py.html
 
+PNG_FILES=$(wildcard img/*.png)
+
 #JS_COMPILER=cat
 JS_COMPILER=java -jar /var/www/closure/compiler.jar
 #JS_COMPILER=yui-compressor 
@@ -29,6 +31,11 @@ fullclean: clean
 	find . -name \*.js.min -delete
 	find . -name \*.js.min2 -delete
 
+imagepack: ${PNG_FILES}
+
+
+img/%.png:
+	advpng -z4 $@
 
 cache.manifest: ${ALL_FILES}
 	sed -i s/'\# version: .*'/"\# version: `date +%s`"/ $@
