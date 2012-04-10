@@ -76,6 +76,7 @@ To this code
 * Whenever you make changes, run *make* on top directory to generate minified versions and to update application cache manifest timestamp
 * Modify *pages/main.php* (for example company name)
 * Modify *pages/what.php* to match with your ideologies and technologies used.
+* Feel free to change *favicon.ico* - by default it's Futurice company logo
 * Move *upload_settings.php.sample* to *upload_settings.php*. Change *$password*, and add same password to backend settings.
 * Optional: add carousel (on ["What?"](http://status.futurice.com/page/what) page) images to *img/carousel/*. See *img/carousel/README.md* for more information.
 
