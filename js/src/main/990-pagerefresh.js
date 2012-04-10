@@ -45,6 +45,9 @@ function get_last_data_timestamp(filename) {
 
 
 function handle_autofill(data) {
+    if (!(data && data.autofill)) {
+        return;
+    }
     for (var key in data.autofill) {
         var $elem = $("#" + key);
         if ($elem) {
@@ -127,14 +130,14 @@ function animate_change($elem, data, continueold) {
             if (!$("body").data(settings.filewatch+"-localstorage-loaded")) {
                 $("body").data(settings.filewatch+"-localstorage-loaded", true);
                 data = get_last_data(settings.filewatch);
-                if (data) {
+                if (data && data.content) {
                     $("body").data("pagerefresh-data", data);
                     eval(settings.refresh_callback);
                     settings.thiselem.pagerefresh("autofill");
                     settings.thiselem.pagerefresh("fetch_done", $("body").data("pagerefresh-data").content_timestamp*1000);
                 }
                 twitter = get_last_data("twitter.json");
-                if (twitter) {
+                if (twitter && twitter.content) {
                     $("body").data("pagerefresh-twitter", twitter);
                     eval(settings.refresh_twitter_callback);
                 }
