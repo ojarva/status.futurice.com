@@ -50,7 +50,7 @@ ob_start("callback");
     <meta charset="utf-8">
     <title>status.futurice.com</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Futurice IT status">
+    <meta name="description" content="Futurice IT status - because transparency brings shitloads of good">
     <meta name="author" content="Olli Jarva">
 
     <meta name="apple-mobile-web-app-capable" content="yes" />
