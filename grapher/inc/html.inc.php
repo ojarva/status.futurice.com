@@ -48,7 +48,8 @@ function html_start() {
           <a class="brand" href="/">Status</a>
           <div class="nav-collapse">
             <ul class="nav">
-
+		<li><a href="/">Home</a></li>
+		<li><a href="/grapher/host.php?h=status.futurice.com">Graphs frontpage</a></li>
            </ul>
 
           </div><!--/.nav-collapse -->

@@ -55,8 +55,6 @@ Configure apache2:
 sudo a2enmod php5 rewrite headers deflate expires
 ```
 
-Install PhpRedis: https://github.com/nicolasff/phpredis
-
 Install pecl_http: http://pecl.php.net/package/pecl_http
 
 ```

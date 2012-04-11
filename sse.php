@@ -8,8 +8,7 @@
 
 ini_set("default_socket_timeout", -1);
 set_time_limit(0);
-$redis = new Redis();
-$redis->connect('127.0.0.1', 6379, 0);
+require_once("lib/redis.php");
 require_once("lib/userstats.php");
 
 Header("Content-Type: text/event-stream");
@@ -25,7 +24,6 @@ if (isset($_GET["file"])) {
     $redis->incr("stats:web:sse:invalid");
     stat_update("web:invalid");
     stat_update("web:sse:invalid");
-    $redis->close();
     flush();
     exit();
 }
@@ -36,7 +34,6 @@ if ($redis->get($filename) === FALSE) {
     $redis->incr("stats:web:sse:invalid");
     stat_update("web:invalid");
     stat_update("web:sse:invalid");
-    $redis->close();
     flush();
     exit();
 }
@@ -68,7 +65,7 @@ function send_event($redis, $event, $new_mtime, $old_mtime, $filename) {
     flush();
 }
 
-function listen_pubsub($redis, $chan, $msg) {
+function process_pubsub($redis, $chan, $msg) {
     global $follow_files;
     stat_update("web:sse:pubsub_received");
     $redis->incr("stats:web:sse:pubsub_received");
@@ -87,23 +84,29 @@ function listen_pubsub($redis, $chan, $msg) {
     }
 }
 
-$redis_subscribe = array();
-foreach ($follow_files as $k => $v) {
-    $redis_subscribe[] = "pubsub:".$v["filename"];
-}
-
-$redis->subscribe($redis_subscribe, 'listen_pubsub');
+$pubredis = getRedis();
+$pubsub = $pubredis->pubSub();
+$pubsub->subscribe("pubsub:data:twitter.json", "pubsub:cache.manifest", "pubsub:".$filename);
 
 $counter = 1800;
 while ($counter > 0) {
-    $redis->incr("stats:web:sse:loop");
-    if ($counter % 60 == 0) {
-        echo "event: nop\ndata: nop\n\n";
-        ob_flush();
-        flush();
+  foreach ($pubsub as $message) {
+    switch($message->kind) {
+        case 'subscribe':
+            break;
+        case 'message':
+            process_pubsub($redis, $message->channel, $message->payload);
+            break;
     }
+
+    error_log("pubsub loop $counter");
+
     $counter--;
-    sleep(1);
+    if ($counter == 0) {
+        error_log("pubsub unsubscribe");
+        $pubsub->unsubscribe();
+    }
+  }
 }
-$redis->close();
+unset($pubsub);
 ?>

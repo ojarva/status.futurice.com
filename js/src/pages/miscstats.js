@@ -47,10 +47,10 @@ function fetch_data() {
         }
     });
 
-    $.get("/get_per_user_stats.php", function(data) {
+/*    $.get("/get_per_user_stats.php", function(data) {
         handle_autofill(data);
     });
-
+*/
 }
 
 $(document).ready(function () {

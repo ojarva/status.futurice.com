@@ -1,9 +1,6 @@
 <?php
-$redis = new Redis();
-$redis->connect("localhost");
-
+require_once("lib/redis.php");
 require_once("lib/userstats.php");
-
 
 Header("Content-Type: text/html; charset=utf-8");
 $pagename = "main";

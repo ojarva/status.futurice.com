@@ -1,6 +1,5 @@
 <?
-$redis = new Redis();
-$redis->connect("localhost");
+require_once("lib/redis.php");
 require_once("lib/userstats.php");
 
 if (!isset($_GET["filename"])) {
@@ -36,7 +35,7 @@ elseif ($dir == "img") {
 $redis->incr("stats:web:static:served");
 stat_update("web:static:served");
 
-#http_cache_last_modified();
+http_cache_last_modified();
 http_cache_etag();
 http_send_content_type($ct);
 http_send_file($filename);

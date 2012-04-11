@@ -3,6 +3,7 @@
 <h1>Miscellaneous stats <span id="update_data"></span></h1>
 
 
+<?/*
 <div class="row" style="padding-top:2em">
 	<div class="span12"><h2>Your usage</h2></div>
 </div>
@@ -35,6 +36,7 @@
 
 </div>
 <hr>
+*/?>
 <div class="row" style="padding-top:2em">
 	<div class="span12"><h2>Web</h2></div>
 </div>

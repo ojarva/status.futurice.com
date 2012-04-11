@@ -10,8 +10,7 @@ header("content-type: application/json");
 // Sample file is named as upload_settings.php.sample. Move it, and change password to something more complex.
 require_once("upload_settings.php");
 
-$redis = new Redis();
-$redis->connect("localhost");
+require_once("lib/redis.php");
 
 function response($success, $status) {
     return json_encode(array("success" => $success, "status" => $status));
@@ -72,5 +71,4 @@ if ($pinfo["extension"] == "json") {
         $redis->incr("stats:web:upload:filefailed");
     }
 }
-$redis->close();
 ?>

@@ -1,8 +1,7 @@
 <?
 session_start();
 Header("Content-Type: application/json");
-$redis = new Redis();
-$redis->connect("localhost");
+require_once("lib/redis.php");
 
 $ip = $_SERVER["REMOTE_ADDR"];
 $session = session_id();

@@ -1,7 +1,7 @@
 <?
 Header("Content-Type: application/json");
-$redis = new Redis();
-$redis->connect('127.0.0.1');
+
+require_once("lib/redis.php");
 require_once("lib/userstats.php");
 
 $ret = array("message_timestamp" => time(), "status" => false, "status_message" => false, "data" => array("file_timestamp" => false, "content_timestamp" => false, "content" => false), "twitter" => array("file_timestamp" => false, "content_timestamp" => false, "content" => false));
@@ -25,7 +25,6 @@ if ($data === FALSE) {
     $ret["status"] = "error";
     $ret["status_message"] = "Invalid filename";
     echo json_encode($ret);
-    $redis->close();
     exit();
 }
 if (isset($_GET["last_data"])) {
@@ -61,5 +60,4 @@ $ret["status"] = "success";
 echo json_encode($ret);
 $redis->incr("stats:web:json:processed");
 stat_update("web:json:processed");
-$redis->close();
 ?>
