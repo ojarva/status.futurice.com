@@ -41,7 +41,7 @@ function fetch_data() {
     $("#response_graph").css("height", 400).css("width", 1000);
     $("#uptime_graph").empty();
     $("#uptime_graph").css("height", 400).css("width", 1000);
-    var r = Raphael("response_graph"),
+    var r = Raphael("uptime_graph"),
                     fin = function () {
                         this.flag = r.popup(this.bar.x, this.bar.y, this.bar.value+"%" || "?%").insertBefore(this);
                     },
@@ -53,7 +53,7 @@ function fetch_data() {
                     };
     r.barchart(0,10,900,400, [per_day_up, per_day_unmonitored, per_day_downtime], {stacked: true}).hover(fin, fout);
 
-    var r = Raphael("uptime_graph");
+    var r = Raphael("response_graph");
     r.barchart(0,10,900,400, [per_day_response]).hover(fin_uptime, fout);
 }
 
