@@ -32,5 +32,5 @@ http_cache_etag();
 Header("Cache-Control: public; max-age=60");
 Header("Expires: ".gmdate("D, d M Y H:i:s", $lastmodified+60)." GMT");
 
-http_send_content_type($ct);
+http_send_content_type("image/jpeg");
 http_send_file($name);
