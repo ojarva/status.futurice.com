@@ -13,8 +13,8 @@ SOURCE_RENDER=sources/index.php.html sources/backend/fetch_pingdom.py.html sourc
 PNG_FILES=$(wildcard img/*.png)
 
 #JS_COMPILER=cat
-JS_COMPILER=java -jar /var/www/closure/compiler.jar
-#JS_COMPILER=yui-compressor 
+#JS_COMPILER=java -jar /var/www/closure/compiler.jar
+JS_COMPILER=yui-compressor 
 
 ALL_FILES=index.php css/combined.min.css js/combined.min.js js/combined.raphael.min.js
 ALL_FILES+=${PAGES}
