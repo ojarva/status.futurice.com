@@ -1,5 +1,5 @@
 <?
-session_start();
+//session_start();
 
 function stat_update($what) {
     global $redis;

@@ -21,7 +21,7 @@ class Miscstats:
         else:
             uptime = "%s minutes" % round(uptime_original / 60)
 
-        return {"stats:server:uptime": uptime_original, "stats.server:uptime:readable": uptime}
+        return {"stats:server:uptime": uptime_original, "stats:server:uptime:readable": uptime}
 
     def get_redis_info(self):
         ret = {}
@@ -50,7 +50,7 @@ class Miscstats:
                 line = line.strip().split("  ")
                 sum = int(line[0].split(":")[1].split(" ")[0])
                 sum += int(line[1].split(":")[1].split(" ")[0])
-                return {"stats:server:net:eth0:total": sum, "stats.server:net:eth0:total:readable": sizeof_fmt(sum)}
+                return {"stats:server:net:eth0:total": sum, "stats:server:net:eth0:total:readable": sizeof_fmt(sum)}
 
 
     def update_graphs(self, final_values):
@@ -92,7 +92,12 @@ class Miscstats:
         set_values.update(self.get_redis_info())
         set_values.update(self.get_load_avg())
         set_values.update(self.get_traffic())
+
         self.redis.mset(set_values)
+
+        for key in set_values:
+            self.redis.sadd("temp:keystore:stats", key)
+        self.redis.rename("temp:keystore:stats", "keystore:stats")
 
         keys = self.redis.keys("stats:*")
         values = self.redis.mget(keys)

@@ -1,0 +1,47 @@
+/*global jQuery */
+/*!	
+* FitText.js 1.0
+*
+* Copyright 2011, Dave Rupert http://daverupert.com
+* Released under the WTFPL license 
+* http://sam.zoy.org/wtfpl/
+*
+* Date: Thu May 05 14:23:00 2011 -0600
+*/
+
+(function( $ ){
+	
+$.fn.fitText = function( kompressor, options ) {
+    var settings = {
+        'minFontSize' : Number.NEGATIVE_INFINITY,
+        'maxFontSize' : Number.POSITIVE_INFINITY
+    };
+    return this.each(function(){
+        var $this = $(this); // store the object
+        var compressor = kompressor || 1; // set the compressor
+        if ( options ) { 
+            $.extend( settings, options );
+        }
+        // Resizer() resizes items based on the object width divided by the compressor * 10
+        var resizer = function () {
+            var fontsize = Math.max(Math.min($this.width() / (compressor*10), parseFloat(settings.maxFontSize)), parseFloat(settings.minFontSize));
+
+            $this.css('font-size', fontsize);
+            $this.css("line-height", fontsize+"px");
+        };
+        // Call once to set.
+        resizer();
+        // Call on resize. Opera debounces their resize by default. 
+        $(window).resize(resizer);
+    });
+};
+})( jQuery );
+
+function fetch_data() {
+    $("#bigtext").fitText(0.5, {"minFontSize": 30, "maxFontSize": 300});
+}
+
+$(document).ready(function () {
+    $("#bigtext").fitText(0.5, {"minFontSize": 30, "maxFontSize": 300});
+    $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "sauna.json"});
+});

@@ -144,12 +144,14 @@ function animate_change($elem, data, continueold) {
             }
 
 
-            if (EventSource && settings.filewatch) {
-                $(this).pagerefresh("savesetting", "sse", true);
-                settings.sse = true;
-
-                $(this).pagerefresh("enableSSE", settings.thiselem);
-            }
+            try {
+                if (EventSource && settings.filewatch) {
+                    $(this).pagerefresh("savesetting", "sse", true);
+                    settings.sse = true;
+ 
+                    $(this).pagerefresh("enableSSE", settings.thiselem);
+                }
+            } catch (e) {}
 
             if (settings.sse) {
                 $(settings.next_reload_id).data("reload-timestamp", (new Date()).getTime() + settings.long_timeout * 1000);
@@ -200,6 +202,9 @@ function animate_change($elem, data, continueold) {
         }, 
 
         enableSSE : function (element) {
+            if (!EventSource) {
+                return;
+            }
             var settings = element.data("pagerefresh_settings");
             var source = new EventSource("/sse.php?file="+settings.filewatch);
             settings.thiselem.data("sserunning", true);

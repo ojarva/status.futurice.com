@@ -78,9 +78,9 @@ window.addEventListener('load', function(e) {
             $("#reload-button").html("New version available");
             $("#reload-button").data("action", "reload");
             $("#reload-button").removeClass("disabled");
-            if (confirm('A new version of this site is available. Load it?')) {
+/*            if (confirm('A new version of this site is available. Load it?')) {
                 window.location.reload();
-            }
+            }*/
         } else {
             // Manifest didn't changed. Nothing new to server.
         }

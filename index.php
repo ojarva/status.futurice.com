@@ -84,7 +84,7 @@ ob_start("callback");
 ?>
             </ul>
 
-            <ul class="nav pull-right">
+            <ul class="nav pull-right" style="display:none">
              <li id="cache-status" style="display:; ">
               <form class="navbar-form"><button class="btn btn-small btn-inverse" id="reload-button">Current version</button></form>
              </li>
