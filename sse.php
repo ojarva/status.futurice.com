@@ -99,8 +99,6 @@ while ($counter > 0) {
             break;
     }
 
-    error_log("pubsub loop $counter");
-
     $counter--;
     if ($counter == 0) {
         error_log("pubsub unsubscribe");
