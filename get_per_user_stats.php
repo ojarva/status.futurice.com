@@ -1,5 +1,5 @@
 <?
-session_start();
+//session_start();
 Header("Content-Type: application/json");
 require_once("lib/redis.php");
 
