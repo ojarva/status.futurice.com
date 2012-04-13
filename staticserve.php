@@ -35,7 +35,6 @@ elseif ($dir == "img") {
 $redis->incr("stats:web:static:served");
 stat_update("web:static:served");
 
-http_cache_last_modified();
 http_cache_etag();
 http_send_content_type($ct);
 http_send_file($filename);

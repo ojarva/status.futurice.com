@@ -38,7 +38,18 @@ $.fn.fitText = function( kompressor, options ) {
 })( jQuery );
 
 function fetch_data() {
+    var data = $("body").data("pagerefresh-data").content;
     $("#bigtext").fitText(0.5, {"minFontSize": 30, "maxFontSize": 300});
+    $("#etacalc").html("");
+    if (data.autofill.sauna_trend == "warming") {
+        for (key in data.sauna_eta_temperatures) {
+             var sauna_value = data.sauna_eta_temperatures[key];
+             if (sauna_value[1] > 0 && sauna_value[1] < 7200) {
+                 $("#etacalc").html(Math.floor(sauna_value[1] / 60) + " minutes to "+ sauna_value[0] + "&deg;C");
+             }
+        }
+    }
+    $("#temperature_graph").attr("src", "/graph_sauna.php?newtimestamp="+(new Date()).getTime());
 }
 
 $(document).ready(function () {
