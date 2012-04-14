@@ -37,7 +37,7 @@ class PrinterStatus:
         status = status[0]            
         status = status.split("(")
         if len(status) == 2:
-            return {"num": status[1], "readable": status[0]}
+            return {"num": status[1].replace(")", ""), "readable": status[0]}
         else:
             return {"num": -1, "readable": "invalid"}
 
@@ -60,7 +60,7 @@ class PrinterStatus:
         status = status[0]
         status = status.split("(")
         if len(status) == 2:
-            return {"num": status[1], "readable": status[0]}
+            return {"num": status[1].replace(")", ""), "readable": status[0]}
         else:
             return {"num": -1, "readable": "invalid"}
 
