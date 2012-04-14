@@ -43,5 +43,6 @@ while ($listlen > 50) {
     $redis->rpop("cache:latest_sauna");
     $listlen--;
 }
+$redis->expire("cache:latest_sauna", 3600*24*30);
 echo response(true, "Success");
 ?>
