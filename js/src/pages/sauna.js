@@ -37,6 +37,21 @@ $.fn.fitText = function( kompressor, options ) {
 };
 })( jQuery );
 
+var redraw_timeout;
+function redraw_graph_delay() {
+    clearTimeout(redraw_timeout);
+    redraw_timeout = setTimeout("redraw_graph();", 300);
+}
+function redraw_graph() {
+    var $elem = $("#temperature_graph");
+    var width = Math.min(Math.max(100, $elem.parent().width() - 5), 800);
+    var height = Math.min(300, width);
+    $elem.data("width", width);
+    $elem.data("height", height);
+    var url = $elem.data("src")+"?newtimestamp="+(new Date()).getTime()+"&width="+$elem.data("width")+"&height="+$elem.data("height")+"&range="+$elem.data("range");
+    $("#temperature_graph").attr("src", url);
+
+}
 function fetch_data() {
     var data = $("body").data("pagerefresh-data").content;
     $("#bigtext").fitText(0.5, {"minFontSize": 30, "maxFontSize": 300});
@@ -49,10 +64,20 @@ function fetch_data() {
              }
         }
     }
-    $("#temperature_graph").attr("src", "/graph/sauna.php?newtimestamp="+(new Date()).getTime());
+    redraw_graph();
 }
 
 $(document).ready(function () {
     $("#bigtext").fitText(0.5, {"minFontSize": 30, "maxFontSize": 300});
     $("#update_data").pagerefresh({"short_timeout": 1*60, "long_timeout": 15*60, "filewatch": "sauna.json"});
+
+    $(".graph-timerange").click(function() {
+        var $elem = $("#temperature_graph");
+        $elem.data("range", $(this).data("timeh"));
+        redraw_graph();
+    });
+    $(window).resize(function() {
+        redraw_graph_delay();
+    });
+
 });

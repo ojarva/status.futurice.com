@@ -18,6 +18,16 @@
 
 <div class="row" style="padding-top:2em">
 	<div class="span12">
-		<img id="temperature_graph" src="/graph/sauna.php">
+		<div class="btn-group">
+			<button class="btn graph-timerange" data-timeh="2">2h</button>
+			<button class="btn graph-timerange" data-timeh="6">6h</button>
+			<button class="btn graph-timerange" data-timeh="24">24h</button>
+			<button class="btn graph-timerange" data-timeh="168">7d</button>
+		</div>
+	</div>
+</div>
+<div class="row" style="padding-top:1em">
+	<div class="span12">
+		<img id="temperature_graph" data-src="/graph/sauna.php" data-width="500" data-height="300" data-range="6" src="/graph/sauna.php">
 	</div>
 </div>
