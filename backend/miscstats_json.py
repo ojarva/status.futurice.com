@@ -54,8 +54,7 @@ class Miscstats:
 
 
     def update_graphs(self, final_values):
-        for key in final_values:
-            value = final_values[key]
+        for key, value in final_values.items():
             try:
                 value = float(value)
             except ValueError, TypeError:
@@ -104,12 +103,10 @@ class Miscstats:
             except ValueError:
                 pass
 
+        pipe = pipe.mset(set_values)
+        pipe = pipe.rename("temp:keystore:stats", "keystore:stats")
         pipe.execute()
 
-        self.redis.mset(set_values)
-
-
-        self.redis.rename("temp:keystore:stats", "keystore:stats")
 
         keys = self.redis.keys("stats:*")
         values = self.redis.mget(keys)
@@ -123,10 +120,11 @@ class Miscstats:
         
 
         if hash == self.redis.get("data:miscstats.json-hash"):
-            self.redis.incr("stats:cache:miscstats:hit")
-            self.redis.incr("stats:cache:hit")
+            pipe = pipe.incr("stats:cache:miscstats:hit")
+            pipe = pipe.incr("stats:cache:hit")
+            pipe.execute()
             return
-        pipe = self.redis.pipeline(transaction=False)
+
         pipe = pipe.incr("stats:cache:miscstats:miss")
         pipe = pipe.incr("stats:cache:miss")
 
@@ -137,9 +135,9 @@ class Miscstats:
         pipe = pipe.setex("data:miscstats.json-mtime", mtime, exptime);
         pipe = pipe.setex("data:miscstats.json-hash", hash, exptime);
 
+        pipe = pipe.publish("pubsub:data:miscstats.json", json.dumps({"hash": hash, "mtime": mtime}))
         pipe.execute()
 
-        self.redis.publish("pubsub:data:miscstats.json", json.dumps({"hash": hash, "mtime": mtime}))
 
         self.update_graphs(final_values)
 
