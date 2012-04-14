@@ -6,15 +6,32 @@ require_once("lib/redis.php");
 $ip = $_SERVER["REMOTE_ADDR"];
 $session = session_id();
 
-$autofill = array();
+$get_values = array("total_web_pageview",
+	"your_ip_web_pageview",
+	"your_ip_web_json_processed",
+	"your_ip_static_served",
+	"your_session_web_pageview",
+	"your_session_web_json_processed",
+	"your_session_static_served");
 
-$autofill["total_web_pageview"] = $redis->get("per_user:total:web:pageview");
-$autofill["your_ip_web_pageview"] = $redis->get("per_user:ip:$ip:web:pageview");
-$autofill["your_ip_web_json_processed"] = $redis->get("per_user:ip:$ip:web:json:processed");
-$autofill["your_ip_static_served"] = $redis->get("per_user:ip:$ip:web:static:served");
-$autofill["your_session_web_pageview"] = $redis->get("per_user:session:$session:web:pageview");
-$autofill["your_session_web_json_processed"] = $redis->get("per_user:session:$session:web:json:processed");
-$autofill["your_session_static_served"] = $redis->get("per_user:session:$session:web:static:served");
+$autofill = array();
+$responses = $redis->pipeline(function($pipe) {
+    $ip = $_SERVER["REMOTE_ADDR"];
+    $session = session_id();
+    $get_values = array("per_user:total:web:pageview",
+	"per_user:ip:$ip:web:pageview",
+	"per_user:ip:$ip:web:json:processed",
+	"per_user:ip:$ip:web:static:served",
+	"per_user:session:$session:web:pageview",
+	"per_user:session:$session:web:json:processed",
+	"per_user:session:$session:web:static:served");
+
+    foreach ($get_values as $k => $v) {
+        $pipe->get($v);
+    }
+});
+
+$autofill = array_combine($get_values, $responses);
 
 $content = json_encode(array("autofill" => $autofill));
 
