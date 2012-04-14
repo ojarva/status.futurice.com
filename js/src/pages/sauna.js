@@ -49,7 +49,7 @@ function fetch_data() {
              }
         }
     }
-    $("#temperature_graph").attr("src", "/graph_sauna.php?newtimestamp="+(new Date()).getTime());
+    $("#temperature_graph").attr("src", "/graph/sauna.php?newtimestamp="+(new Date()).getTime());
 }
 
 $(document).ready(function () {

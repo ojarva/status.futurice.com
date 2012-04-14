@@ -18,6 +18,6 @@
 
 <div class="row" style="padding-top:2em">
 	<div class="span12">
-		<img id="temperature_graph" src="/graph_sauna.php">
+		<img id="temperature_graph" src="/graph/sauna.php">
 	</div>
 </div>
