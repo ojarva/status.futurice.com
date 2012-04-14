@@ -28,16 +28,21 @@ class Frontpage:
             self.redis.incr("stats:cache:frontpage:hit");
             self.redis.incr("stats:cache:hit");
             return
-        self.redis.incr("stats:cache:frontpage:miss")
-        self.redis.incr("stats:cache:miss")
+
+
+        pipe = self.redis.pipeline(transaction=False)
+        pipe = pipe.incr("stats:cache:frontpage:miss")
+        pipe = pipe.incr("stats:cache:miss")
 
         contente = json.dumps(content)
         hash = hashlib.sha1(contente).hexdigest()
         exptime = 3600 * 24 * 30
         rediskey = "data:frontpage.json"
-        self.redis.setex(rediskey, contente, exptime)
-        self.redis.setex("%s-mtime" % rediskey, lastmodified, exptime)
-        self.redis.setex("%s-hash" % rediskey, hash, exptime)
+        pipe = pipe.setex(rediskey, contente, exptime)
+        pipe = pipe.setex("%s-mtime" % rediskey, lastmodified, exptime)
+        pipe = pipe.setex("%s-hash" % rediskey, hash, exptime)
+        pipe.execute()
+
         self.redis.publish("pubsub:%s" % rediskey, json.dumps({"hash": hash, "mtime": lastmodified}))
 
 

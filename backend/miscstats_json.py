@@ -93,10 +93,22 @@ class Miscstats:
         set_values.update(self.get_load_avg())
         set_values.update(self.get_traffic())
 
-        self.redis.mset(set_values)
+        pipe = self.redis.pipeline(transaction=False)
 
         for key in set_values:
-            self.redis.sadd("temp:keystore:stats", key)
+            pipe = pipe.sadd("temp:keystore:stats", key)
+            value = self.redis.get(key)
+            try:
+                if float(value) < float(set_values.get(key)):
+                    pipe = pipe.setex("%s:alltime" % key, set_values.get(key), 3600 * 24 * 30)
+            except ValueError:
+                pass
+
+        pipe.execute()
+
+        self.redis.mset(set_values)
+
+
         self.redis.rename("temp:keystore:stats", "keystore:stats")
 
         keys = self.redis.keys("stats:*")
@@ -108,20 +120,24 @@ class Miscstats:
         content = json.dumps({"autofill": final_values})
 
         hash = hashlib.sha1(content).hexdigest()
+        
 
         if hash == self.redis.get("data:miscstats.json-hash"):
             self.redis.incr("stats:cache:miscstats:hit")
             self.redis.incr("stats:cache:hit")
             return
-        self.redis.incr("stats:cache:miscstats:miss")
-        self.redis.incr("stats:cache:miss")
+        pipe = self.redis.pipeline(transaction=False)
+        pipe = pipe.incr("stats:cache:miscstats:miss")
+        pipe = pipe.incr("stats:cache:miss")
 
         exptime = 3600 * 24 * 30
 
         mtime = time.time()
-        self.redis.setex("data:miscstats.json", content, exptime);
-        self.redis.setex("data:miscstats.json-mtime", mtime, exptime);
-        self.redis.setex("data:miscstats.json-hash", hash, exptime);
+        pipe = pipe.setex("data:miscstats.json", content, exptime);
+        pipe = pipe.setex("data:miscstats.json-mtime", mtime, exptime);
+        pipe = pipe.setex("data:miscstats.json-hash", hash, exptime);
+
+        pipe.execute()
 
         self.redis.publish("pubsub:data:miscstats.json", json.dumps({"hash": hash, "mtime": mtime}))
 
