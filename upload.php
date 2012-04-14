@@ -20,16 +20,20 @@ function response($success, $status) {
 if ($_POST["password"] != $password) {
     Header('HTTP/1.1 403 Forbidden');
     echo response(false, "Wrong password");
-    $redis->incr("stats:web:invalid");
-    $redis->incr("stats:web:upload:pwfail");
+    $redis->pipeline(function($pipe) {
+     $pipe->incr("stats:web:invalid");
+     $pipe->incr("stats:web:upload:pwfail");
+    });
     exit(0);
 }
 $what = $_POST["what"];
 
 if (!in_array($what, $what_allowed)) {
     echo response(false, "Invalid target name");
-    $redis->incr("stats:web:invalid");
-    $redis->incr("stats:web:upload:targetnamefail");
+    $redis->pipeline(function($pipe) {
+     $pipe->incr("stats:web:invalid");
+     $pipe->incr("stats:web:upload:targetnamefail");
+    });
     exit(0);
 }
 
@@ -69,6 +73,7 @@ if ($pinfo["extension"] == "json") {
     } else {
         echo response(false, "File upload failed: $filename\n");
         $redis->incr("stats:web:upload:filefailed");
+        $redis->incr("stats:web:invalid");
     }
 }
 ?>
