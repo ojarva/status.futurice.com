@@ -1,6 +1,6 @@
 <?
-require_once("lib/redis.php");
-$filename = "upload/sauna.rrd";
+require_once("../lib/redis.php");
+$filename = "../upload/sauna.rrd";
 http_send_content_type("image/png");
 $data = $redis->get("cache:sauna.png");
 http_cache_etag();
