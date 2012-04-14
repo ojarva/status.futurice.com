@@ -9,18 +9,26 @@ class Frontpage:
 
     def get_data(self):
         ret = {}
-        tickets_json = json.loads(self.redis.get("data:ittickets.json"))
+
+        pipe = self.redis.pipeline(transaction=False)
+        pipe = pipe.get("data:ittickets.json")
+        pipe = pipe.get("data:services.json")
+        pipe = pipe.get("data:sauna.json")
+        (tickets_json, services_json, sauna_json) = map(json.loads, pipe.execute())
+
         ret["unique_7d"] = tickets_json["data"]["unique_manual_7d"]
-        services_json = json.loads(self.redis.get("data:services.json"))
         ret["services_up"] = services_json["overall"]["services_up"];
         ret["services_unknown"] = services_json["overall"]["services_unknown"];
         ret["services_down"] = services_json["overall"]["services_down"];
+        ret["sauna_temperature"] = "%s%s" % (sauna_json["autofill"]["sauna_current"], "&deg;C")
+        ret["sauna_trend"] = sauna_json["autofill"]["sauna_trend"]
+
         return ret
 
     def run(self):
         content = {"autofill": self.get_data()}
 
-        lastmodified = max(os.path.getmtime(__file__), self.redis.get("data:services.json-mtime"), self.redis.get("data:ittickets.json-mtime"))
+        lastmodified = max(os.path.getmtime(__file__), self.redis.get("data:services.json-mtime"), self.redis.get("data:ittickets.json-mtime"), self.redis.get("data:sauna.json-mtime"))
 
         frontpage_mtime = self.redis.get("data:frontpage.json-mtime")
 
@@ -41,9 +49,9 @@ class Frontpage:
         pipe = pipe.setex(rediskey, contente, exptime)
         pipe = pipe.setex("%s-mtime" % rediskey, lastmodified, exptime)
         pipe = pipe.setex("%s-hash" % rediskey, hash, exptime)
+        pipe = pipe.publish("pubsub:%s" % rediskey, json.dumps({"hash": hash, "mtime": lastmodified}))
         pipe.execute()
 
-        self.redis.publish("pubsub:%s" % rediskey, json.dumps({"hash": hash, "mtime": lastmodified}))
 
 
 def main():
