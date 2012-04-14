@@ -71,7 +71,7 @@ src="/img/loading-inline-micro.gif"></span></a>
 	<div class="span4">
 		<h2>Printers</h2>
 
-		<p>We try to avoid printing unnecessarily, but sometimes it can't be avoided. So we have few
+		<p>We try to print as few pages as possible, but sometimes it can't be avoided. So we have few
 energy efficient printers around our offices.</p>
 		<p><a class="btn" href="/page/printers">View printers &raquo;</a>
 <a href="/page/what" class="btn btn-info" rel="popover" data-original-title="How and why" data-content="There is no printer that doesn't have any problems ever. With this, employees and IT team can see status of printers immediately. Data is fetched using SNMP and sent to this server for viewing.">How and why</a>
