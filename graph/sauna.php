@@ -14,7 +14,8 @@ $modes = array(
                            '"CDEF:derivate=temperature,prev1,-,time,prevtime,-,/" '.
                            '"CDEF:smoothed=derivate,1800,TREND" '.
                            '"LINE1:smoothed#000077" ',
-              "normal" => '"CDEF:trend=temperature,900,TREND" '.
+              "normal" => '"CDEF:trendtemp=temperature,900,TREND" '.
+                          '"CDEF:trend=trendtemp,20,110,LIMIT" '.
                           '"CDEF:linehot=trend,65,110,LIMIT" '.
                           '"CDEF:linewarm=trend,40,65,LIMIT" '.
                           '"CDEF:linecold=trend,0,40,LIMIT" '.
@@ -24,11 +25,11 @@ $modes = array(
                           '"CDEF:slope=comp3,trend,LT" '. // going up = 1
                           '"CDEF:down=slope,UNKN,trend,IF,40,110,LIMIT" '.
                           '"CDEF:up=slope,trend,UNKN,IF,40,110,LIMIT" '.
-                          '"AREA:up#77000030" '.
-                          '"AREA:down#00007730" '.
-                          '"LINE1:linehot#7700004F" '.
-                          '"LINE1:linewarm#0077004F" '.
-                          '"LINE1:linecold#0000774F" '
+                          '"AREA:up#7700001D" '.
+                          '"AREA:down#0000771D" '.
+                          '"LINE1:linehot#7700008F" '.
+                          '"LINE1:linewarm#0077008F" '.
+                          '"LINE1:linecold#0000778F" '
 
 );
 

@@ -28,6 +28,6 @@
 </div>
 <div class="row" style="padding-top:1em">
 	<div class="span12">
-		<img id="temperature_graph" data-src="/graph/sauna.php" data-width="500" data-height="300" data-range="6" src="/graph/sauna.php">
+		<img width="500" height="300" id="temperature_graph" data-src="/graph/sauna.php" data-width="500" data-height="300" data-range="6" data-graphmode="normal" src="/graph/sauna.php">
 	</div>
 </div>
