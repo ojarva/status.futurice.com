@@ -4,13 +4,19 @@ import redis
 import hashlib
 import os
 import subprocess
+import sys
 
 class Miscstats:
     def __init__(self):
         self.redis = redis.Redis(unix_socket_path="/home/redis/redis.sock")
 
     def get_uptime(self):
-        uptime = open("/proc/uptime").read().strip()
+        try:
+            uptime = open("/proc/uptime").read().strip()
+        except IOError:
+            sys.stderr.write("Your system doesn't support /proc/uptime, or it's blocked by apparmor or similar.\n")
+            return {}
+            
         uptime = uptime.split()
         uptime_original = round(float(uptime[0]))
 
@@ -30,7 +36,11 @@ class Miscstats:
         return ret
 
     def get_load_avg(self):
-        content = open("/proc/loadavg").read().strip()
+        try:
+            content = open("/proc/loadavg").read().strip()
+        except IOError:
+            sys.stderr.write("Your system doesn't support /proc/loadavg, or it's blocked by apparmor or similar.\n")
+            return {}
         content = content.split(" ")
         return {"stats:server:load:1m": content[0], "stats:server:load:5m": content[1], "stats:server:load:15m": content[2]}
 
@@ -51,6 +61,8 @@ class Miscstats:
                 sum = int(line[0].split(":")[1].split(" ")[0])
                 sum += int(line[1].split(":")[1].split(" ")[0])
                 return {"stats:server:net:eth0:total": sum, "stats:server:net:eth0:total:readable": sizeof_fmt(sum)}
+        sys.stderr.write("ifconfig didn't return correct line. No ethernet statistics available.\n")
+        return {}
 
 
     def update_graphs(self, final_values):
@@ -68,6 +80,10 @@ class Miscstats:
                     "RRA:MAX:0.5:1:120", "RRA:MAX:0.5:5:8640", "RRA:MAX:0.5:60:4320", "RRA:MAX:0.5:720:1600", "RRA:MAX:0.5:1440:2000",
                     "RRA:LAST:0.5:1:120", "RRA:LAST:0.5:5:8640", "RRA:LAST:0.5:60:4320", "RRA:LAST:0.5:720:1600", "RRA:LAST:0.5:1440:2000"])
                 p.wait()
+            if not os.path.exists(filename):
+                sys.stderr.write("Creating rrd graph failed. Filename: %s. Aborting.\n" % filename)
+                sys.exit(1)
+
             p = subprocess.Popen(["rrdtool", "update", filename, "N:%s:%s" % (v, v)])
             p.wait()
 
