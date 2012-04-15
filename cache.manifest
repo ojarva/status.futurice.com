@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# version: 1334487039
+# version: 1334499209
 
 /
 /page/main
@@ -8,11 +8,9 @@ CACHE MANIFEST
 /page/it-tickets
 /page/printers
 /page/misc-stats
+/page/sauna
 
-/js/printers.min.js
 /js/services.min.js
-/js/ittickets.min.js
-/js/servicedetails.min.js
 
 /js/combined.min.js
 /js/combined.raphael.min.js

@@ -22,7 +22,7 @@
 </style>
 
 <script src="/js/combined.raphael.min.js"></script>
-<script src="/js/ittickets.min.js"></script>
+<script type="text/javascript"><?readfile("js/ittickets.min.js");?></script>
 
 <h1>IT tickets <span id="update_data"></span></h1>
 

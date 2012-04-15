@@ -1,5 +1,5 @@
 <script src="/js/combined.raphael.min.js"></script>
-<script src="/js/servicedetails.min.js"></script>
+<script type="text/javascript"><?readfile("js/servicedetails.min.js");?></script>
 
 <ul class="breadcrumb">
   <li>

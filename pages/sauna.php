@@ -1,4 +1,4 @@
-<script type="text/javascript" src="/js/sauna.min.js"></script>
+<script type="text/javascript"><?readfile("js/sauna.min.js");?></script>
 
 
 <h1>Helsinki office sauna <span id="update_data"></span></h1>

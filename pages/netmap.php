@@ -1,6 +1,5 @@
-<script type="text/javascript">
-<?readfile("js/netmap.min.js");?>
-</script>
+<script type="text/javascript"><?readfile("js/netmap.min.js");?></script>
+
 <h1>Network map <span id="update_data"></span></h1>
 
 <div class="row">
