@@ -8,7 +8,7 @@ import redis
 class SaunaStats:
     def __init__(self, filename):
         self.filename = filename
-        self.redis = redis.Redis()
+        self.redis = redis.Redis(unix_socket_path="/home/redis/redis.sock")
 
     def run(self):
         def get_sauna_eta(target, items):

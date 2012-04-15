@@ -7,7 +7,7 @@ import subprocess
 
 class Miscstats:
     def __init__(self):
-        self.redis = redis.Redis()
+        self.redis = redis.Redis(unix_socket_path="/home/redis/redis.sock")
 
     def get_uptime(self):
         uptime = open("/proc/uptime").read().strip()

@@ -49,6 +49,8 @@ Install following packages: python, highlight, collectd, redis, python-redis, py
 sudo apt-get install collectd python python-redis redis-server python-dateutil highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool
 ```
 
+Configure redis to offer unix socket at */home/redis/redis.sock* (or change *lib/redis.php* and *backend/* to use TCP connection instead).
+
 Configure apache2:
 
 ```

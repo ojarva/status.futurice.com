@@ -14,7 +14,7 @@ class TwitterInfo:
     def __init__(self, username):
         self.username = username
         self.api = twitter.Api()
-        self.redis = redis.Redis()
+        self.redis = redis.Redis(unix_socket_path="/home/redis/redis.sock")
         self.redis_key = "data:twitter:%s" % username
         self.pipe = self.redis.pipeline(transaction=False)
 

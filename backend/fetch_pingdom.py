@@ -33,7 +33,7 @@ class Pingdomrun:
         self.cache_directory = "cache/"
         self.data = None
         self.cdata = None
-        self.redis = redis.Redis()
+        self.redis = redis.Redis(unix_socket_path="/home/redis/redis.sock")
         self.pipe = self.redis.pipeline(transaction=False)
         self.stats = {}
 
