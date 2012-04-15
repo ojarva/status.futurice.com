@@ -5,6 +5,35 @@ http_send_content_type("image/png");
 $width = 500;
 $height = 300;
 $range = 6;
+$mode = "normal";
+$modes = array(
+               "raw" => '"LINE1:temperature#C00000" ',
+               "derivate" => '"CDEF:prev1=PREV(temperature)" '.
+                           '"CDEF:time=temperature,POP,TIME" '.
+                           '"CDEF:prevtime=PREV(time)" '.
+                           '"CDEF:derivate=temperature,prev1,-,time,prevtime,-,/" '.
+                           '"CDEF:smoothed=derivate,1800,TREND" '.
+                           '"LINE1:smoothed#000077" ',
+              "normal" => '"CDEF:trend=temperature,900,TREND" '.
+                          '"CDEF:linehot=trend,65,110,LIMIT" '.
+                          '"CDEF:linewarm=trend,40,65,LIMIT" '.
+                          '"CDEF:linecold=trend,0,40,LIMIT" '.
+                          '"CDEF:comp1=PREV(trend)" '.
+                          '"CDEF:comp2=PREV(comp1)" '.
+                          '"CDEF:comp3=PREV(comp2)" '.
+                          '"CDEF:slope=comp3,trend,LT" '. // going up = 1
+                          '"CDEF:down=slope,UNKN,trend,IF,40,110,LIMIT" '.
+                          '"CDEF:up=slope,trend,UNKN,IF,40,110,LIMIT" '.
+                          '"AREA:up#77000030" '.
+                          '"AREA:down#00007730" '.
+                          '"LINE1:linehot#7700004F" '.
+                          '"LINE1:linewarm#0077004F" '.
+                          '"LINE1:linecold#0000774F" '
+
+);
+
+$modestring = $modes[$mode];
+
 if (isset($_GET["width"])) {
    $width = min(2000, max(100, intval($_GET["width"])));
 }
@@ -14,14 +43,30 @@ if (isset($_GET["height"])) {
 if (isset($_GET["range"])) {
    $range = min(192, max(1, intval($_GET["range"])));
 }
+if (isset($_GET["mode"])) {
+    $mode = $_GET["mode"];
+    if (!isset($modes[$mode])) {
+        $mode = "normal";
+    }
+    $modestring = $modes[$mode];
+}
 http_cache_etag();
-$cachekey = "cache:sauna.png:$width:$height:$range";
+$cachekey = "cache:sauna.png:$width:$height:$range:$mode";
 $data = $redis->get($cachekey);
 if ($data) {
  http_send_data($data);
 } else {
  ob_start();
- system('rrdtool graph - --end now --start end-'.$range.'h -r --font TITLE:16:Helvetica --font WATERMARK:3:Helvetica --font AXIS:9:Helvetica --font UNIT:10:Helvetica -c "GRID#FFFFFF" -c "MGRID#FFFFFF" -c "ARROW#000000" -c "SHADEA#FFFFFF" -c "SHADEB#FFFFFF" -c "FRAME#FFFFFF" -c "BACK#FFFFFF" --full-size-mode --width '.$width.' --height '.$height.' "DEF:temperature='.$filename.':temperature:AVERAGE" "LINE1:temperature#00C000"');
+ system('rrdtool graph - --end now --start end-'.$range.'h --slope-mode -r '.
+     '--font TITLE:16:Helvetica --font WATERMARK:3:Helvetica --font AXIS:9:Helvetica --font UNIT:10:Helvetica '.
+     '-c "GRID#FFFFFF" -c "MGRID#FFFFFF" -c "ARROW#000000" -c "SHADEA#FFFFFF" -c "SHADEB#FFFFFF" -c "FRAME#FFFFFF" -c "BACK#FFFFFF" '.
+     '--full-size-mode --width '.$width.' --height '.$height.' '.
+     '"DEF:temperatureraw='.$filename.':temperature:AVERAGE" '.
+     '"CDEF:temperature=temperatureraw,24,110,LIMIT" '.
+     $modestring);
+
+
+
  $data = ob_get_contents();
  ob_end_clean();
  $redis->setex($cachekey, 60, $data);
