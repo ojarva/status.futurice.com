@@ -18,9 +18,9 @@
 
 <div class="row" style="padding-top:2em">
 	<div class="span12">
-		<div class="btn-group">
+		<div class="btn-group" data-toggle="buttons-radio">
 			<button class="btn graph-timerange" data-timeh="2">2h</button>
-			<button class="btn graph-timerange" data-timeh="6">6h</button>
+			<button class="btn graph-timerange active" data-timeh="6">6h</button>
 			<button class="btn graph-timerange" data-timeh="24">24h</button>
 			<button class="btn graph-timerange" data-timeh="168">7d</button>
 		</div>
