@@ -41,8 +41,20 @@
         self<span class="hl opt">.</span>cache_directory <span class="hl opt">=</span> <span class="hl str">&quot;cache/&quot;</span>
         self<span class="hl opt">.</span>data <span class="hl opt">=</span> <span class="hl kwa">None</span>
         self<span class="hl opt">.</span>cdata <span class="hl opt">=</span> <span class="hl kwa">None</span>
-        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">()</span>
+        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">(</span>unix_socket_path<span class="hl opt">=</span><span class="hl str">&quot;/home/redis/redis.sock&quot;</span><span class="hl opt">)</span>
         self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span>transaction<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>stats <span class="hl opt">= {}</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">incrstat</span><span class="hl opt">(</span>self<span class="hl opt">,</span> what<span class="hl opt">):</span>
+        <span class="hl kwa">if not</span> self<span class="hl opt">.</span>stats<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>what<span class="hl opt">):</span>
+            self<span class="hl opt">.</span>stats<span class="hl opt">[</span>what<span class="hl opt">] =</span> <span class="hl num">0</span>
+        self<span class="hl opt">.</span>stats<span class="hl opt">[</span>what<span class="hl opt">] +=</span> <span class="hl num">1</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">executestat</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">for</span> k<span class="hl opt">,</span> v <span class="hl kwa">in</span> self<span class="hl opt">.</span>stats<span class="hl opt">.</span><span class="hl kwd">items</span><span class="hl opt">():</span>
+            self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span>k<span class="hl opt">,</span> v<span class="hl opt">)</span>
+        self<span class="hl opt">.</span>stats <span class="hl opt">= {}</span>
+        self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">get_cache</span><span class="hl opt">(</span>self<span class="hl opt">,</span> what<span class="hl opt">):</span>
         <span class="hl str">&quot;&quot;&quot; Get pickled data from cache &quot;&quot;&quot;</span>
@@ -50,12 +62,12 @@
         self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
         value <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>what<span class="hl opt">)</span>
         <span class="hl kwa">if not</span> value<span class="hl opt">:</span>
-            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:miss&quot;</span><span class="hl opt">)</span>
-            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miss&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:miss&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miss&quot;</span><span class="hl opt">)</span>
             logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache miss: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
             <span class="hl kwa">return False</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:hit&quot;</span><span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:hit&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:hit&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:hit&quot;</span><span class="hl opt">)</span>
         logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache hit: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
         <span class="hl kwa">return</span> pickle<span class="hl opt">.</span><span class="hl kwd">loads</span><span class="hl opt">(</span>value<span class="hl opt">)</span>
 
@@ -68,12 +80,12 @@
             status <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwb">set</span><span class="hl opt">(</span>what<span class="hl opt">,</span> pickle<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>data<span class="hl opt">))</span>
         <span class="hl kwa">if</span> status<span class="hl opt">:</span>
             logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache set: %s&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
-            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:set&quot;</span><span class="hl opt">)</span>
-            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:set&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:set&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:set&quot;</span><span class="hl opt">)</span>
         <span class="hl kwa">else</span><span class="hl opt">:</span>
             logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache set for %s failed&quot;</span><span class="hl opt">,</span> what<span class="hl opt">)</span>
-            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:setfailed&quot;</span><span class="hl opt">)</span>
-            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:setfailed&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:pingdom:setfailed&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:setfailed&quot;</span><span class="hl opt">)</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">get_performance</span><span class="hl opt">(</span>self<span class="hl opt">,</span> checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> resolution<span class="hl opt">):</span>
         keyname <span class="hl opt">=</span> <span class="hl str">&quot;performance-%s-%s-%s-%s&quot;</span> <span class="hl opt">% (</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> resolution<span class="hl opt">)</span>
@@ -81,8 +93,8 @@
         <span class="hl kwa">if</span> cached <span class="hl kwa">is not False</span><span class="hl opt">:</span>
             <span class="hl kwa">return</span> cached
         data <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_performance</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">,</span> resolution<span class="hl opt">=</span>resolution<span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
         self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> data<span class="hl opt">)</span>
         <span class="hl kwa">return</span> data
 
@@ -95,8 +107,8 @@
             logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Cache hit for checks&quot;</span><span class="hl opt">)</span>
             <span class="hl kwa">return</span> cached
         checks <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_all_checks</span><span class="hl opt">()</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
         self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span><span class="hl str">&quot;checks&quot;</span><span class="hl opt">,</span> checks<span class="hl opt">,</span> <span class="hl num">55</span><span class="hl opt">)</span>
         <span class="hl kwa">return</span> checks
 
@@ -108,8 +120,8 @@
             <span class="hl kwa">return</span> cached
         averages <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_check_averages</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> 
                                timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
         self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> averages<span class="hl opt">,</span> expire<span class="hl opt">)</span>
         logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Averages fetched for range %s-%s, check %s&quot;</span><span class="hl opt">,</span>
                              timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> checkid<span class="hl opt">)</span>
@@ -123,8 +135,8 @@
             <span class="hl kwa">return</span> cached
         outages <span class="hl opt">=</span> self<span class="hl opt">.</span>connection<span class="hl opt">.</span><span class="hl kwd">get_outages</span><span class="hl opt">(</span>checkid<span class="hl opt">,</span> 
                               timefrom<span class="hl opt">=</span>timefrom<span class="hl opt">,</span> timeto<span class="hl opt">=</span>timeto<span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
-        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:pingdom:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span><span class="hl kwd">incrstat</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
         self<span class="hl opt">.</span><span class="hl kwd">set_cache</span><span class="hl opt">(</span>keyname<span class="hl opt">,</span> outages<span class="hl opt">,</span> expire<span class="hl opt">)</span>
         logging<span class="hl opt">.</span><span class="hl kwd">debug</span><span class="hl opt">(</span><span class="hl str">&quot;Outages fetched for range %s-%s, check %s&quot;</span><span class="hl opt">,</span>
                                timefrom<span class="hl opt">,</span> timeto<span class="hl opt">,</span> checkid<span class="hl opt">)</span>
@@ -298,6 +310,7 @@
 
         self<span class="hl opt">.</span>data<span class="hl opt">[</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">] = {</span><span class="hl str">&quot;unix&quot;</span><span class="hl opt">:</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">(),</span> 
              <span class="hl str">&quot;human&quot;</span><span class="hl opt">:</span> datetime<span class="hl opt">.</span>datetime<span class="hl opt">.</span><span class="hl kwd">now</span><span class="hl opt">().</span><span class="hl kwd">strftime</span><span class="hl opt">(</span><span class="hl str">&quot;%Y-%m-%d %H:%M:%S&quot;</span><span class="hl opt">)}</span>
+        self<span class="hl opt">.</span><span class="hl kwd">executestat</span><span class="hl opt">()</span>
 
     <span class="hl kwa">def</span> <span class="hl kwd">_save</span><span class="hl opt">(</span>self<span class="hl opt">,</span> filename<span class="hl opt">,</span> new_data<span class="hl opt">,</span> expire<span class="hl opt">=</span><span class="hl kwa">None</span><span class="hl opt">):</span>
         old_data <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>filename<span class="hl opt">+</span><span class="hl str">&quot;-hash&quot;</span><span class="hl opt">)</span>
