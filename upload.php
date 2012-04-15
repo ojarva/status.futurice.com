@@ -1,5 +1,6 @@
 <?
 // This file handles uploads from RT server and network monitoring server
+// Only files listed in upload_settings.php are allowed.
 
 // Do not cache
 header('Cache-Control: no-cache, no-store, max-age=0, must-revalidate');
@@ -9,12 +10,28 @@ header("content-type: application/json");
 
 // Sample file is named as upload_settings.php.sample. Move it, and change password to something more complex.
 require_once("upload_settings.php");
-
 require_once("lib/redis.php");
 
 function response($success, $status) {
+    if (!$status) {
+        error_log("upload.php: ".$status);
+    }
     return json_encode(array("success" => $success, "status" => $status));
 }
+
+if (!isset($what_allowed)) {
+    echo response(false, "Improperly configured: missing what_allowed from upload_settings.php");
+    exit(0);
+}
+if (!isset($password)) {
+    echo response(false, "Improperly configured: missing password from upload_settings.php");
+    exit(0);
+}
+if ($password == "your_randomly_generated_password") {
+    echo response(false, "Improperly configured: using default password.");
+    exit(0);
+}
+
 
 
 if ($_POST["password"] != $password) {

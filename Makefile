@@ -1,20 +1,26 @@
+# Source files
 PAGES=$(wildcard pages/*.php)
 RAPHAEL_JS=$(wildcard js/src/raphael/*.js)
 COMBINED_JS=$(wildcard js/src/main/*.js)
 PER_PAGE_JS=$(wildcard js/src/pages/*.js)
 COMBINED_CSS=$(wildcard css/src/*.css)
 
+# Destination files
 PER_PAGE_JS_DEST=$(PER_PAGE_JS:.js=.js.min2)
 RAPHAEL_JS_DEST=$(RAPHAEL_JS:.js=.js.min)
 COMBINED_JS_DEST=$(COMBINED_JS:.js=.js.min)
 
+# Render source codes
 SOURCE_RENDER=sources/index.php.html sources/backend/fetch_pingdom.py.html sources/backend/fetch_rt.py.html
 
 PNG_FILES=$(wildcard img/*.png)
 
+# cat makes debugging easier
 #JS_COMPILER=cat
+# closure breaks javascript in android browser
 #JS_COMPILER=java -jar /var/www/closure/compiler.jar
 JS_COMPILER=yui-compressor 
+
 
 ALL_FILES=index.php css/combined.min.css js/combined.min.js js/combined.raphael.min.js
 ALL_FILES+=${PAGES}
@@ -37,6 +43,8 @@ imagepack: ${PNG_FILES}
 img/%.png:
 	advpng -z4 $@
 
+
+# update cache manifest serial
 cache.manifest: ${ALL_FILES}
 	sed -i s/'\# version: .*'/"\# version: `date +%s`"/ $@
 	redis-cli publish "pubsub:cache.manifest" "{\"mtime\": `date +%s`, \"hash\": \"`cat $@ | md5sum | awk {'print $1'}`\"}"
@@ -73,6 +81,7 @@ js/combined.min.js: ${COMBINED_JS_DEST}
 	mv $@.tmp $@
 	chmod 644 $@
 
+# Older versions of highlight can't autodetect php/python.
 sources/%.php.html: %.php
 	cd sources; highlight --syntax php ../$< > ../$@; chmod 644 ../$@
 

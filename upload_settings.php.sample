@@ -4,5 +4,4 @@ $password = "your_randomly_generated_password";
 /* Only files in this array are allowed. Make sure web server user
 (typically apache, httpd or www-data) have write access to upload/ directory */
 $what_allowed = array("ittickets.json", "netmap.png", "printers.json");
-
 ?>

@@ -1,4 +1,7 @@
 <?
+// This script returns carousel images used by what? page.
+// Folder (mobile/tablet/full) is selected using browser user agent - mobile phones get smaller images. Default is full sized.
+
 require_once("lib/redis.php");
 require_once("lib/userstats.php");
 
@@ -29,8 +32,10 @@ stat_update("web:static:served");
 http_cache_last_modified();
 http_cache_etag();
 
-Header("Cache-Control: public; max-age=60");
-Header("Expires: ".gmdate("D, d M Y H:i:s", $lastmodified+60)." GMT");
+$expiretime=3600*24*8;
+
+Header("Cache-Control: public; max-age=$expiretime");
+Header("Expires: ".gmdate("D, d M Y H:i:s", $lastmodified+$expiretime)." GMT");
 
 http_send_content_type("image/jpeg");
 http_send_file($name);
