@@ -11,6 +11,9 @@
 	AddOutputFilterByType DEFLATE application/x-javascript
 </IfModule>
 
+ErrorDocument 500 /500.html
+ErrorDocument 404 /404.html
+
 RewriteEngine On
 RewriteRule ^/page/([a-z]+)$ /index.php?page=$1 [QSA,L]
 RewriteRule ^/page/([a-z-]+)$ /index.php?page=$1 [QSA,L]
