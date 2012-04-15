@@ -1,5 +1,5 @@
 <?php
-
+require_once("../lib/redis.php");
 require_once 'conf/common.inc.php';
 require_once 'inc/functions.inc.php';
 require_once 'inc/html.inc.php';
@@ -19,6 +19,18 @@ $tinstance = validate_get(GET('ti'), 'tinstance');
 $width = GET('x');
 $heigth = GET('y');
 $seconds = GET('s');
+
+$requesthash = sha1(serialize($_GET));
+$rediskey = "cache:grapher:detail:$host:$plugin:$seconds";
+
+$content = $redis->get($rediskey);
+if ($content) {
+    echo $content;
+    exit();
+}
+
+
+ob_start();
 
 html_start();
 
@@ -57,4 +69,7 @@ printf('<img src="%s%s">'."\n", $CONFIG['weburl'], build_url('graph.php', $_GET)
 
 html_end();
 
+$content = ob_get_clean();
+echo $content;
+$redis->setex($rediskey, 300, $content);
 ?>

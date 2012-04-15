@@ -1,5 +1,6 @@
 <?php
 
+require_once("../lib/redis.php");
 require_once 'conf/common.inc.php';
 require_once 'inc/html.inc.php';
 require_once 'inc/collectd.inc.php';
@@ -7,11 +8,23 @@ require_once 'inc/collectd.inc.php';
 $host = validate_get(GET('h'), 'host');
 $splugin = validate_get(GET('p'), 'plugin');
 
+$content = ($redis->get("cache:grapher:host:$host:$splugin"));
+if ($content) {
+  echo $content;
+  exit(0);
+}
+
+ob_start();
+
 html_start();
 
 printf('<h2>%s</h2>'."\n", $host);
 
-$plugins = collectd_plugins($host);
+$plugins = unserialize($redis->get("cache:grapher:collectd_plugins:$host"));
+if (!$plugins) {
+    $plugins = collectd_plugins($host);
+    $redis->setex("cache:grapher:collectd_plugins:$host", 300, serialize($plugins));
+}
 
 if(!$plugins) {
 	echo "Unknown host\n";
@@ -44,4 +57,7 @@ foreach($plugins as $plugin) {
 
 html_end();
 
+$content = ob_get_clean();
+$redis->setex("cache:grapher:host:$host:$splugin", 300, $content);
+echo $content;
 ?>
