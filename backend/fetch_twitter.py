@@ -56,4 +56,8 @@ def main(username):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        sys.stderr.write("Syntax: %s your_twitter_handle\n" % sys.argv[0])
+        sys.stderr.write("For example\n%s futurice\n" % sys.argv[0]);
+        sys.exit(1)
     main(sys.argv[1])

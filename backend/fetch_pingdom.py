@@ -7,6 +7,7 @@ import json
 import datetime
 import time
 import os
+import sys
 import logging
 import redis
 import hashlib
@@ -18,7 +19,12 @@ try:
 except ImportError:
     import pickle
 
-import pingdom_settings
+try:
+    import pingdom_settings
+except ImportError:
+    sys.stderr.write("You are missing pingdom_settings.py. Please see pingdom_settings.py.sample\n")
+    sys.exit(1)
+
 
 class Pingdomrun:
     """ Fetch data from pingdom, calculate basic metrics like number of 
@@ -330,13 +336,14 @@ class Pingdomrun:
         new_data = json.dumps({"autofill": self.data.get("autofill", {}), "overall": self.data, "per_service": self.cdata})
         filename = "data:services.json"
         self._save(filename, new_data, 3600*24*30)
+        return 0
 
 
 def main():
     """ Run pingdom statistics """
     pingdomstats = Pingdomrun()
     pingdomstats.run()
-    pingdomstats.save()
+    return pingdomstats.save()
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
