@@ -27,11 +27,12 @@ if ($_POST["password"] != $password) {
 $expiration_time = 3600 * 24 * 30; // One month
 
 if (!file_exists("upload/sauna.rrd")) {
-    exec("rrdtool create upload/sauna.rrd --start N --step 60 DS:temperature:GAUGE:240:U:U ".
+    exec("rrdtool create upload/sauna.rrd --start N --step 60 DS:temperature:GAUGE:240:10:110 ".
           " RRA:AVERAGE:0.5:1:1440 RRA:AVERAGE:0.5:5:4032 RRA:AVERAGE:0.5:10:8640 RRA:AVERAGE:0.5:30:35040".
           " RRA:MAX:0.5:1:1440 RRA:MAX:0.5:5:4032 RRA:MAX:0.5:10:8640 RRA:MAX:0.5:30:35040".
           " RRA:MIN:0.5:1:1440 RRA:MIN:0.5:5:4032 RRA:MIN:0.5:10:8640 RRA:MIN:0.5:30:35040".
-          " RRA:LAST:0.5:1:1440 RRA:LAST:0.5:5:4032 RRA:LAST:0.5:10:8640 RRA:LAST:0.5:30:35040");
+          " RRA:LAST:0.5:1:1440 RRA:LAST:0.5:5:4032 RRA:LAST:0.5:10:8640 RRA:LAST:0.5:30:35040".
+          " RRA:HWPREDICT:20160:0.5:0.5:1440");
 }
 
 $data = floatval($_GET["temperature"]);
