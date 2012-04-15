@@ -117,8 +117,6 @@ class Miscstats:
         content = json.dumps({"autofill": final_values})
 
         hash = hashlib.sha1(content).hexdigest()
-        
-
         if hash == self.redis.get("data:miscstats.json-hash"):
             pipe = pipe.incr("stats:cache:miscstats:hit")
             pipe = pipe.incr("stats:cache:hit")
@@ -129,8 +127,8 @@ class Miscstats:
         pipe = pipe.incr("stats:cache:miss")
 
         exptime = 3600 * 24 * 30
-
         mtime = time.time()
+
         pipe = pipe.setex("data:miscstats.json", content, exptime);
         pipe = pipe.setex("data:miscstats.json-mtime", mtime, exptime);
         pipe = pipe.setex("data:miscstats.json-hash", hash, exptime);
@@ -138,9 +136,7 @@ class Miscstats:
         pipe = pipe.publish("pubsub:data:miscstats.json", json.dumps({"hash": hash, "mtime": mtime}))
         pipe.execute()
 
-
         self.update_graphs(final_values)
-
 
 def main():
     miscstats = Miscstats()
