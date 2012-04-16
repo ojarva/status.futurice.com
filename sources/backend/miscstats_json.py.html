@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../backend/miscstats_json.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> time
+<span class="hl kwa">import</span> redis
+<span class="hl kwa">import</span> hashlib
+<span class="hl kwa">import</span> os
+<span class="hl kwa">import</span> subprocess
+<span class="hl kwa">import</span> sys
+
+<span class="hl kwa">class</span> Miscstats<span class="hl opt">:</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">(</span>unix_socket_path<span class="hl opt">=</span><span class="hl str">&quot;/home/redis/redis.sock&quot;</span><span class="hl opt">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_uptime</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            uptime <span class="hl opt">=</span> <span class="hl kwb">open</span><span class="hl opt">(</span><span class="hl str">&quot;/proc/uptime&quot;</span><span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">().</span><span class="hl kwd">strip</span><span class="hl opt">()</span>
+        <span class="hl kwa">except</span> <span class="hl kwc">IOError</span><span class="hl opt">:</span>
+            sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;Your system doesn't support /proc/uptime, or it's blocked by apparmor or similar.</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">)</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{}</span>
+            
+        uptime <span class="hl opt">=</span> uptime<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">()</span>
+        uptime_original <span class="hl opt">=</span> <span class="hl kwb">round</span><span class="hl opt">(</span><span class="hl kwb">float</span><span class="hl opt">(</span>uptime<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]))</span>
+
+        <span class="hl kwa">if</span> uptime_original <span class="hl opt">&gt;</span> <span class="hl num">86400</span><span class="hl opt">:</span>
+            uptime <span class="hl opt">=</span> <span class="hl str">&quot;%s days&quot;</span> <span class="hl opt">%</span> <span class="hl kwb">round</span><span class="hl opt">(</span>uptime_original <span class="hl opt">/</span> <span class="hl num">86400</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">)</span>
+        <span class="hl kwa">elif</span> uptime_original <span class="hl opt">&gt;</span> <span class="hl num">3600</span><span class="hl opt">:</span>
+            uptime <span class="hl opt">=</span> <span class="hl str">&quot;%s hours&quot;</span> <span class="hl opt">%</span> <span class="hl kwb">round</span><span class="hl opt">(</span>uptime_original <span class="hl opt">/</span> <span class="hl num">3600</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">)</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            uptime <span class="hl opt">=</span> <span class="hl str">&quot;%s minutes&quot;</span> <span class="hl opt">%</span> <span class="hl kwb">round</span><span class="hl opt">(</span>uptime_original <span class="hl opt">/</span> <span class="hl num">60</span><span class="hl opt">)</span>
+
+        <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;stats:server:uptime&quot;</span><span class="hl opt">:</span> uptime_original<span class="hl opt">,</span> <span class="hl str">&quot;stats:server:uptime:readable&quot;</span><span class="hl opt">:</span> uptime<span class="hl opt">}</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_redis_info</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        ret <span class="hl opt">= {}</span>
+        <span class="hl kwa">for</span> k<span class="hl opt">,</span> v <span class="hl kwa">in</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">info</span><span class="hl opt">().</span><span class="hl kwd">items</span><span class="hl opt">():</span>
+            ret<span class="hl opt">[</span><span class="hl str">&quot;stats:redis:%s&quot;</span> <span class="hl opt">%</span> k<span class="hl opt">] =</span> v
+        <span class="hl kwa">return</span> ret
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_load_avg</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            content <span class="hl opt">=</span> <span class="hl kwb">open</span><span class="hl opt">(</span><span class="hl str">&quot;/proc/loadavg&quot;</span><span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">().</span><span class="hl kwd">strip</span><span class="hl opt">()</span>
+        <span class="hl kwa">except</span> <span class="hl kwc">IOError</span><span class="hl opt">:</span>
+            sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;Your system doesn't support /proc/loadavg, or it's blocked by apparmor or similar.</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">)</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{}</span>
+        content <span class="hl opt">=</span> content<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot; &quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;stats:server:load:1m&quot;</span><span class="hl opt">:</span> content<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">],</span> <span class="hl str">&quot;stats:server:load:5m&quot;</span><span class="hl opt">:</span> content<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">],</span> <span class="hl str">&quot;stats:server:load:15m&quot;</span><span class="hl opt">:</span> content<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">]}</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_traffic</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">def</span> <span class="hl kwd">sizeof_fmt</span><span class="hl opt">(</span>num<span class="hl opt">):</span>
+            <span class="hl kwa">for</span> x <span class="hl kwa">in</span> <span class="hl opt">[</span><span class="hl str">'bytes'</span><span class="hl opt">,</span><span class="hl str">'KB'</span><span class="hl opt">,</span><span class="hl str">'MB'</span><span class="hl opt">,</span><span class="hl str">'GB'</span><span class="hl opt">]:</span>
+                <span class="hl kwa">if</span> num <span class="hl opt">&lt;</span> <span class="hl num">1024.0</span><span class="hl opt">:</span>
+                    <span class="hl kwa">return</span> <span class="hl str">&quot;%3.1f%s&quot;</span> <span class="hl opt">% (</span>num<span class="hl opt">,</span> x<span class="hl opt">)</span>
+                num <span class="hl opt">/=</span> <span class="hl num">1024.0</span>
+            <span class="hl kwa">return</span> <span class="hl str">&quot;%3.1f%s&quot;</span> <span class="hl opt">% (</span>num<span class="hl opt">,</span> <span class="hl str">'TB'</span><span class="hl opt">)</span>
+
+        p <span class="hl opt">=</span> subprocess<span class="hl opt">.</span><span class="hl kwd">Popen</span><span class="hl opt">([</span><span class="hl str">&quot;/sbin/ifconfig&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;eth0&quot;</span><span class="hl opt">],</span> stdout<span class="hl opt">=</span>subprocess<span class="hl opt">.</span>PIPE<span class="hl opt">)</span>
+        <span class="hl opt">(</span>content<span class="hl opt">,</span> _<span class="hl opt">) =</span> p<span class="hl opt">.</span><span class="hl kwd">communicate</span><span class="hl opt">()</span>
+        content <span class="hl opt">=</span> content<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">for</span> line <span class="hl kwa">in</span> content<span class="hl opt">:</span>
+            <span class="hl kwa">if</span> <span class="hl str">&quot;RX bytes&quot;</span> <span class="hl kwa">in</span> line <span class="hl kwa">and</span> <span class="hl str">&quot;TX bytes&quot;</span> <span class="hl kwa">in</span> line<span class="hl opt">:</span>
+                line <span class="hl opt">=</span> line<span class="hl opt">.</span><span class="hl kwd">strip</span><span class="hl opt">().</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;  &quot;</span><span class="hl opt">)</span>
+                <span class="hl kwb">sum</span> <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>line<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">].</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;:&quot;</span><span class="hl opt">)[</span><span class="hl num">1</span><span class="hl opt">].</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot; &quot;</span><span class="hl opt">)[</span><span class="hl num">0</span><span class="hl opt">])</span>
+                <span class="hl kwb">sum</span> <span class="hl opt">+=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>line<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">].</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;:&quot;</span><span class="hl opt">)[</span><span class="hl num">1</span><span class="hl opt">].</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot; &quot;</span><span class="hl opt">)[</span><span class="hl num">0</span><span class="hl opt">])</span>
+                <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;stats:server:net:eth0:total&quot;</span><span class="hl opt">:</span> <span class="hl kwb">sum</span><span class="hl opt">,</span> <span class="hl str">&quot;stats:server:net:eth0:total:readable&quot;</span><span class="hl opt">:</span> <span class="hl kwd">sizeof_fmt</span><span class="hl opt">(</span><span class="hl kwb">sum</span><span class="hl opt">)}</span>
+        sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;ifconfig didn't return correct line. No ethernet statistics available.</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl opt">{}</span>
+
+
+    <span class="hl kwa">def</span> <span class="hl kwd">update_graphs</span><span class="hl opt">(</span>self<span class="hl opt">,</span> final_values<span class="hl opt">):</span>
+        <span class="hl kwa">for</span> key<span class="hl opt">,</span> value <span class="hl kwa">in</span> final_values<span class="hl opt">.</span><span class="hl kwd">items</span><span class="hl opt">():</span>
+            <span class="hl kwa">try</span><span class="hl opt">:</span>
+                value <span class="hl opt">=</span> <span class="hl kwb">float</span><span class="hl opt">(</span>value<span class="hl opt">)</span>
+            <span class="hl kwa">except</span> <span class="hl opt">(</span><span class="hl kwc">ValueError</span><span class="hl opt">,</span> <span class="hl kwc">TypeError</span><span class="hl opt">):</span>
+                <span class="hl kwa">continue</span>
+            v <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span><span class="hl kwb">round</span><span class="hl opt">(</span>value <span class="hl opt">*</span> <span class="hl num">100</span><span class="hl opt">))</span>
+            filename <span class="hl opt">=</span> <span class="hl str">&quot;../data/miscstats_graphs/%s.rrd&quot;</span> <span class="hl opt">%</span> key
+            <span class="hl kwa">if not</span> os<span class="hl opt">.</span>path<span class="hl opt">.</span><span class="hl kwd">exists</span><span class="hl opt">(</span>filename<span class="hl opt">):</span>
+                p <span class="hl opt">=</span> subprocess<span class="hl opt">.</span><span class="hl kwd">Popen</span><span class="hl opt">([</span><span class="hl str">&quot;rrdtool&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;create&quot;</span><span class="hl opt">,</span> filename<span class="hl opt">,</span> <span class="hl str">&quot;--step&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;60&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;--&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;DS:valueg:GAUGE:300:U:U&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;DS:valuec:COUNTER:300:U:U&quot;</span><span class="hl opt">,</span>
+                    <span class="hl str">&quot;RRA:AVERAGE:0.5:1:120&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:AVERAGE:0.5:5:8640&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:AVERAGE:0.5:60:4320&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:AVERAGE:0.5:720:1600&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:AVERAGE:0.5:1440:2000&quot;</span><span class="hl opt">,</span>
+                    <span class="hl str">&quot;RRA:MIN:0.5:1:120&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MIN:0.5:5:8640&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MIN:0.5:60:4320&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MIN:0.5:720:1600&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MIN:0.5:1440:2000&quot;</span><span class="hl opt">,</span>
+                    <span class="hl str">&quot;RRA:MAX:0.5:1:120&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MAX:0.5:5:8640&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MAX:0.5:60:4320&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MAX:0.5:720:1600&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:MAX:0.5:1440:2000&quot;</span><span class="hl opt">,</span>
+                    <span class="hl str">&quot;RRA:LAST:0.5:1:120&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:LAST:0.5:5:8640&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:LAST:0.5:60:4320&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:LAST:0.5:720:1600&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;RRA:LAST:0.5:1440:2000&quot;</span><span class="hl opt">])</span>
+                p<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">()</span>
+            <span class="hl kwa">if not</span> os<span class="hl opt">.</span>path<span class="hl opt">.</span><span class="hl kwd">exists</span><span class="hl opt">(</span>filename<span class="hl opt">):</span>
+                sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;Creating rrd graph failed. Filename: %s. Aborting.</span><span class="hl esc">\n</span><span class="hl str">&quot;</span> <span class="hl opt">%</span> filename<span class="hl opt">)</span>
+                sys<span class="hl opt">.</span><span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">)</span>
+
+            p <span class="hl opt">=</span> subprocess<span class="hl opt">.</span><span class="hl kwd">Popen</span><span class="hl opt">([</span><span class="hl str">&quot;rrdtool&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;update&quot;</span><span class="hl opt">,</span> filename<span class="hl opt">,</span> <span class="hl str">&quot;N:%s:%s&quot;</span> <span class="hl opt">% (</span>v<span class="hl opt">,</span> v<span class="hl opt">)])</span>
+            p<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">()</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">run</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+
+        <span class="hl kwa">def</span> <span class="hl kwd">format_key</span><span class="hl opt">(</span>keyname<span class="hl opt">):</span>
+            <span class="hl kwa">return</span> keyname<span class="hl opt">.</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;:&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;_&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl kwa">def</span> <span class="hl kwd">format_value</span><span class="hl opt">(</span>value<span class="hl opt">):</span>
+            <span class="hl kwa">try</span><span class="hl opt">:</span>
+                value <span class="hl opt">=</span> <span class="hl kwb">float</span><span class="hl opt">(</span>value<span class="hl opt">)</span>
+                <span class="hl kwa">if</span> value<span class="hl opt">.</span><span class="hl kwd">is_integer</span><span class="hl opt">():</span>
+                    value <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>value<span class="hl opt">)</span>
+                
+            <span class="hl kwa">except</span> <span class="hl opt">(</span><span class="hl kwc">ValueError</span><span class="hl opt">,</span> <span class="hl kwc">TypeError</span><span class="hl opt">):</span>
+                <span class="hl kwa">pass</span>
+            <span class="hl kwa">return</span> value
+
+        set_values <span class="hl opt">= {}</span>
+        set_values<span class="hl opt">.</span><span class="hl kwd">update</span><span class="hl opt">(</span>self<span class="hl opt">.</span><span class="hl kwd">get_uptime</span><span class="hl opt">())</span>
+        set_values<span class="hl opt">.</span><span class="hl kwd">update</span><span class="hl opt">(</span>self<span class="hl opt">.</span><span class="hl kwd">get_redis_info</span><span class="hl opt">())</span>
+        set_values<span class="hl opt">.</span><span class="hl kwd">update</span><span class="hl opt">(</span>self<span class="hl opt">.</span><span class="hl kwd">get_load_avg</span><span class="hl opt">())</span>
+        set_values<span class="hl opt">.</span><span class="hl kwd">update</span><span class="hl opt">(</span>self<span class="hl opt">.</span><span class="hl kwd">get_traffic</span><span class="hl opt">())</span>
+
+        pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span>transaction<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">)</span>
+
+        <span class="hl kwa">for</span> key <span class="hl kwa">in</span> set_values<span class="hl opt">:</span>
+            pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">sadd</span><span class="hl opt">(</span><span class="hl str">&quot;temp:keystore:stats&quot;</span><span class="hl opt">,</span> key<span class="hl opt">)</span>
+            value <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>key<span class="hl opt">)</span>
+            <span class="hl kwa">try</span><span class="hl opt">:</span>
+                <span class="hl kwa">if</span> <span class="hl kwb">float</span><span class="hl opt">(</span>value<span class="hl opt">) &lt;</span> <span class="hl kwb">float</span><span class="hl opt">(</span>set_values<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>key<span class="hl opt">)):</span>
+                    pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;%s:alltime&quot;</span> <span class="hl opt">%</span> key<span class="hl opt">,</span> set_values<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>key<span class="hl opt">),</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span><span class="hl opt">)</span>
+            <span class="hl kwa">except</span> <span class="hl opt">(</span><span class="hl kwc">ValueError</span><span class="hl opt">,</span> <span class="hl kwc">TypeError</span><span class="hl opt">):</span>
+                <span class="hl kwa">pass</span>
+
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">mset</span><span class="hl opt">(</span>set_values<span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl str">&quot;temp:keystore:stats&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;keystore:stats&quot;</span><span class="hl opt">)</span>
+        pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
+
+
+        keys <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">keys</span><span class="hl opt">(</span><span class="hl str">&quot;stats:*&quot;</span><span class="hl opt">)</span>
+        values <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">mget</span><span class="hl opt">(</span>keys<span class="hl opt">)</span>
+        values_done <span class="hl opt">=</span> <span class="hl kwb">map</span><span class="hl opt">(</span>format_value<span class="hl opt">,</span> values<span class="hl opt">)</span>
+        keys_done <span class="hl opt">=</span> <span class="hl kwb">map</span><span class="hl opt">(</span>format_key<span class="hl opt">,</span> keys<span class="hl opt">)</span>
+        final_values <span class="hl opt">=</span> <span class="hl kwb">dict</span><span class="hl opt">(</span><span class="hl kwb">zip</span><span class="hl opt">(</span>keys_done<span class="hl opt">,</span> values_done<span class="hl opt">))</span>
+
+        content <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">:</span> final_values<span class="hl opt">})</span>
+
+        <span class="hl kwb">hash</span> <span class="hl opt">=</span> hashlib<span class="hl opt">.</span><span class="hl kwd">sha1</span><span class="hl opt">(</span>content<span class="hl opt">).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()</span>
+        <span class="hl kwa">if</span> <span class="hl kwb">hash</span> <span class="hl opt">==</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:miscstats.json-hash&quot;</span><span class="hl opt">):</span>
+            pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miscstats:hit&quot;</span><span class="hl opt">)</span>
+            pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:hit&quot;</span><span class="hl opt">)</span>
+            pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
+            <span class="hl kwa">return</span>
+
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miscstats:miss&quot;</span><span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miss&quot;</span><span class="hl opt">)</span>
+
+        exptime <span class="hl opt">=</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span>
+        mtime <span class="hl opt">=</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">()</span>
+
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;data:miscstats.json&quot;</span><span class="hl opt">,</span> content<span class="hl opt">,</span> exptime<span class="hl opt">);</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;data:miscstats.json-mtime&quot;</span><span class="hl opt">,</span> mtime<span class="hl opt">,</span> exptime<span class="hl opt">);</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;data:miscstats.json-hash&quot;</span><span class="hl opt">,</span> <span class="hl kwb">hash</span><span class="hl opt">,</span> exptime<span class="hl opt">);</span>
+
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">publish</span><span class="hl opt">(</span><span class="hl str">&quot;pubsub:data:miscstats.json&quot;</span><span class="hl opt">,</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;hash&quot;</span><span class="hl opt">:</span> <span class="hl kwb">hash</span><span class="hl opt">,</span> <span class="hl str">&quot;mtime&quot;</span><span class="hl opt">:</span> mtime<span class="hl opt">}))</span>
+        pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
+
+        self<span class="hl opt">.</span><span class="hl kwd">update_graphs</span><span class="hl opt">(</span>final_values<span class="hl opt">)</span>
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>
+    miscstats <span class="hl opt">=</span> <span class="hl kwd">Miscstats</span><span class="hl opt">()</span>
+    miscstats<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">()</span>
+
+<span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
+    <span class="hl kwd">main</span><span class="hl opt">()</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

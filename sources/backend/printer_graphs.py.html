@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../backend/printer_graphs.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> rrdtool
+<span class="hl kwa">import</span> os
+<span class="hl kwa">import</span> hashlib
+<span class="hl kwa">import</span> unicodedata
+<span class="hl kwa">import</span> redis
+
+<span class="hl kwa">class</span> UpdateGraphs<span class="hl opt">:</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl opt">(</span>self<span class="hl opt">,</span> filename<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>filename <span class="hl opt">=</span> filename
+        self<span class="hl opt">.</span>_data <span class="hl opt">=</span> <span class="hl kwa">None</span>
+        self<span class="hl opt">.</span>_settings <span class="hl opt">=</span> <span class="hl kwa">None</span>
+        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">()</span>
+        self<span class="hl opt">.</span>settings_key <span class="hl opt">=</span> <span class="hl str">&quot;graphs:&quot;</span><span class="hl opt">+</span>hashlib<span class="hl opt">.</span><span class="hl kwd">md5</span><span class="hl opt">(</span>self<span class="hl opt">.</span>filename<span class="hl opt">).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()+</span><span class="hl str">&quot;.settings.json&quot;</span>
+
+    <span class="hl kwb">&#64;property</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">data</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">if not</span> self<span class="hl opt">.</span>_data<span class="hl opt">:</span>
+            data <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>self<span class="hl opt">.</span>filename<span class="hl opt">)</span>
+            <span class="hl kwa">if</span> data<span class="hl opt">:</span>
+                 self<span class="hl opt">.</span>_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">loads</span><span class="hl opt">(</span>data<span class="hl opt">)</span>
+
+        <span class="hl kwa">return</span> self<span class="hl opt">.</span>_data
+
+    <span class="hl kwb">&#64;property</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">settings</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl kwa">if not</span> self<span class="hl opt">.</span>_settings<span class="hl opt">:</span>
+            settings <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>self<span class="hl opt">.</span>settings_key<span class="hl opt">)</span>
+            <span class="hl kwa">if not</span> settings<span class="hl opt">:</span>
+                self<span class="hl opt">.</span>_settings <span class="hl opt">= {</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">: -</span><span class="hl num">1</span><span class="hl opt">}</span>
+            <span class="hl kwa">else</span><span class="hl opt">:</span>
+                 self<span class="hl opt">.</span>_settings <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">loads</span><span class="hl opt">(</span>settings<span class="hl opt">)</span>
+        <span class="hl kwa">return</span> self<span class="hl opt">.</span>_settings
+     
+    <span class="hl kwa">def</span> <span class="hl kwd">save</span><span class="hl opt">(</span>self<span class="hl opt">,</span> data<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwb">set</span><span class="hl opt">(</span>self<span class="hl opt">.</span>settings_key<span class="hl opt">,</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>data<span class="hl opt">))</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">getpagesgraph</span><span class="hl opt">(</span>self<span class="hl opt">,</span> graphname<span class="hl opt">):</span>
+        graphs <span class="hl opt">= []</span>
+        <span class="hl kwa">def</span> <span class="hl kwd">gengraph</span><span class="hl opt">(</span>fullpath<span class="hl opt">,</span> step<span class="hl opt">,</span> heartbeat<span class="hl opt">):</span>
+            fullpath <span class="hl opt">=</span> unicodedata<span class="hl opt">.</span><span class="hl kwd">normalize</span><span class="hl opt">(</span><span class="hl str">&quot;NFKD&quot;</span><span class="hl opt">,</span> fullpath<span class="hl opt">).</span><span class="hl kwd">encode</span><span class="hl opt">(</span><span class="hl str">&quot;ascii&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;ignore&quot;</span><span class="hl opt">)</span>
+            <span class="hl kwa">if not</span> os<span class="hl opt">.</span>path<span class="hl opt">.</span><span class="hl kwd">exists</span><span class="hl opt">(</span>fullpath<span class="hl opt">):</span>
+                rrdtool<span class="hl opt">.</span><span class="hl kwd">create</span><span class="hl opt">(</span>fullpath<span class="hl opt">,</span>
+                       <span class="hl str">'--step'</span><span class="hl opt">,</span> <span class="hl kwb">str</span><span class="hl opt">(</span>step<span class="hl opt">),</span>
+                       <span class="hl str">'DS:value1:GAUGE:%s:0:U'</span> <span class="hl opt">%</span> heartbeat<span class="hl opt">,</span>
+                       <span class="hl str">'DS:value2:DERIVE:%s:0:U'</span> <span class="hl opt">%</span> heartbeat<span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:1440:1825'</span><span class="hl opt">,</span>
+
+                       <span class="hl str">'RRA:MIN:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:1440:1825'</span><span class="hl opt">,</span>
+
+                       <span class="hl str">'RRA:LAST:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:1440:1825'</span><span class="hl opt">,</span>
+
+                       <span class="hl str">'RRA:MAX:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:1440:1825'</span>
+                <span class="hl opt">)</span>
+            <span class="hl kwa">return</span> fullpath
+
+        graphs<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span><span class="hl kwd">gengraph</span><span class="hl opt">(</span><span class="hl str">&quot;../data/printer_graphs/%s.rrd&quot;</span> <span class="hl opt">%</span> graphname<span class="hl opt">,</span> <span class="hl num">60</span><span class="hl opt">,</span> <span class="hl num">1200</span><span class="hl opt">))</span>
+        graphs<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span><span class="hl kwd">gengraph</span><span class="hl opt">(</span><span class="hl str">&quot;../data/printer_graphs/%s-hourly.rrd&quot;</span> <span class="hl opt">%</span> graphname<span class="hl opt">,</span> <span class="hl num">60</span><span class="hl opt">*</span><span class="hl num">60</span><span class="hl opt">,</span> <span class="hl num">1200</span><span class="hl opt">*</span><span class="hl num">5</span><span class="hl opt">))</span>
+        graphs<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span><span class="hl kwd">gengraph</span><span class="hl opt">(</span><span class="hl str">&quot;../data/printer_graphs/%s-hourly.rrd&quot;</span> <span class="hl opt">%</span> graphname<span class="hl opt">,</span> <span class="hl num">60</span><span class="hl opt">*</span><span class="hl num">60</span><span class="hl opt">,</span> <span class="hl num">1200</span><span class="hl opt">*</span><span class="hl num">5</span><span class="hl opt">))</span>
+        graphs<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span><span class="hl kwd">gengraph</span><span class="hl opt">(</span><span class="hl str">&quot;../data/printer_graphs/%s-daily.rrd&quot;</span> <span class="hl opt">%</span> graphname<span class="hl opt">,</span> <span class="hl num">60</span><span class="hl opt">*</span><span class="hl num">60</span><span class="hl opt">*</span><span class="hl num">24</span><span class="hl opt">,</span> <span class="hl num">1200</span><span class="hl opt">*</span><span class="hl num">5</span><span class="hl opt">*</span><span class="hl num">24</span><span class="hl opt">))</span>
+
+        <span class="hl kwa">return</span> graphs
+
+    <span class="hl kwa">def</span> <span class="hl kwd">getgraph</span><span class="hl opt">(</span>self<span class="hl opt">,</span> graphname<span class="hl opt">):</span>
+        fullpath <span class="hl opt">=</span> <span class="hl str">&quot;../data/printer_graphs/%s.rrd&quot;</span> <span class="hl opt">%</span> graphname
+        fullpath <span class="hl opt">=</span> unicodedata<span class="hl opt">.</span><span class="hl kwd">normalize</span><span class="hl opt">(</span><span class="hl str">&quot;NFKD&quot;</span><span class="hl opt">,</span> fullpath<span class="hl opt">).</span><span class="hl kwd">encode</span><span class="hl opt">(</span><span class="hl str">&quot;ascii&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;ignore&quot;</span><span class="hl opt">)</span>
+        
+        <span class="hl kwa">if not</span> os<span class="hl opt">.</span>path<span class="hl opt">.</span><span class="hl kwd">exists</span><span class="hl opt">(</span>fullpath<span class="hl opt">):</span>
+            rrdtool<span class="hl opt">.</span><span class="hl kwd">create</span><span class="hl opt">(</span>fullpath<span class="hl opt">,</span>
+                       <span class="hl str">'--step'</span><span class="hl opt">,</span> <span class="hl str">'60'</span><span class="hl opt">,</span>
+                       <span class="hl str">'DS:value:GAUGE:1200:0:100'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:AVERAGE:0.5:1440:1825'</span><span class="hl opt">,</span>
+
+                       <span class="hl str">'RRA:MIN:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MIN:0.5:1440:1825'</span><span class="hl opt">,</span>
+
+                       <span class="hl str">'RRA:LAST:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:LAST:0.5:1440:1825'</span><span class="hl opt">,</span>
+
+                       <span class="hl str">'RRA:MAX:0.5:1:1000'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:6:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:12:4320'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:60:8760'</span><span class="hl opt">,</span>
+                       <span class="hl str">'RRA:MAX:0.5:1440:1825'</span>
+            <span class="hl opt">)</span>
+        <span class="hl kwa">return</span> fullpath
+
+    <span class="hl kwa">def</span> <span class="hl kwd">updategraph</span><span class="hl opt">(</span>self<span class="hl opt">,</span> graphfull<span class="hl opt">,</span> timestamp<span class="hl opt">,</span> data<span class="hl opt">):</span>
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            rrdtool<span class="hl opt">.</span><span class="hl kwd">update</span><span class="hl opt">(</span>graphfull<span class="hl opt">,</span> <span class="hl str">'%s:%s'</span> <span class="hl opt">% (</span>timestamp<span class="hl opt">,</span> data<span class="hl opt">))</span>
+            <span class="hl kwa">return True</span>
+        <span class="hl kwa">except</span> rrdtool<span class="hl opt">.</span>error<span class="hl opt">:</span>
+            <span class="hl kwa">return False</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">updatepagesgraph</span><span class="hl opt">(</span>self<span class="hl opt">,</span> graphfull<span class="hl opt">,</span> timestamp<span class="hl opt">,</span> data<span class="hl opt">):</span>
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            rrdtool<span class="hl opt">.</span><span class="hl kwd">update</span><span class="hl opt">(</span>graphfull<span class="hl opt">,</span> <span class="hl str">'%s:%s:%s'</span> <span class="hl opt">% (</span>timestamp<span class="hl opt">,</span> data<span class="hl opt">,</span> data<span class="hl opt">))</span>
+            <span class="hl kwa">return True</span>
+        <span class="hl kwa">except</span> rrdtool<span class="hl opt">.</span>error<span class="hl opt">,</span> e<span class="hl opt">:</span>
+            <span class="hl kwa">print</span> <span class="hl str">&quot;Updating pages failed&quot;</span><span class="hl opt">,</span> e
+            <span class="hl kwa">return False</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">run</span><span class="hl opt">(</span>self<span class="hl opt">,</span> force<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">):</span>
+        <span class="hl kwa">if</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">) ==</span> self<span class="hl opt">.</span>settings<span class="hl opt">[</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">]</span> <span class="hl kwa">and not</span> force<span class="hl opt">:</span>
+            <span class="hl kwa">return False</span>
+        <span class="hl kwa">for</span> printer <span class="hl kwa">in</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;printers&quot;</span><span class="hl opt">, []):</span>
+            <span class="hl kwa">for</span> consumable <span class="hl kwa">in</span> printer<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;consumables&quot;</span><span class="hl opt">, []):</span>
+                graphname <span class="hl opt">=</span> <span class="hl str">&quot;consumable-&quot;</span> <span class="hl opt">+</span> printer<span class="hl opt">[</span><span class="hl str">&quot;slug&quot;</span><span class="hl opt">] +</span> <span class="hl str">&quot;-&quot;</span> <span class="hl opt">+</span> hashlib<span class="hl opt">.</span><span class="hl kwd">md5</span><span class="hl opt">(</span>consumable<span class="hl opt">[</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">]).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()</span>
+                graphfull <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">getgraph</span><span class="hl opt">(</span>graphname<span class="hl opt">)</span>
+                self<span class="hl opt">.</span><span class="hl kwd">updategraph</span><span class="hl opt">(</span>graphfull<span class="hl opt">,</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">),</span> consumable<span class="hl opt">[</span><span class="hl str">&quot;percentage&quot;</span><span class="hl opt">])</span>
+
+            <span class="hl kwa">for</span> paper <span class="hl kwa">in</span> printer<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;papers&quot;</span><span class="hl opt">, []):</span>
+                graphname <span class="hl opt">=</span> <span class="hl str">&quot;paper-&quot;</span> <span class="hl opt">+</span> printer<span class="hl opt">[</span><span class="hl str">&quot;slug&quot;</span><span class="hl opt">] +</span> <span class="hl str">&quot;-&quot;</span> <span class="hl opt">+</span> hashlib<span class="hl opt">.</span><span class="hl kwd">md5</span><span class="hl opt">(</span>paper<span class="hl opt">[</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">]).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()</span>
+                graphfull <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">getgraph</span><span class="hl opt">(</span>graphname<span class="hl opt">)</span>
+                self<span class="hl opt">.</span><span class="hl kwd">updategraph</span><span class="hl opt">(</span>graphfull<span class="hl opt">,</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">),</span> paper<span class="hl opt">[</span><span class="hl str">&quot;percentage&quot;</span><span class="hl opt">])</span>
+
+            <span class="hl kwa">if</span> printer<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;pages&quot;</span><span class="hl opt">):</span>
+                graphname <span class="hl opt">=</span> <span class="hl str">&quot;pages-&quot;</span> <span class="hl opt">+</span> printer<span class="hl opt">[</span><span class="hl str">&quot;slug&quot;</span><span class="hl opt">]</span>
+                graphfull <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">getpagesgraph</span><span class="hl opt">(</span>graphname<span class="hl opt">)</span>
+                <span class="hl kwa">for</span> graph <span class="hl kwa">in</span> graphfull<span class="hl opt">:</span>
+                    self<span class="hl opt">.</span><span class="hl kwd">updatepagesgraph</span><span class="hl opt">(</span>graph<span class="hl opt">,</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">),</span> printer<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;pages&quot;</span><span class="hl opt">))</span>
+
+        settings <span class="hl opt">= {</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">[</span><span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">]}</span>
+        self<span class="hl opt">.</span><span class="hl kwd">save</span><span class="hl opt">(</span>settings<span class="hl opt">)</span>
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>
+    update <span class="hl opt">=</span> <span class="hl kwd">UpdateGraphs</span><span class="hl opt">(</span><span class="hl str">&quot;data:printers.json&quot;</span><span class="hl opt">)</span>
+    update<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">(</span><span class="hl kwa">True</span><span class="hl opt">)</span>
+
+<span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
+    <span class="hl kwd">main</span><span class="hl opt">()</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

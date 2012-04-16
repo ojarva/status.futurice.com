@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../backend/frontpage_json.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl kwa">import</span> hashlib
+<span class="hl kwa">import</span> redis
+<span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> os
+
+<span class="hl kwa">class</span> Frontpage<span class="hl opt">:</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">(</span>unix_socket_path<span class="hl opt">=</span><span class="hl str">&quot;/home/redis/redis.sock&quot;</span><span class="hl opt">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_data</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        ret <span class="hl opt">= {}</span>
+
+        pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span>transaction<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:ittickets.json&quot;</span><span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:services.json&quot;</span><span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:sauna.json&quot;</span><span class="hl opt">)</span>
+        <span class="hl opt">(</span>tickets_json<span class="hl opt">,</span> services_json<span class="hl opt">,</span> sauna_json<span class="hl opt">) =</span> <span class="hl kwb">map</span><span class="hl opt">(</span>json<span class="hl opt">.</span>loads<span class="hl opt">,</span> pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">())</span>
+
+        ret<span class="hl opt">[</span><span class="hl str">&quot;unique_7d&quot;</span><span class="hl opt">] =</span> tickets_json<span class="hl opt">[</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;unique_manual_7d&quot;</span><span class="hl opt">]</span>
+        ret<span class="hl opt">[</span><span class="hl str">&quot;services_up&quot;</span><span class="hl opt">] =</span> services_json<span class="hl opt">[</span><span class="hl str">&quot;overall&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;services_up&quot;</span><span class="hl opt">];</span>
+        ret<span class="hl opt">[</span><span class="hl str">&quot;services_unknown&quot;</span><span class="hl opt">] =</span> services_json<span class="hl opt">[</span><span class="hl str">&quot;overall&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;services_unknown&quot;</span><span class="hl opt">];</span>
+        ret<span class="hl opt">[</span><span class="hl str">&quot;services_down&quot;</span><span class="hl opt">] =</span> services_json<span class="hl opt">[</span><span class="hl str">&quot;overall&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;services_down&quot;</span><span class="hl opt">];</span>
+        ret<span class="hl opt">[</span><span class="hl str">&quot;sauna_temperature&quot;</span><span class="hl opt">] =</span> <span class="hl str">&quot;%s%s&quot;</span> <span class="hl opt">% (</span>sauna_json<span class="hl opt">[</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;sauna_current&quot;</span><span class="hl opt">],</span> <span class="hl str">&quot;&amp;deg;C&quot;</span><span class="hl opt">)</span>
+        ret<span class="hl opt">[</span><span class="hl str">&quot;sauna_trend&quot;</span><span class="hl opt">] =</span> sauna_json<span class="hl opt">[</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;sauna_trend&quot;</span><span class="hl opt">]</span>
+
+        <span class="hl kwa">return</span> ret
+
+    <span class="hl kwa">def</span> <span class="hl kwd">run</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        content <span class="hl opt">= {</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span><span class="hl kwd">get_data</span><span class="hl opt">()}</span>
+
+        lastmodified <span class="hl opt">=</span> <span class="hl kwb">max</span><span class="hl opt">(</span>os<span class="hl opt">.</span>path<span class="hl opt">.</span><span class="hl kwd">getmtime</span><span class="hl opt">(</span>__file__<span class="hl opt">),</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:services.json-mtime&quot;</span><span class="hl opt">),</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:ittickets.json-mtime&quot;</span><span class="hl opt">),</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:sauna.json-mtime&quot;</span><span class="hl opt">))</span>
+
+        frontpage_mtime <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;data:frontpage.json-mtime&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl kwa">if</span> lastmodified <span class="hl opt">&lt;=</span> frontpage_mtime<span class="hl opt">:</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:frontpage:hit&quot;</span><span class="hl opt">);</span>
+            self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:hit&quot;</span><span class="hl opt">);</span>
+            <span class="hl kwa">return</span>
+
+
+        pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span>transaction<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:frontpage:miss&quot;</span><span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miss&quot;</span><span class="hl opt">)</span>
+
+        contente <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">(</span>content<span class="hl opt">)</span>
+        <span class="hl kwb">hash</span> <span class="hl opt">=</span> hashlib<span class="hl opt">.</span><span class="hl kwd">sha1</span><span class="hl opt">(</span>contente<span class="hl opt">).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()</span>
+        exptime <span class="hl opt">=</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span>
+        rediskey <span class="hl opt">=</span> <span class="hl str">&quot;data:frontpage.json&quot;</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span>rediskey<span class="hl opt">,</span> contente<span class="hl opt">,</span> exptime<span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;%s-mtime&quot;</span> <span class="hl opt">%</span> rediskey<span class="hl opt">,</span> lastmodified<span class="hl opt">,</span> exptime<span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;%s-hash&quot;</span> <span class="hl opt">%</span> rediskey<span class="hl opt">,</span> <span class="hl kwb">hash</span><span class="hl opt">,</span> exptime<span class="hl opt">)</span>
+        pipe <span class="hl opt">=</span> pipe<span class="hl opt">.</span><span class="hl kwd">publish</span><span class="hl opt">(</span><span class="hl str">&quot;pubsub:%s&quot;</span> <span class="hl opt">%</span> rediskey<span class="hl opt">,</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;hash&quot;</span><span class="hl opt">:</span> <span class="hl kwb">hash</span><span class="hl opt">,</span> <span class="hl str">&quot;mtime&quot;</span><span class="hl opt">:</span> lastmodified<span class="hl opt">}))</span>
+        pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
+
+
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>
+    frontpage <span class="hl opt">=</span> <span class="hl kwd">Frontpage</span><span class="hl opt">()</span>
+    frontpage<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">()</span>
+
+<span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
+    <span class="hl kwd">main</span><span class="hl opt">()</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

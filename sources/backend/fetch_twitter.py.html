@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../backend/fetch_twitter.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl str">&quot;&quot;&quot; Loads user information from Twitter &quot;&quot;&quot;</span>
+
+<span class="hl kwa">import</span> twitter
+<span class="hl kwa">import</span> sys
+<span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> time
+<span class="hl kwa">import</span> hashlib
+<span class="hl kwa">import</span> redis
+
+<span class="hl kwa">class</span> TwitterInfo<span class="hl opt">:</span>
+    <span class="hl str">&quot;&quot;&quot; Load user information and timeline from twitter </span>
+<span class="hl str">        (unauthenticated) API &quot;&quot;&quot;</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl opt">(</span>self<span class="hl opt">,</span> username<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>username <span class="hl opt">=</span> username
+        self<span class="hl opt">.</span>api <span class="hl opt">=</span> twitter<span class="hl opt">.</span><span class="hl kwd">Api</span><span class="hl opt">()</span>
+        self<span class="hl opt">.</span>redis <span class="hl opt">=</span> redis<span class="hl opt">.</span><span class="hl kwd">Redis</span><span class="hl opt">(</span>unix_socket_path<span class="hl opt">=</span><span class="hl str">&quot;/home/redis/redis.sock&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>redis_key <span class="hl opt">=</span> <span class="hl str">&quot;data:twitter:%s&quot;</span> <span class="hl opt">%</span> username
+        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span>transaction<span class="hl opt">=</span><span class="hl kwa">False</span><span class="hl opt">)</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">fetch</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl str">&quot;&quot;&quot; Fetch user information and save status, follower count </span>
+<span class="hl str">            and timestamp of status &quot;&quot;&quot;</span>
+        user <span class="hl opt">=</span> self<span class="hl opt">.</span>api<span class="hl opt">.</span><span class="hl kwd">GetUser</span><span class="hl opt">(</span>self<span class="hl opt">.</span>username<span class="hl opt">)</span>
+        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:twitter:request&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:api:request&quot;</span><span class="hl opt">)</span>
+        new_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">:</span> user<span class="hl opt">.</span>status<span class="hl opt">.</span><span class="hl kwd">GetText</span><span class="hl opt">(),</span> 
+              <span class="hl str">&quot;followers&quot;</span><span class="hl opt">:</span> user<span class="hl opt">.</span><span class="hl kwd">GetFollowersCount</span><span class="hl opt">(),</span> 
+              <span class="hl str">&quot;status_ago&quot;</span><span class="hl opt">:</span> user<span class="hl opt">.</span>status<span class="hl opt">.</span><span class="hl kwd">GetRelativeCreatedAt</span><span class="hl opt">(),</span>
+              <span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">:</span> user<span class="hl opt">.</span>status<span class="hl opt">.</span><span class="hl kwd">GetCreatedAtInSeconds</span><span class="hl opt">()})</span>
+        new_hash <span class="hl opt">=</span> hashlib<span class="hl opt">.</span><span class="hl kwd">sha1</span><span class="hl opt">(</span>new_data<span class="hl opt">).</span><span class="hl kwd">hexdigest</span><span class="hl opt">()</span> 
+        old_hash <span class="hl opt">=</span> self<span class="hl opt">.</span>redis<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>self<span class="hl opt">.</span>redis_key<span class="hl opt">+</span><span class="hl str">&quot;-hash&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> new_hash <span class="hl opt">!=</span> old_hash<span class="hl opt">:</span>
+            max_lifetime <span class="hl opt">=</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;data:twitter.json&quot;</span><span class="hl opt">,</span> new_data<span class="hl opt">,</span> max_lifetime<span class="hl opt">)</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;data:twitter.json-mtime&quot;</span><span class="hl opt">,</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">(),</span> max_lifetime<span class="hl opt">)</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;data:twitter.json-hash&quot;</span><span class="hl opt">,</span> new_hash<span class="hl opt">,</span> max_lifetime<span class="hl opt">)</span>
+
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span>self<span class="hl opt">.</span>redis_key<span class="hl opt">,</span> new_data<span class="hl opt">,</span> max_lifetime<span class="hl opt">)</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;%s-mtime&quot;</span> <span class="hl opt">%</span> self<span class="hl opt">.</span>redis_key<span class="hl opt">,</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">(),</span> max_lifetime<span class="hl opt">)</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;%s-hash&quot;</span> <span class="hl opt">%</span> self<span class="hl opt">.</span>redis_key<span class="hl opt">,</span> new_hash<span class="hl opt">,</span> max_lifetime<span class="hl opt">)</span>
+
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">publish</span><span class="hl opt">(</span><span class="hl str">&quot;pubsub:data:twitter.json&quot;</span><span class="hl opt">,</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;hash&quot;</span><span class="hl opt">:</span> new_hash<span class="hl opt">,</span> <span class="hl str">&quot;mtime&quot;</span><span class="hl opt">:</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">()}))</span>
+
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:twitter:miss&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:miss&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:twitter:hit&quot;</span><span class="hl opt">)</span>
+            self<span class="hl opt">.</span>pipe <span class="hl opt">=</span> self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:cache:hit&quot;</span><span class="hl opt">)</span>
+        self<span class="hl opt">.</span>pipe<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">()</span>
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">(</span>username<span class="hl opt">):</span>
+    <span class="hl str">&quot;&quot;&quot; Run twitter information &quot;&quot;&quot;</span>
+    twitterinfo <span class="hl opt">=</span> <span class="hl kwd">TwitterInfo</span><span class="hl opt">(</span>username<span class="hl opt">)</span>
+    twitterinfo<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">()</span>
+
+
+<span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
+    <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>sys<span class="hl opt">.</span>argv<span class="hl opt">) !=</span> <span class="hl num">2</span><span class="hl opt">:</span>
+        sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;Syntax: %s your_twitter_handle</span><span class="hl esc">\n</span><span class="hl str">&quot;</span> <span class="hl opt">%</span> sys<span class="hl opt">.</span>argv<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">])</span>
+        sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;For example</span><span class="hl esc">\n</span><span class="hl str">%s futurice</span><span class="hl esc">\n</span><span class="hl str">&quot;</span> <span class="hl opt">%</span> sys<span class="hl opt">.</span>argv<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]);</span>
+        sys<span class="hl opt">.</span><span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">)</span>
+    <span class="hl kwd">main</span><span class="hl opt">(</span>sys<span class="hl opt">.</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">])</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

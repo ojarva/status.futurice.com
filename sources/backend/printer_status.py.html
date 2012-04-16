@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../backend/printer_status.py</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl kwa">import</span> subprocess
+<span class="hl kwa">import</span> local_settings
+<span class="hl kwa">from</span> poster<span class="hl opt">.</span>encode <span class="hl kwa">import</span> multipart_encode
+<span class="hl kwa">from</span> poster<span class="hl opt">.</span>streaminghttp <span class="hl kwa">import</span> register_openers
+<span class="hl kwa">from</span> multiprocessing <span class="hl kwa">import</span> Queue
+<span class="hl kwa">import</span> urllib2
+<span class="hl kwa">import</span> json
+<span class="hl kwa">import</span> time
+<span class="hl kwa">import</span> multiprocessing
+
+<span class="hl kwa">class</span> PrinterStatus<span class="hl opt">:</span>
+    <span class="hl kwa">def</span> <span class="hl kwd">__init__</span><span class="hl opt">(</span>self<span class="hl opt">,</span> hostname<span class="hl opt">,</span> password<span class="hl opt">):</span>
+        self<span class="hl opt">.</span>hostname <span class="hl opt">=</span> hostname
+        self<span class="hl opt">.</span>password <span class="hl opt">=</span> password
+        self<span class="hl opt">.</span>_data <span class="hl opt">=</span> <span class="hl kwa">None</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get</span><span class="hl opt">(</span>self<span class="hl opt">,</span> key<span class="hl opt">):</span>
+        p <span class="hl opt">=</span> subprocess<span class="hl opt">.</span><span class="hl kwd">Popen</span><span class="hl opt">([</span><span class="hl str">&quot;snmpwalk&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;-Cc&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;-v1&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;-On&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;-c&quot;</span><span class="hl opt">,</span> self<span class="hl opt">.</span>password<span class="hl opt">,</span> self<span class="hl opt">.</span>hostname<span class="hl opt">,</span> key<span class="hl opt">],</span> stdout<span class="hl opt">=</span>subprocess<span class="hl opt">.</span>PIPE<span class="hl opt">,</span> stderr<span class="hl opt">=</span>subprocess<span class="hl opt">.</span>PIPE<span class="hl opt">)</span>
+        <span class="hl opt">(</span>dataout<span class="hl opt">,</span> errors<span class="hl opt">) =</span> p<span class="hl opt">.</span><span class="hl kwd">communicate</span><span class="hl opt">()</span>
+        <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>errors<span class="hl opt">) &gt;</span> <span class="hl num">5</span><span class="hl opt">:</span>
+            <span class="hl kwa">print</span> errors
+            <span class="hl kwa">raise</span> <span class="hl kwc">Exception</span><span class="hl opt">(</span><span class="hl str">&quot;Error occured during snmpwalk&quot;</span><span class="hl opt">)</span>
+        dataout <span class="hl opt">=</span> dataout<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">)</span>
+        data_final <span class="hl opt">= []</span>
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> dataout<span class="hl opt">:</span>
+            item <span class="hl opt">=</span> item<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot; = &quot;</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">)</span>
+            <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>item<span class="hl opt">) ==</span> <span class="hl num">2</span><span class="hl opt">:</span>
+                data_final<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span>item<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">].</span><span class="hl kwd">strip</span><span class="hl opt">().</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;STRING: &quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">).</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;INTEGER: &quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">).</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;Counter32: &quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">))</span>
+        <span class="hl kwa">return</span> data_final
+
+
+
+    <span class="hl kwa">def</span> <span class="hl kwd">status</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        status <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.25.3.5.1.1.1&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> status <span class="hl opt">==</span> <span class="hl kwa">False</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;num&quot;</span><span class="hl opt">: -</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl str">&quot;readable&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;invalid&quot;</span><span class="hl opt">}</span>
+        status <span class="hl opt">=</span> status<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]</span>            
+        status <span class="hl opt">=</span> status<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;(&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>status<span class="hl opt">) ==</span> <span class="hl num">2</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;num&quot;</span><span class="hl opt">:</span> status<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">].</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;)&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">),</span> <span class="hl str">&quot;readable&quot;</span><span class="hl opt">:</span> status<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]}</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;num&quot;</span><span class="hl opt">: -</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl str">&quot;readable&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;invalid&quot;</span><span class="hl opt">}</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_pages</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        count <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.10.2.1.4.1.1&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> count <span class="hl opt">==</span> <span class="hl kwa">False</span><span class="hl opt">:</span>
+            <span class="hl kwa">return None</span>
+        count <span class="hl opt">=</span> count<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]</span>
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            count <span class="hl opt">=</span> <span class="hl kwb">int</span><span class="hl opt">(</span>count<span class="hl opt">)</span>
+        <span class="hl kwa">except</span> <span class="hl kwc">ValueError</span><span class="hl opt">:</span>
+            <span class="hl kwa">return None</span>
+        <span class="hl kwa">return</span> count
+
+    <span class="hl kwa">def</span> <span class="hl kwd">alert_level</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        <span class="hl slc">#  unknown(1), running(2), warning(3), testing(4), down(5)</span>
+        status <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.25.3.2.1.5.1&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> status <span class="hl opt">==</span> <span class="hl kwa">False</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;num&quot;</span><span class="hl opt">: -</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl str">&quot;readable&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;invalid&quot;</span><span class="hl opt">}</span>
+        status <span class="hl opt">=</span> status<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]</span>
+        status <span class="hl opt">=</span> status<span class="hl opt">.</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;(&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>status<span class="hl opt">) ==</span> <span class="hl num">2</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;num&quot;</span><span class="hl opt">:</span> status<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">].</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;)&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">),</span> <span class="hl str">&quot;readable&quot;</span><span class="hl opt">:</span> status<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]}</span>
+        <span class="hl kwa">else</span><span class="hl opt">:</span>
+            <span class="hl kwa">return</span> <span class="hl opt">{</span><span class="hl str">&quot;num&quot;</span><span class="hl opt">: -</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl str">&quot;readable&quot;</span><span class="hl opt">:</span> <span class="hl str">&quot;invalid&quot;</span><span class="hl opt">}</span>
+
+    <span class="hl kwa">def</span> <span class="hl kwd">alert_text</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        status_texts <span class="hl opt">= []</span>
+        value <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.18.1.1.8.1&quot;</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> value
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_papers</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        papers <span class="hl opt">= []</span>
+        names <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.8.2.1.18.1&quot;</span><span class="hl opt">)</span>
+        max_values <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.8.2.1.9.1&quot;</span><span class="hl opt">)</span>
+        current_values <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.8.2.1.10.1&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">len</span><span class="hl opt">(</span>names<span class="hl opt">)):</span>
+            name <span class="hl opt">=</span> names<span class="hl opt">[</span>item<span class="hl opt">].</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\&quot;</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">).</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;, &quot;</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">)</span>
+            name <span class="hl opt">=</span> name<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]</span>
+            max_value <span class="hl opt">=</span> max_values<span class="hl opt">[</span>item<span class="hl opt">]</span>
+            current_value <span class="hl opt">=</span> current_values<span class="hl opt">[</span>item<span class="hl opt">]</span>
+            <span class="hl kwa">if</span> current_value <span class="hl opt">==</span> <span class="hl str">&quot;-3&quot;</span><span class="hl opt">:</span>
+                current_value <span class="hl opt">=</span> max_value
+            <span class="hl kwa">if</span> max_value <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">:</span>
+                percentage <span class="hl opt">=</span> <span class="hl kwb">max</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">round</span><span class="hl opt">(</span><span class="hl kwb">float</span><span class="hl opt">(</span>current_value<span class="hl opt">) /</span> <span class="hl kwb">float</span><span class="hl opt">(</span>max_value<span class="hl opt">) *</span> <span class="hl num">100</span><span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">))</span>
+            <span class="hl kwa">else</span><span class="hl opt">:</span>
+                percentage <span class="hl opt">=</span> <span class="hl str">&quot;-&quot;</span>
+            paper <span class="hl opt">= {</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">:</span> name<span class="hl opt">,</span> <span class="hl str">&quot;current&quot;</span><span class="hl opt">:</span> current_value<span class="hl opt">,</span> <span class="hl str">&quot;max&quot;</span><span class="hl opt">:</span> max_value<span class="hl opt">,</span> <span class="hl str">&quot;percentage&quot;</span><span class="hl opt">:</span> percentage<span class="hl opt">}</span>
+            papers<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span>paper<span class="hl opt">)</span>
+        <span class="hl kwa">return</span> papers
+
+    <span class="hl kwa">def</span> <span class="hl kwd">get_consumables</span><span class="hl opt">(</span>self<span class="hl opt">):</span>
+        consumables <span class="hl opt">= []</span>
+        names <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.11.1.1.6.1&quot;</span><span class="hl opt">)</span>
+        max_values <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.11.1.1.8.1&quot;</span><span class="hl opt">)</span>
+        current_values <span class="hl opt">=</span> self<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;.1.3.6.1.2.1.43.11.1.1.9.1&quot;</span><span class="hl opt">)</span>
+
+        <span class="hl kwa">for</span> item <span class="hl kwa">in</span> <span class="hl kwb">range</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">len</span><span class="hl opt">(</span>names<span class="hl opt">)):</span>
+            name <span class="hl opt">=</span> names<span class="hl opt">[</span>item<span class="hl opt">].</span><span class="hl kwd">replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\&quot;</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">).</span><span class="hl kwd">split</span><span class="hl opt">(</span><span class="hl str">&quot;, &quot;</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">)</span>
+            name <span class="hl opt">=</span> name<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]</span>
+            max_value <span class="hl opt">=</span> max_values<span class="hl opt">[</span>item<span class="hl opt">]</span>
+            current_value <span class="hl opt">=</span> current_values<span class="hl opt">[</span>item<span class="hl opt">]</span>
+            <span class="hl kwa">if</span> current_value <span class="hl opt">==</span> <span class="hl str">&quot;-3&quot;</span><span class="hl opt">:</span>
+                current_value <span class="hl opt">=</span> max_value
+            <span class="hl kwa">if</span> max_value <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">:</span>
+                percentage <span class="hl opt">=</span> <span class="hl kwb">max</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">round</span><span class="hl opt">(</span><span class="hl kwb">float</span><span class="hl opt">(</span>current_value<span class="hl opt">) /</span> <span class="hl kwb">float</span><span class="hl opt">(</span>max_value<span class="hl opt">) *</span> <span class="hl num">100</span><span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">))</span>
+            <span class="hl kwa">else</span><span class="hl opt">:</span>
+                percentage <span class="hl opt">=</span> <span class="hl str">&quot;-&quot;</span>
+            consumable <span class="hl opt">= {</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">:</span> name<span class="hl opt">,</span> <span class="hl str">&quot;current&quot;</span><span class="hl opt">:</span> current_value<span class="hl opt">,</span> <span class="hl str">&quot;max&quot;</span><span class="hl opt">:</span> max_value<span class="hl opt">,</span> <span class="hl str">&quot;percentage&quot;</span><span class="hl opt">:</span> percentage<span class="hl opt">}</span>
+            consumables<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span>consumable<span class="hl opt">)</span>
+        <span class="hl kwa">return</span> consumables
+
+<span class="hl kwa">def</span> <span class="hl kwd">send</span><span class="hl opt">(</span>what<span class="hl opt">,</span> filename<span class="hl opt">):</span>
+    datagen<span class="hl opt">,</span> headers <span class="hl opt">=</span> <span class="hl kwd">multipart_encode</span><span class="hl opt">({</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">:</span> <span class="hl kwb">open</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> <span class="hl str">&quot;rb&quot;</span><span class="hl opt">),</span> <span class="hl str">&quot;password&quot;</span><span class="hl opt">:</span> local_settings<span class="hl opt">.</span>UPLOAD_PASSWORD<span class="hl opt">,</span> <span class="hl str">&quot;what&quot;</span><span class="hl opt">:</span> what<span class="hl opt">})</span>
+    request <span class="hl opt">=</span> urllib2<span class="hl opt">.</span><span class="hl kwd">Request</span><span class="hl opt">(</span>local_settings<span class="hl opt">.</span>UPLOAD_URL<span class="hl opt">,</span> datagen<span class="hl opt">,</span> headers<span class="hl opt">)</span>
+    urllib2<span class="hl opt">.</span><span class="hl kwd">urlopen</span><span class="hl opt">(</span>request<span class="hl opt">).</span><span class="hl kwd">read</span><span class="hl opt">()</span>
+
+<span class="hl kwa">def</span> <span class="hl kwd">clientprog</span><span class="hl opt">(</span>queue<span class="hl opt">,</span> printer_settings<span class="hl opt">):</span>
+    printer <span class="hl opt">=</span> <span class="hl kwd">PrinterStatus</span><span class="hl opt">(</span>printer_settings<span class="hl opt">[</span><span class="hl str">&quot;hostname&quot;</span><span class="hl opt">],</span> printer_settings<span class="hl opt">[</span><span class="hl str">&quot;password&quot;</span><span class="hl opt">])</span>
+    status <span class="hl opt">= {</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">:</span> printer_settings<span class="hl opt">[</span><span class="hl str">&quot;name&quot;</span><span class="hl opt">],</span> <span class="hl str">&quot;slug&quot;</span><span class="hl opt">:</span> printer_settings<span class="hl opt">[</span><span class="hl str">&quot;slug&quot;</span><span class="hl opt">]}</span>
+    <span class="hl kwa">try</span><span class="hl opt">:</span>
+        status<span class="hl opt">[</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">] =</span> printer<span class="hl opt">.</span><span class="hl kwd">status</span><span class="hl opt">()</span>
+    <span class="hl kwa">except</span><span class="hl opt">:</span>
+        <span class="hl kwa">return</span>
+    status<span class="hl opt">[</span><span class="hl str">&quot;alert_level&quot;</span><span class="hl opt">] =</span> printer<span class="hl opt">.</span><span class="hl kwd">alert_level</span><span class="hl opt">()</span>
+    status<span class="hl opt">[</span><span class="hl str">&quot;alert_text&quot;</span><span class="hl opt">] =</span> printer<span class="hl opt">.</span><span class="hl kwd">alert_text</span><span class="hl opt">()</span>
+    status<span class="hl opt">[</span><span class="hl str">&quot;consumables&quot;</span><span class="hl opt">] =</span> printer<span class="hl opt">.</span><span class="hl kwd">get_consumables</span><span class="hl opt">()</span>
+    status<span class="hl opt">[</span><span class="hl str">&quot;papers&quot;</span><span class="hl opt">] =</span> printer<span class="hl opt">.</span><span class="hl kwd">get_papers</span><span class="hl opt">()</span>
+    status<span class="hl opt">[</span><span class="hl str">&quot;pages&quot;</span><span class="hl opt">] =</span> printer<span class="hl opt">.</span><span class="hl kwd">get_pages</span><span class="hl opt">()</span>
+    queue<span class="hl opt">.</span><span class="hl kwd">put</span><span class="hl opt">(</span>status<span class="hl opt">)</span>
+
+<span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>
+    <span class="hl kwd">register_openers</span><span class="hl opt">()</span>
+
+    printers <span class="hl opt">=</span> local_settings<span class="hl opt">.</span>PRINTERS
+    statuses <span class="hl opt">= []</span>
+    threads <span class="hl opt">= []</span>
+    queue <span class="hl opt">=</span> <span class="hl kwd">Queue</span><span class="hl opt">()</span>
+    <span class="hl kwa">for</span> item <span class="hl kwa">in</span> printers<span class="hl opt">:</span>
+        p <span class="hl opt">=</span> multiprocessing<span class="hl opt">.</span><span class="hl kwd">Process</span><span class="hl opt">(</span>target<span class="hl opt">=</span>clientprog<span class="hl opt">,</span> args<span class="hl opt">=(</span>queue<span class="hl opt">,</span> item<span class="hl opt">))</span>
+        p<span class="hl opt">.</span><span class="hl kwd">start</span><span class="hl opt">()</span>
+        threads<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span>p<span class="hl opt">)</span>
+    <span class="hl kwa">for</span> item <span class="hl kwa">in</span> threads<span class="hl opt">:</span>
+        <span class="hl kwa">try</span><span class="hl opt">:</span>
+            item<span class="hl opt">.</span><span class="hl kwd">join</span><span class="hl opt">()</span>
+        <span class="hl kwa">except</span><span class="hl opt">:</span>
+            <span class="hl kwa">pass</span>
+    <span class="hl kwa">while not</span> queue<span class="hl opt">.</span><span class="hl kwd">empty</span><span class="hl opt">():</span>
+        statuses<span class="hl opt">.</span><span class="hl kwd">append</span><span class="hl opt">(</span>queue<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">())</span>
+
+    <span class="hl kwa">if</span> <span class="hl kwb">len</span><span class="hl opt">(</span>statuses<span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">:</span>
+        <span class="hl kwa">print</span> <span class="hl str">&quot;Failed to connect to any printer&quot;</span>
+        <span class="hl kwa">return</span>
+    data <span class="hl opt">= {</span><span class="hl str">&quot;printers&quot;</span><span class="hl opt">:</span> statuses<span class="hl opt">,</span> <span class="hl str">&quot;timestamp&quot;</span><span class="hl opt">:</span> time<span class="hl opt">.</span><span class="hl kwd">time</span><span class="hl opt">()}</span>
+    json<span class="hl opt">.</span><span class="hl kwd">dump</span><span class="hl opt">(</span>data<span class="hl opt">,</span> <span class="hl kwb">open</span><span class="hl opt">(</span><span class="hl str">&quot;statuses.json&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;w&quot;</span><span class="hl opt">))</span>
+    <span class="hl kwd">send</span><span class="hl opt">(</span>settings<span class="hl opt">.</span>UPLOAD_DESTINATION<span class="hl opt">,</span> <span class="hl str">&quot;statuses.json&quot;</span><span class="hl opt">)</span>
+
+<span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
+    <span class="hl kwd">main</span><span class="hl opt">()</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->
