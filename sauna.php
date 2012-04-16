@@ -13,16 +13,16 @@ require_once("lib/redis.php");
 
 function response($success, $status) {
     return json_encode(array("success" => $success, "status" => $status));
+    exit(0);
 }
 
 if ($_POST["password"] != $password) {
-    Header('HTTP/1.1 403 Forbidden');
-    echo response(false, "Wrong password");
 
     // Update statistics
     $redis->incr("stats:web:invalid");
     $redis->incr("stats:web:sauna:pwfail");
-    exit(0);
+    Header('HTTP/1.1 403 Forbidden');
+    echo response(false, "Wrong password");
 }
 
 $expiration_time = 3600 * 24 * 30; // One month
@@ -41,6 +41,10 @@ if (!file_exists("upload/sauna.rrd")) {
 $data = floatval($_GET["temperature"]);
 
 if ($data < 25 || $data > 110) {
+    // Update statistics
+    $redis->incr("stats:web:invalid");
+    $redis->incr("stats:web:sauna:invalidvalue");
+
     echo response(false, "Invalid value");
 }
 
