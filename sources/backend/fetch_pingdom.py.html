@@ -15,6 +15,7 @@
 <span class="hl kwa">import</span> datetime
 <span class="hl kwa">import</span> time
 <span class="hl kwa">import</span> os
+<span class="hl kwa">import</span> sys
 <span class="hl kwa">import</span> logging
 <span class="hl kwa">import</span> redis
 <span class="hl kwa">import</span> hashlib
@@ -26,7 +27,12 @@
 <span class="hl kwa">except</span> <span class="hl kwc">ImportError</span><span class="hl opt">:</span>
     <span class="hl kwa">import</span> pickle
 
-<span class="hl kwa">import</span> pingdom_settings
+<span class="hl kwa">try</span><span class="hl opt">:</span>
+    <span class="hl kwa">import</span> pingdom_settings
+<span class="hl kwa">except</span> <span class="hl kwc">ImportError</span><span class="hl opt">:</span>
+    sys<span class="hl opt">.</span>stderr<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl str">&quot;You are missing pingdom_settings.py. Please see pingdom_settings.py.sample</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">)</span>
+    sys<span class="hl opt">.</span><span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">)</span>
+
 
 <span class="hl kwa">class</span> Pingdomrun<span class="hl opt">:</span>
     <span class="hl str">&quot;&quot;&quot; Fetch data from pingdom, calculate basic metrics like number of </span>
@@ -338,16 +344,17 @@
         new_data <span class="hl opt">=</span> json<span class="hl opt">.</span><span class="hl kwd">dumps</span><span class="hl opt">({</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl str">&quot;autofill&quot;</span><span class="hl opt">, {}),</span> <span class="hl str">&quot;overall&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>data<span class="hl opt">,</span> <span class="hl str">&quot;per_service&quot;</span><span class="hl opt">:</span> self<span class="hl opt">.</span>cdata<span class="hl opt">})</span>
         filename <span class="hl opt">=</span> <span class="hl str">&quot;data:services.json&quot;</span>
         self<span class="hl opt">.</span><span class="hl kwd">_save</span><span class="hl opt">(</span>filename<span class="hl opt">,</span> new_data<span class="hl opt">,</span> <span class="hl num">3600</span><span class="hl opt">*</span><span class="hl num">24</span><span class="hl opt">*</span><span class="hl num">30</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl num">0</span>
 
 
 <span class="hl kwa">def</span> <span class="hl kwd">main</span><span class="hl opt">():</span>
     <span class="hl str">&quot;&quot;&quot; Run pingdom statistics &quot;&quot;&quot;</span>
     pingdomstats <span class="hl opt">=</span> <span class="hl kwd">Pingdomrun</span><span class="hl opt">()</span>
     pingdomstats<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">()</span>
-    pingdomstats<span class="hl opt">.</span><span class="hl kwd">save</span><span class="hl opt">()</span>
+    <span class="hl kwa">return</span> pingdomstats<span class="hl opt">.</span><span class="hl kwd">save</span><span class="hl opt">()</span>
 
 <span class="hl kwa">if</span> __name__ <span class="hl opt">==</span> <span class="hl str">'__main__'</span><span class="hl opt">:</span>
-    <span class="hl kwd">main</span><span class="hl opt">()</span>
+    sys<span class="hl opt">.</span><span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl kwd">main</span><span class="hl opt">())</span>
 </pre>
 </body>
 </html>
