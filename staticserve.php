@@ -17,6 +17,7 @@ if (!isset($_GET["filename"])) {
     stat_update("web:invalid");
 
     header("HTTP/1.1 404 Not Found");
+    readfile("404.html");
     exit();
 }
 
@@ -31,6 +32,7 @@ if (!in_array($dir, array("css", "js", "img")) || !file_exists($filename)) {
     stat_update("web:static:invalid");
     stat_update("web:invalid");
     header("HTTP/1.1 404 Not Found");
+    readfile("404.html");
     exit();
 }
 
