@@ -13,23 +13,23 @@
 <div class="row">
 	<div class="span2">
 		<h2><small>Status</small></h2>
-		<h2 id="status"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="status"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span2">
 		<h2><small>Response time</small></h2>
-		<h2><span id="lastresponsetime"><img src="/img/loading-inline.gif"></span>ms</h2>
+		<h2><span id="lastresponsetime"><span class="loading-inline-gif"></span></span>ms</h2>
 	</div>
 	<div class="span3">
 		<h2><small>Last check</small></h2>
-		<h2 id="last_check" class="automatic-moment"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="last_check" class="automatic-moment"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span3">
 		<h2><small>Last error</small></h2>
-		<h2 id="last_error" class="automatic-moment"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="last_error" class="automatic-moment"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span2">
 		<h2><small>Test type</small></h2>
-		<h2 id="type"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="type"><span class="loading-inline-gif"></span></h2>
 	</div>
 </div>
 

@@ -51,15 +51,15 @@
 <div class="row">
 	<div class="span3" rel="popover" data-original-title="What?" data-content="This is the number of new tickets. New tickets are not yet acknowledged. For example, it might be assigned to someone who didn't read it yet." data-placement="top">
 		<h2><small>New tickets</small></h2>
-		<h2 id="new_tickets"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="new_tickets"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span3" rel="popover" data-original-title="What?" data-content="This is the number of currently open ticket. New tickets are not yet acknowledged" data-placement="top">
 		<h2><small>Open tickets</small></h2>
-		<h2 id="open_tickets"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="open_tickets"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span3" data-content="This is the total number of tickets since March 2010, including automatic messages" data-original-title="What?" data-placement="top">
 		<h2><small>Total number of tickets</small></h2>
-		<h2 id="all_tickets"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="all_tickets"><span class="loading-inline-gif"></span></h2>
 	</div>
 </div>
 
@@ -72,19 +72,19 @@
 <div class="row">
 	<div class="span2">
 		<h2><small>Last 7 days</small></h2>
-		<h2 id="unique_manual_7d"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="unique_manual_7d"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span2">
 		<h2><small>Last 30 days</small></h2>
-		<h2 id="unique_manual_30d"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="unique_manual_30d"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span2">
 		<h2><small>Last 365 days</small></h2>
-		<h2 id="unique_manual_365d"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="unique_manual_365d"><span class="loading-inline-gif"></span></h2>
 	</div>
 	<div class="span2">
 		<h2><small>All-time</small></h2>
-		<h2 id="unique_manual"><img src="/img/loading-inline.gif"></h2>
+		<h2 id="unique_manual"><span class="loading-inline-gif"></span></h2>
 	</div>
 </div>
 

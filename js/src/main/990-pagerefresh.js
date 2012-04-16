@@ -118,7 +118,7 @@ function animate_change($elem, data, continueold) {
             }, options);
             settings.current_timeout = settings.short_timeout;
 
-            $(this).html('<small><span class="update_ago"></span> <span class="update_next_reload"></span></small> <button class="btn btn-small update_now_button">Update now <span class="update_progress_indicator"><img src="/img/loading-mini.gif"></span></button>');
+            $(this).html('<small><span class="update_ago"></span> <span class="update_next_reload"></span></small> <button class="btn btn-small update_now_button">Update now <span class="update_progress_indicator"><span class="loading-mini-gif"></span></span></button>');
 
             $(this).data("pagerefresh_settings", settings);
 

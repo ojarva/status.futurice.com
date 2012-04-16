@@ -43,10 +43,10 @@ Configure Pingdom. Get API key from Pingdom control panel.
 On server running this site
 ---------------------------
 
-Install following packages: python, highlight, collectd, redis, python-redis, python-dateutil, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor, rrdtool, python-rrdtool and make. In Debian/Ubuntu:
+Install following packages: python, highlight, collectd, redis, python-imaging, python-redis, python-dateutil, python-twitter, apache2, libapache2-mod-php5, trimage, yui-compressor, rrdtool, python-rrdtool and make. In Debian/Ubuntu:
 
 ```
-sudo apt-get install collectd python python-redis redis-server python-dateutil highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool
+sudo apt-get install python-imaging collectd python python-redis redis-server python-dateutil highlight python-twitter apache2 libapache2-mod-php5 yui-compressor make trimage rrdtool python-rrdtool
 ```
 
 Configure redis to offer unix socket at */home/redis/redis.sock* (or change *lib/redis.php* and *backend/* to use TCP connection instead).

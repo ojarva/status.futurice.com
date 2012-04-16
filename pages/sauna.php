@@ -6,7 +6,7 @@
 
 <div class="row">
 	<div class="span11">
-		<h1 style="line-height:100px;font-size:100px"><span id="sauna_current"><img src="/img/loading-inline.gif"></span>&deg;C <small id="sauna_trend" style="font-size:80px;color: #999;"></small></h1>
+		<h1 style="line-height:100px;font-size:100px"><span id="sauna_current"><span class="loading-inline-gif"></span></span>&deg;C <small id="sauna_trend" style="font-size:80px;color: #999;"></small></h1>
 	</div>
 </div>
 

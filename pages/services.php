@@ -6,27 +6,27 @@
 <div class="row">
 <div class="span2">
 <h2><small>Overall</small></h2>
-<h2 id="overall"><img class="loading-indicator" src="/img/loading-inline.gif"></h2>
+<h2 id="overall"><span class="loading-inline-gif"></span></h2>
 </div>
 
 <div class="span2" rel="popover" data-original-title="What?" data-content="This is number of outages today over all services. Even very short breaks counts." data-placement="bottom">
 <h2><small>Outages today</small></h2>
-<h2 id="outages_today"><img class="loading-indicator" src="/img/loading-inline.gif"></h2>
+<h2 id="outages_today"><span class="loading-inline-gif"></span></h2>
 </div>
 
 <div class="span2">
 <h2><small>Networks uptime</small></h2>
-<h2 id="networks"><img class="loading-indicator" src="/img/loading-inline.gif"></h2>
+<h2 id="networks"><span class="loading-inline-gif"></span></h2>
 </div>
 
 <div class="span3">
 <h2><small>Virtualization platforms</small></h2>
-<h2 id="virtualization_platforms"><img class="loading-indicator" src="/img/loading-inline.gif"></h2>
+<h2 id="virtualization_platforms"><span class="loading-inline-gif"></span></h2>
 </div>
 
 <div class="span2">
 <h2><small>Websites</small></h2>
-<h2 id="websites"><img class="loading-indicator" src="/img/loading-inline.gif"></h2>
+<h2 id="websites"><span class="loading-inline-gif"></span></h2>
 </div>
 
 </div>

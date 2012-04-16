@@ -30,9 +30,9 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
 	<div class="span4">
 		<h2>Services</h2>
 		<p>
-		<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be down. Service might be down for maintenance, or monitoring might be broken."><span class="badge badge-error" id="services_down"><img src="/img/loading-inline-micro.gif"></span></a>
-		<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that might be down. We can't detect everything with automatic monitoring, and sometimes monitoring system isn't sure."><span class="badge badge-warning" id="services_unknown"><img src="/img/loading-inline-micro.gif"></span></a>
-		<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be up. Sometimes automatic monitoring doesn't catch all errors, so service might be inaccessible in fact."><span class="badge badge-success" id="services_up"><img src="/img/loading-inline-micro.gif"></span></a>
+		<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be down. Service might be down for maintenance, or monitoring might be broken."><span class="badge badge-error" id="services_down"><span class="loading-inline-micro-gif"></span></span></a>
+		<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that might be down. We can't detect everything with automatic monitoring, and sometimes monitoring system isn't sure."><span class="badge badge-warning" id="services_unknown"><span class="loading-inline-micro-gif"></span></span></a>
+		<a href="/page/services" rel="popover" data-original-title="What?" data-content="This is the number of services that seems to be up. Sometimes automatic monitoring doesn't catch all errors, so service might be inaccessible in fact."><span class="badge badge-success" id="services_up"><span class="loading-inline-micro-gif"></span></span></a>
 		</p>
 		<p>We are monitoring IT services and servers using Pingdom. Also, we have an internal Zabbix server, but unfortunately it contains great deal of confidential client information, so it's not available here.</p>
 		<p><a class="btn" href="/page/services">View status &raquo;</a>
@@ -41,7 +41,7 @@ git server is down for maintenance on Thursday from 16:00. Expected downtime is 
 	</div>
 	<div class="span4">
 		<h2>Sauna</h2>
-		<p><a href="/page/sauna"><span class="badge badge-info" id="sauna_temperature"><img src="/img/loading-inline-micro.gif"></span> <span class="badge badge-info" id="sauna_trend"><img src="/img/loading-inline-micro.gif"></span></a></p>
+		<p><a href="/page/sauna"><span class="badge badge-info" id="sauna_temperature"><span class="loading-inline-micro-gif"></span></span> <span class="badge badge-info" id="sauna_trend"><span class="loading-inline-micro-gif"></span></span></a></p>
 
 		<p>We have sauna in Helsinki office. When wondering whether to run to work in rainy day, 
 it's nice to see whether it's warm right now.
@@ -55,8 +55,7 @@ it's nice to see whether it's warm right now.
 
 		<p><a href="/page/ittickets" rel="popover" data-original-title="What?" data-content="This 
 is the number of tickets received by IT team during last 7 days. Automatic tickets are excluded from this 
-number."><span class="badge badge-info" id="unique_7d"><img 
-src="/img/loading-inline-micro.gif"></span></a>
+number."><span class="badge badge-info" id="unique_7d"><span class="loading-inline-micro-gif"></span></a>
 		 tickets during previous 7 days.</p>
 
 		<p>Our IT team handles tasks and resolves all kind of problems from employees and clients. For that, we are using RT. We can't tell who sends messages and we don't have classifications for ticket complexity, but best we can do is to publish amount of handled tickets.</p>
