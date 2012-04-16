@@ -69,7 +69,7 @@ class Miscstats:
         for key, value in final_values.items():
             try:
                 value = float(value)
-            except ValueError, TypeError:
+            except (ValueError, TypeError):
                 continue
             v = int(round(value * 100))
             filename = "../data/miscstats_graphs/%s.rrd" % key
@@ -98,7 +98,7 @@ class Miscstats:
                 if value.is_integer():
                     value = int(value)
                 
-            except:
+            except (ValueError, TypeError):
                 pass
             return value
 
@@ -116,7 +116,7 @@ class Miscstats:
             try:
                 if float(value) < float(set_values.get(key)):
                     pipe = pipe.setex("%s:alltime" % key, set_values.get(key), 3600 * 24 * 30)
-            except ValueError:
+            except (ValueError, TypeError):
                 pass
 
         pipe = pipe.mset(set_values)
