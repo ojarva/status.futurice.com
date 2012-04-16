@@ -21,7 +21,7 @@ $heigth = GET('y');
 $seconds = GET('s');
 
 $requesthash = sha1(serialize($_GET));
-$rediskey = "cache:grapher:detail:$host:$plugin:$seconds";
+$rediskey = "cache:grapher:detail:$host:$plugin:$type:$tinstance:$seconds";
 
 $content = $redis->get($rediskey);
 if ($content) {
@@ -39,8 +39,8 @@ printf('<h2><a href="%s">%s</a></h2>'."\n",
 );
 
 $term = array(
-	'2hour'	=> 3600*2,
-	'8hour'	=> 3600*8,
+	'2 hours'	=> 3600*2,
+	'8 hours'	=> 3600*8,
 	'day'	=> 86400,
 	'week'	=> 86400*7,
 	'month'	=> 86400*31,
