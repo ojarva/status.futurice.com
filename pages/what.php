@@ -39,7 +39,8 @@ if ($images != false && count($images) > 0) {
 <?
 shuffle($images);
 foreach ($images as $k => $v) {
-?><div class="<?if ($k == 0) {?>active <?}?>item"><img src="/<?=$v;?>"></img></div><?
+    $v = basename($v);
+?><div class="<?if ($k == 0) {?>active <?}?>item"><img src="/img/carousel/<?=$v;?>"></img></div><?
 }
 ?>
 			</div>
