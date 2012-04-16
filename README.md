@@ -115,12 +115,13 @@ Backend components (*backend/*)
 * Add *fetch_twitter.py* to crontab. First argument is your twitter username. (suggestion: once per few minutes)
 * Add *frontpage_json.py* to crontab (suggestion: every minute)
 * Add *miscstats_json.py* to crontab (suggestion: every minute)
+* Add *printer_graphs.py* to crontab (suggestion: every minute)
 
 This is what we have in crontab for regular user owning all files under */var/www*:
 
 ```
 * * * * * cd /var/www/backend; python fetch_pingdom.py
-* * * * * cd /var/www/backend; python frontpage_json.py; python miscstats_json.py
+* * * * * cd /var/www/backend; python frontpage_json.py; python miscstats_json.py; python printer_graphs.py; cd sauna; python gen.py
 */3 * * * * cd /var/www/backend; python fetch_twitter.py futurice
 ```
 
