@@ -15,12 +15,15 @@ if (isset($_GET["filename"])) {
     } else {
         $name = "img/carousel/full/".basename($_GET["filename"]);
     }
-} else {
+}
+
+if (!isset($name) || !file_exists($name)) {
     $redis->incr("stats:web:static:invalid");
     $redis->incr("stats:web:invalid");
     stat_update("web:static:invalid");
     stat_update("web:invalid");
-    header("HTTP/1.1 500 Internal Server Error");
+    header("HTTP/1.1 404 Not Found");
+    readfile("404.html");
     exit();
 }
 
