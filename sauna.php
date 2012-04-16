@@ -40,6 +40,10 @@ if (!file_exists("upload/sauna.rrd")) {
 // Sanitize input value - temperature is directly used in exec().
 $data = floatval($_GET["temperature"]);
 
+if ($data < 25 || $data > 110) {
+    echo response(false, "Invalid value");
+}
+
 exec("rrdtool update upload/sauna.rrd N:$data");
 
 // Push new value to temperatures list (left)

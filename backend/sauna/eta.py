@@ -6,6 +6,7 @@ import sys
 from numpy.core import *
 from numpy.lib import *
 from numpy.linalg import *
+from math import sqrt
 
 
 class EtaCalculator:
@@ -39,6 +40,21 @@ class EtaCalculator:
             Seconds before reaching target temperature
 
         """
+
+        def meanstdv(x):
+            n, mean, std = len(x), 0, 0
+            for a in x:
+                mean = mean + a
+            mean = mean / float(n)
+            for a in x:
+                std = std + (a - mean)**2
+            std = sqrt(std / float(n-1))
+            return mean, std
+
+        (_, std) = meanstdv(self.items)
+        if std < 1:
+            return -99999999
+
         kbest = None
         Tmaxbest = None
         resids = None

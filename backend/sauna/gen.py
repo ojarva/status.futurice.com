@@ -4,6 +4,7 @@ import json
 from eta import EtaCalculator
 import rrdtool
 import redis
+import numpy
 
 class SaunaStats:
     def __init__(self, filename):
@@ -20,7 +21,11 @@ class SaunaStats:
             cached = self.redis.get(cachekey)
             if cached:
                 return float(cached)
-            eta = EtaCalculator(target, items).calc()
+            try:
+                eta = EtaCalculator(target, items).calc()
+            except numpy.linalg.linalg.LinAlgError:
+                return -999999
+
             self.redis.setex(cachekey, eta, 120)
             self.redis.setex(cachesort, eta, 30)
             return eta
