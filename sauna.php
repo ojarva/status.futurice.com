@@ -52,15 +52,7 @@ exec("rrdtool update upload/sauna.rrd N:$data");
 
 // Push new value to temperatures list (left)
 $redis->lpush("cache:latest_sauna", $data);
-
-$listlen = $redis->llen("cache:latest_sauna");
-while ($listlen > 50) {
-    // Drop values until there's only 50 left.
-    // There's no way to remove multiple elements from list
-    // using only single command.
-    $redis->rpop("cache:latest_sauna");
-    $listlen--;
-}
+$redis->ltrim("cache:latest_sauna", 0, 49);
 
 // Update expire for list - it's always one month from last update.
 $redis->expire("cache:latest_sauna", 3600*24*30);
