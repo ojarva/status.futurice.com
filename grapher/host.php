@@ -10,7 +10,8 @@ $splugin = validate_get(GET('p'), 'plugin');
 
 $content = ($redis->get("cache:grapher:host:$host:$splugin"));
 if ($content) {
-  echo $content;
+  http_cache_etag();
+  http_send_data($content);
   exit(0);
 }
 
@@ -59,5 +60,6 @@ html_end();
 
 $content = ob_get_clean();
 $redis->setex("cache:grapher:host:$host:$splugin", 300, $content);
-echo $content;
+http_cache_etag();
+http_send_data($content);
 ?>

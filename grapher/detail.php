@@ -25,7 +25,8 @@ $rediskey = "cache:grapher:detail:$host:$plugin:$type:$tinstance:$seconds";
 
 $content = $redis->get($rediskey);
 if ($content) {
-    echo $content;
+    http_cache_etag();
+    http_send_data($content);
     exit();
 }
 
@@ -70,6 +71,7 @@ printf('<img src="%s%s">'."\n", $CONFIG['weburl'], build_url('graph.php', $_GET)
 html_end();
 
 $content = ob_get_clean();
-echo $content;
+http_cache_etag();
+http_send_data($content);
 $redis->setex($rediskey, 300, $content);
 ?>

@@ -20,7 +20,8 @@ $rediskey = "cache:grapher:graph:$plugin:${width}x${heigth}:$requesthash";
 $cached = $redis->get($rediskey);
 if ($cached) {
    Header("Content-Type: image/png");
-   echo $cached;
+   http_cache_etag();
+   http_send_data($cached);
    exit();
 }
 
@@ -41,6 +42,7 @@ include $CONFIG['webdir'].'/plugin/'.$plugin.'.php';
 
 $content = ob_get_clean();
 $redis->setex($rediskey, 60, $content);
-echo $content;
+http_cache_etag();
+http_send_data($content);
 
 ?>
