@@ -89,14 +89,14 @@ function animate_change($elem, data, continueold) {
 
     if (tdata >= $elem.data("animate-target")) {
         $elem.html($elem.data("animate-target"));
-        $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 2000);
+        $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 1000);
         $elem.removeData("animate-init");
         return;
     }
 
     $elem.html(tdata);
 
-    setTimeout(function() { animate_change($elem, tdata, true)}, 100);
+    setTimeout(function() { animate_change($elem, tdata, true)}, 25);
 }
 
 
