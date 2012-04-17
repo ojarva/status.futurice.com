@@ -1,4 +1,10 @@
 <?
+// width+height+range = 1900*1900*8999 = 3245390000 cache keys
+// 3245390000 * 200kB = 604TB - saturates redis storage.
+// However, redis should be configured with maxmemory directive and
+// volatile-lru, which evicts least recently used key that's
+// going to to expire anyway.
+
 require_once("../lib/redis.php");
 $filename = "../upload/sauna.rrd";
 http_send_content_type("image/png");
@@ -42,7 +48,7 @@ if (isset($_GET["height"])) {
     $height = min(2000, max(100, intval($_GET["height"])));
 }
 if (isset($_GET["range"])) {
-    $range = min(192, max(1, intval($_GET["range"])));
+    $range = min(9000, max(1, intval($_GET["range"])));
 }
 if (isset($_GET["mode"])) {
     $mode = $_GET["mode"];
