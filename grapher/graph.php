@@ -7,7 +7,9 @@ require_once 'inc/functions.inc.php';
 $get_cleaned = array();
 $valid_params = array("p", "pi", "t", "h", "s", "x", "y");
 foreach ($valid_params as $v) {
-   $get_cleaned[$v] = $_GET[$v];
+   if (isset($_GET[$v])) {
+       $get_cleaned[$v] = $_GET[$v];
+   }
 }
 
 $plugin = validate_get(GET('p'), 'plugin');
