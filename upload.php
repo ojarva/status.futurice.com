@@ -34,7 +34,7 @@ if ($password == "your_randomly_generated_password") {
 
 
 
-if ($_POST["password"] != $password) {
+if (!isset($_POST["password"]) || $_POST["password"] != $password) {
     Header('HTTP/1.1 403 Forbidden');
     echo response(false, "Wrong password");
     $redis->pipeline(function($pipe) {
