@@ -12,6 +12,9 @@ class Type_GenericIO extends Type_Default {
 		if ($this->scale)
 			$raw = '_raw';
 		$i=0;
+                if (!isset($raw)) {
+			$raw = "";
+                }
 		foreach ($this->tinstances as $tinstance) {
 			foreach ($this->data_sources as $ds) {
 				$rrdgraph[] = sprintf('DEF:min_%s%s="%s":%s:MIN', crc32hex($sources[$i]), $raw, $this->rrd_escape($this->files[$tinstance]), $ds);
