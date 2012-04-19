@@ -11,7 +11,7 @@ RAPHAEL_JS_DEST=$(RAPHAEL_JS:.js=.js.min)
 COMBINED_JS_DEST=$(COMBINED_JS:.js=.js.min)
 
 # Render source codes
-SOURCE_RENDER=sources/index.php.html sources/backend/fetch_pingdom.py.html sources/backend/fetch_rt.py.html sources/backend/miscstats_json.py.html sources/backend/frontpage_json.py.html sources/backend/fetch_twitter.py.html sources/backend/printer_graphs.py.html sources/backend/printer_status.py.html
+SOURCE_RENDER=sources/index.php.html sources/backend/fetch_pingdom.py.html sources/backend/fetch_rt.py.html sources/backend/miscstats_json.py.html sources/backend/frontpage_json.py.html sources/backend/fetch_twitter.py.html sources/backend/printer_graphs.py.html sources/backend/printer_status.py.html sources/sauna.php.html sources/graph/sauna.php.html sources/json.php.html sources/upload.php.html sources/staticserve.php.html sources/carousel_images.php.html sources/get_per_user_stats.php.html
 
 PNG_FILES=$(wildcard img/*.png)
 

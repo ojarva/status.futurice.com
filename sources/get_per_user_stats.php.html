@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../get_per_user_stats.php</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl opt">&lt;</span>?
+<span class="hl slc">//session_start();</span>
+<span class="hl kwd">Header</span><span class="hl opt">(</span><span class="hl str">&quot;Content-Type: application/json&quot;</span><span class="hl opt">);</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;lib/redis.php&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">$ip</span> <span class="hl opt">=</span> <span class="hl kwc">$_SERVER</span><span class="hl opt">[</span><span class="hl str">&quot;REMOTE_ADDR&quot;</span><span class="hl opt">];</span>
+<span class="hl kwc">$session</span> <span class="hl opt">=</span> <span class="hl kwd">session_id</span><span class="hl opt">();</span>
+
+<span class="hl slc">// Key names (ordered list) for return dictionary</span>
+<span class="hl kwc">$get_values</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;total_web_pageview&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;your_ip_web_pageview&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;your_ip_web_json_processed&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;your_ip_static_served&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;your_session_web_pageview&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;your_session_web_json_processed&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;your_session_static_served&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">$autofill</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">();</span>
+<span class="hl kwc">$responses</span> <span class="hl opt">=</span> <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span><span class="hl kwa">function</span><span class="hl opt">(</span><span class="hl kwc">$pipe</span><span class="hl opt">) {</span>
+    <span class="hl kwc">$ip</span> <span class="hl opt">=</span> <span class="hl kwc">$_SERVER</span><span class="hl opt">[</span><span class="hl str">&quot;REMOTE_ADDR&quot;</span><span class="hl opt">];</span>
+    <span class="hl kwc">$session</span> <span class="hl opt">=</span> <span class="hl kwd">session_id</span><span class="hl opt">();</span>
+    <span class="hl slc">// Redis keys for return dictionary. Ordered list, match with key names above.</span>
+    <span class="hl kwc">$get_values</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;per_user:total:web:pageview&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;per_user:ip:$ip:web:pageview&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;per_user:ip:$ip:web:json:processed&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;per_user:ip:$ip:web:static:served&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;per_user:session:$session:web:pageview&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;per_user:session:$session:web:json:processed&quot;</span><span class="hl opt">,</span>
+	<span class="hl str">&quot;per_user:session:$session:web:static:served&quot;</span><span class="hl opt">);</span>
+
+    <span class="hl kwa">foreach</span> <span class="hl opt">(</span><span class="hl kwc">$get_values</span> <span class="hl kwa">as</span> <span class="hl kwc">$k</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$v</span><span class="hl opt">) {</span>
+        <span class="hl kwc">$pipe</span><span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl kwc">$v</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+<span class="hl opt">});</span>
+
+<span class="hl kwc">$autofill</span> <span class="hl opt">=</span> <span class="hl kwd">array_combine</span><span class="hl opt">(</span><span class="hl kwc">$get_values</span><span class="hl opt">,</span> <span class="hl kwc">$responses</span><span class="hl opt">);</span>
+
+<span class="hl kwc">$content</span> <span class="hl opt">=</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;autofill&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$autofill</span><span class="hl opt">));</span>
+
+<span class="hl slc">// Return 304 if etag matches</span>
+<span class="hl kwd">http_cache_etag</span><span class="hl opt">();</span>
+
+<span class="hl slc">// No caching</span>
+<span class="hl kwd">Header</span><span class="hl opt">(</span><span class="hl str">&quot;Cache-Control: private&quot;</span><span class="hl opt">);</span>
+<span class="hl kwd">http_send_content_type</span><span class="hl opt">(</span><span class="hl str">&quot;application/json&quot;</span><span class="hl opt">);</span>
+<span class="hl kwd">http_send_data</span><span class="hl opt">(</span><span class="hl kwc">$content</span><span class="hl opt">);</span>
+?<span class="hl opt">&gt;</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../upload.php</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl opt">&lt;</span>?
+<span class="hl slc">// This file handles uploads from RT server and network monitoring server</span>
+<span class="hl slc">// Only files listed in upload_settings.php are allowed.</span>
+
+<span class="hl slc">// Do not cache</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">'Cache-Control: no-cache, no-store, max-age=0, must-revalidate'</span><span class="hl opt">);</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">'Expires: Mon, 26 Jul 1997 05:00:00 GMT'</span><span class="hl opt">);</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">'Pragma: no-cache'</span><span class="hl opt">);</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">&quot;content-type: application/json&quot;</span><span class="hl opt">);</span>
+
+<span class="hl slc">// Sample file is named as upload_settings.php.sample. Move it, and change password to something more complex.</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;upload_settings.php&quot;</span><span class="hl opt">);</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;lib/redis.php&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwa">function</span> <span class="hl kwd">response</span><span class="hl opt">(</span><span class="hl kwc">$success</span><span class="hl opt">,</span> <span class="hl kwc">$status</span><span class="hl opt">) {</span>
+    <span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwc">$status</span><span class="hl opt">) {</span>
+        <span class="hl kwd">error_log</span><span class="hl opt">(</span><span class="hl str">&quot;upload.php: &quot;</span><span class="hl opt">.</span><span class="hl kwc">$status</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;success&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$success</span><span class="hl opt">,</span> <span class="hl str">&quot;status&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$status</span><span class="hl opt">));</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$what_allowed</span><span class="hl opt">)) {</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Improperly configured: missing what_allowed from upload_settings.php&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">exit</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$password</span><span class="hl opt">)) {</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Improperly configured: missing password from upload_settings.php&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">exit</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$password</span> <span class="hl opt">==</span> <span class="hl str">&quot;your_randomly_generated_password&quot;</span><span class="hl opt">) {</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Improperly configured: using default password.&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">exit</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+
+
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_POST</span><span class="hl opt">[</span><span class="hl str">&quot;password&quot;</span><span class="hl opt">])</span> || <span class="hl kwc">$_POST</span><span class="hl opt">[</span><span class="hl str">&quot;password&quot;</span><span class="hl opt">] !=</span> <span class="hl kwc">$password</span><span class="hl opt">) {</span>
+    <span class="hl kwd">Header</span><span class="hl opt">(</span><span class="hl str">'HTTP/1.1 403 Forbidden'</span><span class="hl opt">);</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Wrong password&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span><span class="hl kwa">function</span><span class="hl opt">(</span><span class="hl kwc">$pipe</span><span class="hl opt">) {</span>
+     <span class="hl kwc">$pipe</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+     <span class="hl kwc">$pipe</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:upload:pwfail&quot;</span><span class="hl opt">);</span>
+    <span class="hl opt">});</span>
+    <span class="hl kwa">exit</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+<span class="hl kwc">$what</span> <span class="hl opt">=</span> <span class="hl kwc">$_POST</span><span class="hl opt">[</span><span class="hl str">&quot;what&quot;</span><span class="hl opt">];</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwd">in_array</span><span class="hl opt">(</span><span class="hl kwc">$what</span><span class="hl opt">,</span> <span class="hl kwc">$what_allowed</span><span class="hl opt">)) {</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Invalid target name&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">pipeline</span><span class="hl opt">(</span><span class="hl kwa">function</span><span class="hl opt">(</span><span class="hl kwc">$pipe</span><span class="hl opt">) {</span>
+     <span class="hl kwc">$pipe</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+     <span class="hl kwc">$pipe</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:upload:targetnamefail&quot;</span><span class="hl opt">);</span>
+    <span class="hl opt">});</span>
+    <span class="hl kwa">exit</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+
+<span class="hl kwc">$pinfo</span> <span class="hl opt">=</span> <span class="hl kwd">pathinfo</span><span class="hl opt">(</span><span class="hl kwc">$what</span><span class="hl opt">);</span>
+<span class="hl kwc">$expiration_time</span> <span class="hl opt">=</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span><span class="hl opt">;</span> <span class="hl slc">// One month</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$pinfo</span><span class="hl opt">[</span><span class="hl str">&quot;extension&quot;</span><span class="hl opt">] ==</span> <span class="hl str">&quot;json&quot;</span><span class="hl opt">) {</span>
+    <span class="hl kwc">$filename</span> <span class="hl opt">=</span> <span class="hl str">&quot;data:&quot;</span><span class="hl opt">.</span><span class="hl kwc">$what</span><span class="hl opt">;</span> <span class="hl slc">// Already validated</span>
+    <span class="hl kwc">$contents</span> <span class="hl opt">=</span> <span class="hl kwd">file_get_contents</span><span class="hl opt">(</span><span class="hl kwc">$_FILES</span><span class="hl opt">[</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;tmp_name&quot;</span><span class="hl opt">]);</span>
+    <span class="hl kwc">$hash</span> <span class="hl opt">=</span> <span class="hl kwd">sha1</span><span class="hl opt">(</span><span class="hl kwc">$contents</span><span class="hl opt">);</span>
+    <span class="hl kwc">$timestamp</span> <span class="hl opt">=</span> <span class="hl kwd">time</span><span class="hl opt">();</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">,</span> <span class="hl kwc">$expiration_time</span><span class="hl opt">,</span> <span class="hl kwc">$contents</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">.</span><span class="hl str">&quot;-hash&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$expiration_time</span><span class="hl opt">,</span> <span class="hl kwc">$hash</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">.</span><span class="hl str">&quot;-mtime&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$expiration_time</span><span class="hl opt">,</span> <span class="hl kwc">$timestamp</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:upload:success&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">publish</span><span class="hl opt">(</span><span class="hl str">&quot;pubsub:$what&quot;</span><span class="hl opt">,</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;hash&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$hash</span><span class="hl opt">,</span> <span class="hl str">&quot;mtime&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$timestamp</span><span class="hl opt">)));</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>true<span class="hl opt">,</span> <span class="hl str">&quot;Upload succeeded&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl kwa">else</span> <span class="hl opt">{</span>
+    <span class="hl kwc">$filename</span> <span class="hl opt">=</span> <span class="hl str">&quot;upload/&quot;</span><span class="hl opt">.</span><span class="hl kwc">$what</span><span class="hl opt">;</span>
+    <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwd">move_uploaded_file</span><span class="hl opt">(</span><span class="hl kwc">$_FILES</span><span class="hl opt">[</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">][</span><span class="hl str">&quot;tmp_name&quot;</span><span class="hl opt">],</span> <span class="hl kwc">$filename</span><span class="hl opt">)) {</span>
+        <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>true<span class="hl opt">,</span> <span class="hl str">&quot;Upload succeeded&quot;</span><span class="hl opt">);</span>
+        <span class="hl kwc">$pinfo</span> <span class="hl opt">=</span> <span class="hl kwd">pathinfo</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">);</span>
+        <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$pinfo</span><span class="hl opt">[</span><span class="hl str">&quot;extension&quot;</span><span class="hl opt">] ==</span> <span class="hl str">&quot;png&quot;</span><span class="hl opt">) {</span>
+            <span class="hl kwd">exec</span><span class="hl opt">(</span><span class="hl str">&quot;advpng -z1</span> <span class="hl esc">\&quot;</span><span class="hl str">$filename</span><span class="hl esc">\&quot;</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+            <span class="hl kwc">$contents</span> <span class="hl opt">=</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;timestamp&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwd">time</span><span class="hl opt">()) );</span>
+            <span class="hl kwc">$rediskey</span> <span class="hl opt">=</span> <span class="hl str">&quot;data:&quot;</span><span class="hl opt">.</span><span class="hl kwc">$pinfo</span><span class="hl opt">[</span><span class="hl str">&quot;filename&quot;</span><span class="hl opt">].</span><span class="hl str">&quot;.json&quot;</span><span class="hl opt">;</span>
+            <span class="hl kwc">$hash</span> <span class="hl opt">=</span> <span class="hl kwd">sha1</span><span class="hl opt">(</span><span class="hl kwc">$contents</span><span class="hl opt">);</span>
+            <span class="hl kwc">$mtime</span> <span class="hl opt">=</span> <span class="hl kwd">time</span><span class="hl opt">();</span>
+            <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl kwc">$rediskey</span><span class="hl opt">,</span> <span class="hl kwc">$expiration_time</span><span class="hl opt">,</span> <span class="hl kwc">$contents</span><span class="hl opt">);</span>
+            <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;$rediskey-hash&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$expiration_time</span><span class="hl opt">,</span> <span class="hl kwc">$hash</span><span class="hl opt">);</span>
+            <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl str">&quot;$rediskey-mtime&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$expiration_time</span><span class="hl opt">,</span> <span class="hl kwc">$mtime</span><span class="hl opt">);</span>
+            <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">publish</span><span class="hl opt">(</span><span class="hl str">&quot;pubsub:$rediskey&quot;</span><span class="hl opt">,</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;hash&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$hash</span><span class="hl opt">,</span> <span class="hl str">&quot;mtime&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$mtime</span><span class="hl opt">)));</span>
+            <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:upload:pngsuccess&quot;</span><span class="hl opt">);</span>
+        <span class="hl opt">}</span>
+        <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:upload:success&quot;</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span> <span class="hl kwa">else</span> <span class="hl opt">{</span>
+        <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;File upload failed: $filename</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+        <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:upload:filefailed&quot;</span><span class="hl opt">);</span>
+        <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+?<span class="hl opt">&gt;</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

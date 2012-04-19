@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../staticserve.php</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl opt">&lt;</span>?
+<span class="hl slc">// This file serves static files and handles updating statistics.</span>
+<span class="hl slc">// Static files are cached using html5 application cache (whenever it's supported).</span>
+<span class="hl slc">// Many browsers don't update application cache correctly, if http cache headers</span>
+<span class="hl slc">// are set.</span>
+
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;lib/redis.php&quot;</span><span class="hl opt">);</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;lib/userstats.php&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;filename&quot;</span><span class="hl opt">])) {</span>
+    <span class="hl slc">// No filename set</span>
+
+    <span class="hl slc">// Update statistics</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:static:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:static:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:invalid&quot;</span><span class="hl opt">);</span>
+
+    <span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">&quot;HTTP/1.1 404 Not Found&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">readfile</span><span class="hl opt">(</span><span class="hl str">&quot;404.html&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">exit</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">$filename</span> <span class="hl opt">=</span> <span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;filename&quot;</span><span class="hl opt">];</span>
+<span class="hl kwc">$pathinfo</span> <span class="hl opt">=</span> <span class="hl kwd">pathinfo</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">);</span>
+<span class="hl kwc">$dir</span> <span class="hl opt">=</span> <span class="hl kwc">$pathinfo</span><span class="hl opt">[</span><span class="hl str">&quot;dirname&quot;</span><span class="hl opt">];</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwd">in_array</span><span class="hl opt">(</span><span class="hl kwc">$dir</span><span class="hl opt">,</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;css&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;js&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;img&quot;</span><span class="hl opt">))</span> || <span class="hl opt">!</span><span class="hl kwd">file_exists</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">)) {</span>
+    <span class="hl kwd">error_log</span><span class="hl opt">(</span><span class="hl str">&quot;staticserve.php: Invalid directory or file ($filename) doesn't exist&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:static:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:static:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">&quot;HTTP/1.1 404 Not Found&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">readfile</span><span class="hl opt">(</span><span class="hl str">&quot;404.html&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">exit</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$dir</span> <span class="hl opt">==</span> <span class="hl str">&quot;css&quot;</span><span class="hl opt">) {</span> <span class="hl kwc">$ct</span> <span class="hl opt">=</span> <span class="hl str">&quot;text/css&quot;</span><span class="hl opt">; }</span>
+<span class="hl kwa">elseif</span> <span class="hl opt">(</span><span class="hl kwc">$dir</span> <span class="hl opt">==</span> <span class="hl str">&quot;js&quot;</span><span class="hl opt">) {</span> <span class="hl kwc">$ct</span> <span class="hl opt">=</span> <span class="hl str">&quot;application/javascript&quot;</span><span class="hl opt">; }</span>
+<span class="hl kwa">elseif</span> <span class="hl opt">(</span><span class="hl kwc">$dir</span> <span class="hl opt">==</span> <span class="hl str">&quot;img&quot;</span><span class="hl opt">) {</span>
+    <span class="hl kwc">$finfo</span> <span class="hl opt">=</span> <span class="hl kwd">finfo_open</span><span class="hl opt">(</span>FILEINFO_MIME_TYPE<span class="hl opt">);</span>
+    <span class="hl kwc">$ct</span> <span class="hl opt">=</span> <span class="hl kwd">finfo_file</span><span class="hl opt">(</span><span class="hl kwc">$finfo</span><span class="hl opt">,</span> <span class="hl kwc">$filename</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl kwa">else</span> <span class="hl opt">{</span>
+    <span class="hl kwc">$ct</span> <span class="hl opt">=</span> <span class="hl str">&quot;text/plain&quot;</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:static:served&quot;</span><span class="hl opt">);</span>
+<span class="hl kwd">stat_update</span><span class="hl opt">(</span><span class="hl str">&quot;web:static:served&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwd">http_cache_etag</span><span class="hl opt">();</span>
+<span class="hl kwd">http_send_content_type</span><span class="hl opt">(</span><span class="hl kwc">$ct</span><span class="hl opt">);</span>
+<span class="hl kwd">http_send_file</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">);</span>
+?<span class="hl opt">&gt;</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->

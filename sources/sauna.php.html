@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+<title>../sauna.php</title>
+<link rel="stylesheet" type="text/css" href="highlight.css">
+</head>
+<body class="hl">
+<pre class="hl"><span class="hl opt">&lt;</span>?
+<span class="hl slc">// This file handles data from sauna.</span>
+
+<span class="hl slc">// Do not cache</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">'Cache-Control: no-cache, no-store, max-age=0, must-revalidate'</span><span class="hl opt">);</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">'Expires: Mon, 26 Jul 1997 05:00:00 GMT'</span><span class="hl opt">);</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">'Pragma: no-cache'</span><span class="hl opt">);</span>
+<span class="hl kwd">header</span><span class="hl opt">(</span><span class="hl str">&quot;content-type: application/json&quot;</span><span class="hl opt">);</span>
+
+<span class="hl slc">// Sample file is named as upload_settings.php.sample. Move it, and change password to something more complex.</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;upload_settings.php&quot;</span><span class="hl opt">);</span>
+<span class="hl kwa">require_once</span><span class="hl opt">(</span><span class="hl str">&quot;lib/redis.php&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwa">function</span> <span class="hl kwd">response</span><span class="hl opt">(</span><span class="hl kwc">$success</span><span class="hl opt">,</span> <span class="hl kwc">$status</span><span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;success&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$success</span><span class="hl opt">,</span> <span class="hl str">&quot;status&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$status</span><span class="hl opt">));</span>
+    <span class="hl kwa">exit</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$_POST</span><span class="hl opt">[</span><span class="hl str">&quot;password&quot;</span><span class="hl opt">] !=</span> <span class="hl kwc">$password</span><span class="hl opt">) {</span>
+
+    <span class="hl slc">// Update statistics</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:sauna:pwfail&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">Header</span><span class="hl opt">(</span><span class="hl str">'HTTP/1.1 403 Forbidden'</span><span class="hl opt">);</span>
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Wrong password&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">$expiration_time</span> <span class="hl opt">=</span> <span class="hl num">3600</span> <span class="hl opt">*</span> <span class="hl num">24</span> <span class="hl opt">*</span> <span class="hl num">30</span><span class="hl opt">;</span> <span class="hl slc">// One month</span>
+
+<span class="hl slc">// If file doesn't exist, create it.</span>
+<span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwd">file_exists</span><span class="hl opt">(</span><span class="hl str">&quot;upload/sauna.rrd&quot;</span><span class="hl opt">)) {</span>
+    <span class="hl kwd">exec</span><span class="hl opt">(</span><span class="hl str">&quot;rrdtool create upload/sauna.rrd --start N --step 60 DS:temperature:GAUGE:240:10:110 &quot;</span><span class="hl opt">.</span>
+          <span class="hl str">&quot; RRA:AVERAGE:0.5:1:1440 RRA:AVERAGE:0.5:5:4032 RRA:AVERAGE:0.5:10:8640 RRA:AVERAGE:0.5:30:35040&quot;</span><span class="hl opt">.</span>
+          <span class="hl str">&quot; RRA:MAX:0.5:1:1440 RRA:MAX:0.5:5:4032 RRA:MAX:0.5:10:8640 RRA:MAX:0.5:30:35040&quot;</span><span class="hl opt">.</span>
+          <span class="hl str">&quot; RRA:MIN:0.5:1:1440 RRA:MIN:0.5:5:4032 RRA:MIN:0.5:10:8640 RRA:MIN:0.5:30:35040&quot;</span><span class="hl opt">.</span>
+          <span class="hl str">&quot; RRA:LAST:0.5:1:1440 RRA:LAST:0.5:5:4032 RRA:LAST:0.5:10:8640 RRA:LAST:0.5:30:35040&quot;</span><span class="hl opt">.</span>
+          <span class="hl str">&quot; RRA:HWPREDICT:20160:0.5:0.5:1440&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Sanitize input value - temperature is directly used in exec().</span>
+<span class="hl kwc">$data</span> <span class="hl opt">=</span> <span class="hl kwd">floatval</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;temperature&quot;</span><span class="hl opt">]);</span>
+
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$data</span> <span class="hl opt">&lt;</span> <span class="hl num">25</span> || <span class="hl kwc">$data</span> <span class="hl opt">&gt;</span> <span class="hl num">110</span><span class="hl opt">) {</span>
+    <span class="hl slc">// Update statistics</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:invalid&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:sauna:invalidvalue&quot;</span><span class="hl opt">);</span>
+
+    <span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>false<span class="hl opt">,</span> <span class="hl str">&quot;Invalid value&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwd">exec</span><span class="hl opt">(</span><span class="hl str">&quot;rrdtool update upload/sauna.rrd N:$data&quot;</span><span class="hl opt">);</span>
+
+<span class="hl slc">// Push new value to temperatures list (left)</span>
+<span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">lpush</span><span class="hl opt">(</span><span class="hl str">&quot;cache:latest_sauna&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$data</span><span class="hl opt">);</span>
+<span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">ltrim</span><span class="hl opt">(</span><span class="hl str">&quot;cache:latest_sauna&quot;</span><span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl num">49</span><span class="hl opt">);</span>
+
+<span class="hl slc">// Update expire for list - it's always one month from last update.</span>
+<span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">expire</span><span class="hl opt">(</span><span class="hl str">&quot;cache:latest_sauna&quot;</span><span class="hl opt">,</span> <span class="hl num">3600</span><span class="hl opt">*</span><span class="hl num">24</span><span class="hl opt">*</span><span class="hl num">30</span><span class="hl opt">);</span>
+<span class="hl kwa">echo</span> <span class="hl kwd">response</span><span class="hl opt">(</span>true<span class="hl opt">,</span> <span class="hl str">&quot;Success&quot;</span><span class="hl opt">);</span>
+?<span class="hl opt">&gt;</span>
+</pre>
+</body>
+</html>
+<!--HTML generated by highlight 3.5, http://www.andre-simon.de/-->
