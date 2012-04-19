@@ -67,10 +67,11 @@ function animate_change($elem, data, continueold) {
         $elem.data("animate-original-bgcolor", $elem.css("background-color"));
     }
 
-    if (isNaN(data)) {
+    var tmp_new_data = parseFloat($elem.html());
+    if (isNaN(tmp_new_data) || isNaN(data)) {
         $elem.html(data);
         $elem.css("color", "#FFFDF9").css("background-color", "#FCF8E3");
-        $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 2000);
+        $elem.animate({color: $elem.data("animate-original-color"), "background-color": $elem.data("animate-original-bgcolor")}, 500);
         return;
     }
 
