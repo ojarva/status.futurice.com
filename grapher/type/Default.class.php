@@ -36,6 +36,7 @@ class Type_Default {
 
 	function rainbow_colors() {
 		$sources = count($this->rrd_get_sources());
+		$c = 0;
 		foreach ($this->rrd_get_sources() as $ds) {
 			# hue (saturnation=1, value=1)
 			$h = 360 - ($c * (330/($sources-1)));
@@ -253,7 +254,20 @@ class Type_Default {
 		if(count($this->files)<=1) {
 			$c = 0;
 			foreach ($sources as $source) {
-				$color = is_array($this->colors) ? (isset($this->colors[$source])?$this->colors[$source]:$this->colors[$c++]): $this->colors;
+                        	if (is_array($this->colors)) {
+ 					if (isset($this->colors[$source])) {
+						$color = $this->colors[$source];
+					} else {
+						if (isset($this->colors[$c])) {
+							$color = $this->colors[$c];
+						} else {
+							$color = "";
+						}
+					}
+				} else {
+					$color = $this->colors;
+				}
+//				$color = is_array($this->colors) ? (isset($this->colors[$source])?$this->colors[$source]:$this->colors[$c++]): $this->colors;
 				$rrdgraph[] = sprintf('AREA:max_%s#%s', crc32hex($source), $this->get_faded_color($color));
 				$rrdgraph[] = sprintf('AREA:min_%s#%s', crc32hex($source), 'ffffff');
 				break; # only 1 area to draw
@@ -262,8 +276,23 @@ class Type_Default {
 
 		$c = 0;
 		foreach ($sources as $source) {
-			$dsname = $this->ds_names[$source] != '' ? $this->ds_names[$source] : $source;
-			$color = is_array($this->colors) ? (isset($this->colors[$source])?$this->colors[$source]:$this->colors[$c++]): $this->colors;
+			if (isset($this->ds_names[$source])) {
+				$dsname = $this->ds_names[$source] != '' ? $this->ds_names[$source] : $source;
+			} else { $dsname = $source; }
+                        if (is_array($this->colors)) {
+ 				if (isset($this->colors[$source])) {
+					$color = $this->colors[$source];
+				} else {
+					if (isset($this->colors[$c])) {
+						$color = $this->colors[$c];
+					} else {
+						$color = "";
+					}
+				}
+                        } else {
+				$color = $this->colors;
+                        }
+//			$color = is_array($this->colors) ? (isset($this->colors[$source]) ? $this->colors[$source] : $this->colors[$c++]): $this->colors;
 			$rrdgraph[] = sprintf('LINE1:avg_%s#%s:\'%s\'', crc32hex($source), $this->validate_color($color), $dsname);
 			$rrdgraph[] = sprintf('GPRINT:min_%s:MIN:\'%s Min,\'', crc32hex($source), $this->rrd_format);
 			$rrdgraph[] = sprintf('GPRINT:avg_%s:AVERAGE:\'%s Avg,\'', crc32hex($source), $this->rrd_format);
