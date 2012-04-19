@@ -22,8 +22,8 @@ $modes = array(
                            '"LINE1:smoothed#000077" ',
               "normal" => '"CDEF:trendtemp=temperature,900,TREND" '.
                           '"CDEF:trend=trendtemp,20,110,LIMIT" '.
-                          '"CDEF:linehot=trend,65,110,LIMIT" '.
-                          '"CDEF:linewarm=trend,40,65,LIMIT" '.
+                          '"CDEF:linehot=trend,64,110,LIMIT" '.
+                          '"CDEF:linewarm=trend,39,65,LIMIT" '.
                           '"CDEF:linecold=trend,0,40,LIMIT" '.
                           '"CDEF:comp1=PREV(trend)" '.
                           '"CDEF:comp2=PREV(comp1)" '.
