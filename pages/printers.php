@@ -1,4 +1,4 @@
-<script type="text/javascript"><?readfile("js/printers.min.js");?></script>
+<script type="text/javascript"><?php readfile("js/printers.min.js");?></script>
 
 <h1>Printers <span id="update_data"></span></h1>
 

@@ -1,4 +1,4 @@
-<?
+<?php
 // width+height+range = 1900*1900*8999 = 3245390000 cache keys
 // 3245390000 * 200kB = 604TB - saturates redis storage.
 // However, redis should be configured with maxmemory directive and

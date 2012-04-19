@@ -1,4 +1,4 @@
-<?
+<?php
 /*
  * This file provides server-sent events interface for faster reloads when data changes
  * W3 EventSource draft: http://www.w3.org/TR/eventsource/

@@ -1,4 +1,4 @@
-<?
+<?php
 // This file handles data from sauna.
 
 // Do not cache

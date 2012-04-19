@@ -1,4 +1,4 @@
-<?
+<?php
 if (!isset($_GET["filename"])) {
  echo "No filename provided.";
  exit();

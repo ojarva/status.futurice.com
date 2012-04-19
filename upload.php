@@ -1,4 +1,4 @@
-<?
+<?php
 // This file handles uploads from RT server and network monitoring server
 // Only files listed in upload_settings.php are allowed.
 

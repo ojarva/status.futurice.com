@@ -28,7 +28,7 @@ experiment.</p>
 	</div>
 </div>
 
-<?
+<?php
 $images = glob("img/carousel/full/*.jpg");
 if ($images != false && count($images) > 0) {
 ?>
@@ -36,11 +36,11 @@ if ($images != false && count($images) > 0) {
 	<div class="span12">
 		<div id="carousel" class="carousel">
 			<div class="carousel-inner">
-<?
+<?php
 shuffle($images);
 foreach ($images as $k => $v) {
     $v = basename($v);
-?><div class="<?if ($k == 0) {?>active <?}?>item"><img src="/img/carousel/<?=$v;?>"></img></div><?
+?><div class="<?php if ($k == 0) {?>active <?php }?>item"><img src="/img/carousel/<?=$v;?>"></img></div><?php
 }
 ?>
 			</div>
@@ -57,7 +57,7 @@ $("#carousel").carousel();
 });
 </script>
 
-<?}?>
+<?php }?>
 
 <h2>For nerds</h2>
 

@@ -1,4 +1,4 @@
-<?
+<?php
 // This script returns carousel images used by what? page.
 // Folder (mobile/tablet/full) is selected using browser user agent - mobile phones get smaller images. Default is full sized.
 

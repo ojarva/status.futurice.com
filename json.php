@@ -1,4 +1,4 @@
-<?
+<?php
 Header("Content-Type: application/json");
 
 require_once("lib/redis.php");

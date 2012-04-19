@@ -1,4 +1,4 @@
-<script type="text/javascript"><?readfile("js/main.min.js");?></script>
+<script type="text/javascript"><?php readfile("js/main.min.js");?></script>
 
       <div class="hero-unit">
         <h1>Status information from Futurice</h1>
@@ -6,7 +6,7 @@
         <p><a class="btn btn-primary btn-large" href="/page/what">Learn more &raquo;</a></p>
       </div>
 
-<? /*
+<?php /*
 <div class="row">
 <div class="span12">
 <div class="alert alert-error">
@@ -80,7 +80,7 @@ energy efficient printers around our offices.</p>
 
 	<div class="span4">
 		<h2>Network map</h2>
-<?/*	<p>Total traffic right now: 54Mbit/s <a href="#" rel="popover" data-original-title="Status" data-content="No link is saturated. All links do have spare capacity available. Also, response times are fast enough."><i class="icon-ok-circle"></i></a></p>*/?>
+<?php /*	<p>Total traffic right now: 54Mbit/s <a href="#" rel="popover" data-original-title="Status" data-content="No link is saturated. All links do have spare capacity available. Also, response times are fast enough."><i class="icon-ok-circle"></i></a></p>*/?>
 		<p>We have few offices and separate networks, so we need system for seeing overall status. For that reason we have network map. Published map is simplified version from what we have in the wall at the office.</p>
 		<p><a class="btn" href="/page/network-map">View map &raquo;</a>
 		<a href="/page/what" class="btn btn-info" rel="popover" data-original-title="How and why" data-content="Data from switches and routers is collected with MRTG and aggregated to map with PHP weathermap. We have only simplified version here, because full version is quite large and complicated. We thought it might be interesting to see how our network is constructed.">How and why</a>

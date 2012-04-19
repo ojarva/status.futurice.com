@@ -52,7 +52,11 @@ ob_start("callback");
 ?>
 
 <!DOCTYPE html>
-<html lang="en"<?if ($manifestenabled) {?> manifest="/cache.manifest"<?}?>>
+<html lang="en"<?php
+if ($manifestenabled) {
+    ?> manifest="/cache.manifest"<?php
+}
+?>>
   <head>
     <meta charset="utf-8">
     <title>status.futurice.com</title>
@@ -84,9 +88,9 @@ ob_start("callback");
           <a class="brand" href="/">Status</a>
           <div class="nav-collapse">
             <ul class="nav">
-<?
+<?php
  foreach ($pages as $k => $v) {
-  ?><li<?if ($v[0] == $pagename) {?> class="active"<?}?>><a href="<?=$v[0];?>"><?=$v[1];?></a></li><?
+  ?><li<?php if ($v[0] == $pagename) {?> class="active"<?php }?>><a href="<?=$v[0];?>"><?=$v[1];?></a></li><?php
  }
 ?>
             </ul>
@@ -113,7 +117,7 @@ ob_start("callback");
         </div>
 </div>
 
-<?
+<?php
 ob_end_flush();
 
 ob_start("callback");
@@ -145,6 +149,6 @@ require_once("pages/$pagename.php");
 </script>
   </body>
 </html>
-<?
+<?php
 ob_end_flush();
 ?>

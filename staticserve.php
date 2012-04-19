@@ -1,4 +1,4 @@
-<?
+<?php
 // This file serves static files and handles updating statistics.
 // Static files are cached using html5 application cache (whenever it's supported).
 // Many browsers don't update application cache correctly, if http cache headers

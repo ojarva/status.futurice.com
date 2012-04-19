@@ -43,17 +43,28 @@
     <span class="hl opt">}</span>
 <span class="hl opt">}</span>
 <span class="hl kwa">function</span> <span class="hl kwd">callback</span><span class="hl opt">(</span><span class="hl kwc">$buffer</span><span class="hl opt">) {</span>
-    <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\r\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
-    <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
-    <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">str_replace</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\t</span><span class="hl str">&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
-    <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">preg_replace</span><span class="hl opt">(</span> <span class="hl str">'/\s+/'</span><span class="hl opt">,</span> <span class="hl str">' '</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
+    <span class="hl kwc">$search</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span>
+        <span class="hl str">'/\&gt;[^\S ]+/s'</span><span class="hl opt">,</span> <span class="hl slc">//strip whitespaces after tags, except space</span>
+        <span class="hl str">'/[^\S ]+\&lt;/s'</span><span class="hl opt">,</span> <span class="hl slc">//strip whitespaces before tags, except space</span>
+        <span class="hl str">'/(\s)+/s'</span>  <span class="hl slc">// shorten multiple whitespace sequences</span>
+        <span class="hl opt">);</span>
+    <span class="hl kwc">$replace</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span>
+        <span class="hl str">'&gt;'</span><span class="hl opt">,</span>
+        <span class="hl str">'&lt;'</span><span class="hl opt">,</span>
+        <span class="hl str">'</span><span class="hl esc">\\</span><span class="hl str">1'</span>
+        <span class="hl opt">);</span>
+    <span class="hl kwc">$buffer</span> <span class="hl opt">=</span> <span class="hl kwd">preg_replace</span><span class="hl opt">(</span><span class="hl kwc">$search</span><span class="hl opt">,</span> <span class="hl kwc">$replace</span><span class="hl opt">,</span> <span class="hl kwc">$buffer</span><span class="hl opt">);</span>
     <span class="hl kwa">return</span> <span class="hl kwc">$buffer</span><span class="hl opt">;</span>
 <span class="hl opt">}</span>
 <span class="hl kwd">ob_start</span><span class="hl opt">(</span><span class="hl str">&quot;callback&quot;</span><span class="hl opt">);</span>
 ?<span class="hl opt">&gt;</span>
 
 <span class="hl opt">&lt;!</span>DOCTYPE html<span class="hl opt">&gt;</span>
-<span class="hl opt">&lt;</span>html lang<span class="hl opt">=</span><span class="hl str">&quot;en&quot;</span><span class="hl opt">&lt;</span>?<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$manifestenabled</span><span class="hl opt">) {</span>?<span class="hl opt">&gt;</span> manifest<span class="hl opt">=</span><span class="hl str">&quot;/cache.manifest&quot;</span><span class="hl opt">&lt;</span>?<span class="hl opt">}</span>?<span class="hl opt">&gt;&gt;</span>
+<span class="hl opt">&lt;</span>html lang<span class="hl opt">=</span><span class="hl str">&quot;en&quot;</span><span class="hl opt">&lt;</span>?php
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$manifestenabled</span><span class="hl opt">) {</span>
+    ?<span class="hl opt">&gt;</span> manifest<span class="hl opt">=</span><span class="hl str">&quot;/cache.manifest&quot;</span><span class="hl opt">&lt;</span>?php
+<span class="hl opt">}</span>
+?<span class="hl opt">&gt;&gt;</span>
   <span class="hl opt">&lt;</span>head<span class="hl opt">&gt;</span>
     <span class="hl opt">&lt;</span>meta charset<span class="hl opt">=</span><span class="hl str">&quot;utf-8&quot;</span><span class="hl opt">&gt;</span>
     <span class="hl opt">&lt;</span>title<span class="hl opt">&gt;</span>status<span class="hl opt">.</span>futurice<span class="hl opt">.</span>com<span class="hl opt">&lt;/</span>title<span class="hl opt">&gt;</span>
@@ -85,9 +96,9 @@
           <span class="hl opt">&lt;</span>a <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;brand&quot;</span> href<span class="hl opt">=</span><span class="hl str">&quot;/&quot;</span><span class="hl opt">&gt;</span>Status<span class="hl opt">&lt;/</span>a<span class="hl opt">&gt;</span>
           <span class="hl opt">&lt;</span>div <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;nav-collapse&quot;</span><span class="hl opt">&gt;</span>
             <span class="hl opt">&lt;</span>ul <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;nav&quot;</span><span class="hl opt">&gt;</span>
-<span class="hl opt">&lt;</span>?
+<span class="hl opt">&lt;</span>?php
  <span class="hl kwa">foreach</span> <span class="hl opt">(</span><span class="hl kwc">$pages</span> <span class="hl kwa">as</span> <span class="hl kwc">$k</span> <span class="hl opt">=&gt;</span> <span class="hl kwc">$v</span><span class="hl opt">) {</span>
-  ?<span class="hl opt">&gt;&lt;</span>li<span class="hl opt">&lt;</span>?<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] ==</span> <span class="hl kwc">$pagename</span><span class="hl opt">) {</span>?<span class="hl opt">&gt;</span> <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;active&quot;</span><span class="hl opt">&lt;</span>?<span class="hl opt">}</span>?<span class="hl opt">&gt;&gt;&lt;</span>a href<span class="hl opt">=</span><span class="hl str">&quot;&lt;?=$v[0];?&gt;&quot;</span><span class="hl opt">&gt;&lt;</span>?<span class="hl opt">=</span><span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">];</span>?<span class="hl opt">&gt;&lt;/</span>a<span class="hl opt">&gt;&lt;/</span>li<span class="hl opt">&gt;&lt;</span>?
+  ?<span class="hl opt">&gt;&lt;</span>li<span class="hl opt">&lt;</span>?php <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] ==</span> <span class="hl kwc">$pagename</span><span class="hl opt">) {</span>?<span class="hl opt">&gt;</span> <span class="hl kwa">class</span><span class="hl opt">=</span><span class="hl str">&quot;active&quot;</span><span class="hl opt">&lt;</span>?php <span class="hl opt">}</span>?<span class="hl opt">&gt;&gt;&lt;</span>a href<span class="hl opt">=</span><span class="hl str">&quot;&lt;?=$v[0];?&gt;&quot;</span><span class="hl opt">&gt;&lt;</span>?<span class="hl opt">=</span><span class="hl kwc">$v</span><span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">];</span>?<span class="hl opt">&gt;&lt;/</span>a<span class="hl opt">&gt;&lt;/</span>li<span class="hl opt">&gt;&lt;</span>?php
  <span class="hl opt">}</span>
 ?<span class="hl opt">&gt;</span>
             <span class="hl opt">&lt;/</span>ul<span class="hl opt">&gt;</span>
@@ -114,7 +125,7 @@
         <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
 <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt;</span>
 
-<span class="hl opt">&lt;</span>?
+<span class="hl opt">&lt;</span>?php
 <span class="hl kwd">ob_end_flush</span><span class="hl opt">();</span>
 
 <span class="hl kwd">ob_start</span><span class="hl opt">(</span><span class="hl str">&quot;callback&quot;</span><span class="hl opt">);</span>
@@ -146,7 +157,7 @@
 <span class="hl opt">&lt;/</span>script<span class="hl opt">&gt;</span>
   <span class="hl opt">&lt;/</span>body<span class="hl opt">&gt;</span>
 <span class="hl opt">&lt;/</span>html<span class="hl opt">&gt;</span>
-<span class="hl opt">&lt;</span>?
+<span class="hl opt">&lt;</span>?php
 <span class="hl kwd">ob_end_flush</span><span class="hl opt">();</span>
 ?<span class="hl opt">&gt;</span>
 </pre>
