@@ -198,8 +198,8 @@ to time it's nice and sometimes even useful.</p>
 		<p>There's no need to keep <a href="https://github.com/ojarva/status.futurice.com">source code</a> of this service secret. You need your own backend services and credentials, though. Many parts are quick 
 first versions, and there's always better way to do it. Feel free to fork, make improvements and create pull request. We're more than happy to merge improvements and cleanups.</p>
 
-		<p>Also, deployed <a href="/sources/backend/fetch_rt.py.html">RT code</a>, <a href="/sources/backend/fetch_pingdom.py.html">Pingdom code</a> and <a href="/sources/index.php.html">index.php</a> are available for 
-viewing.</p>
+		<p>Also, deployed <a href="/sources/backend/fetch_rt.py.html">RT code</a>, <a href="/sources/backend/fetch_pingdom.py.html">Pingdom code</a>, <a href="/sources/sse.php.html">EventSource</a>, <a href="/sources/graph/sauna.php">Sauna graph</a>, and <a 
+href="/sources/index.php.html">index.php</a> are available for viewing. Everything - not necessarily currently running, though - is available at <a href="https://github.com/ojarva/status.futurice.com">github repository</a>.</p>
 
 	</div>
 </div>
