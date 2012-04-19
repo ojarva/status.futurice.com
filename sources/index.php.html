@@ -130,6 +130,20 @@
 
     <span class="hl opt">&lt;/</span>div<span class="hl opt">&gt; &lt;!-- /</span>container <span class="hl opt">--&gt;</span>
 
+
+<span class="hl opt">&lt;</span>script type<span class="hl opt">=</span><span class="hl str">&quot;text/javascript&quot;</span><span class="hl opt">&gt;</span>
+
+  <span class="hl kwa">var</span> _gaq <span class="hl opt">=</span> _gaq || <span class="hl opt">[];</span>
+  _gaq<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">([</span><span class="hl str">'_setAccount'</span><span class="hl opt">,</span> <span class="hl str">'UA-31018904-1'</span><span class="hl opt">]);</span>
+  _gaq<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">([</span><span class="hl str">'_trackPageview'</span><span class="hl opt">]);</span>
+
+  <span class="hl opt">(</span><span class="hl kwa">function</span><span class="hl opt">() {</span>
+    <span class="hl kwa">var</span> ga <span class="hl opt">=</span> document<span class="hl opt">.</span><span class="hl kwd">createElement</span><span class="hl opt">(</span><span class="hl str">'script'</span><span class="hl opt">);</span> ga<span class="hl opt">.</span>type <span class="hl opt">=</span> <span class="hl str">'text/javascript'</span><span class="hl opt">;</span> ga<span class="hl opt">.</span>async <span class="hl opt">=</span> true<span class="hl opt">;</span>
+    ga<span class="hl opt">.</span>src <span class="hl opt">= (</span><span class="hl str">'https:'</span> <span class="hl opt">==</span> document<span class="hl opt">.</span>location<span class="hl opt">.</span>protocol ? <span class="hl str">'https://ssl'</span> <span class="hl opt">:</span> <span class="hl str">'http://www'</span><span class="hl opt">)</span> + <span class="hl str">'.google-analytics.com/ga.js'</span><span class="hl opt">;</span>
+    <span class="hl kwa">var</span> s <span class="hl opt">=</span> document<span class="hl opt">.</span><span class="hl kwd">getElementsByTagName</span><span class="hl opt">(</span><span class="hl str">'script'</span><span class="hl opt">)[</span><span class="hl num">0</span><span class="hl opt">];</span> s<span class="hl opt">.</span>parentNode<span class="hl opt">.</span><span class="hl kwd">insertBefore</span><span class="hl opt">(</span>ga<span class="hl opt">,</span> s<span class="hl opt">);</span>
+  <span class="hl opt">})();</span>
+
+<span class="hl opt">&lt;/</span>script<span class="hl opt">&gt;</span>
   <span class="hl opt">&lt;/</span>body<span class="hl opt">&gt;</span>
 <span class="hl opt">&lt;/</span>html<span class="hl opt">&gt;</span>
 <span class="hl opt">&lt;</span>?
