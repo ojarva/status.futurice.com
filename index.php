@@ -73,6 +73,8 @@ if ($manifestenabled) {
       <script src="/js/html5.js"></script>
     <![endif]-->
     <script src="/js/combined.min.js"></script>
+    <link rel="search" type="application/opensearchdescription+xml" title="Futurice Status" href="/opensearch.xml"/>
+
   </head>
 
   <body>

@@ -1,0 +1,9 @@
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
+<ShortName>status.futurice.com</ShortName>
+<Description>Futurice IT status</Description>
+<InputEncoding>UTF-8</InputEncoding>
+<Url type="text/html" method="get" template="http://status.futurice.com/page/search?q={searchTerms}"/>
+<moz:SearchForm>http://status.futurice.com/</moz:SearchForm>
+<Image height="16" width="16" type="image/x-icon">favicon.ico</Image>
+<AdultContent>false</AdultContent>
+</OpenSearchDescription>
