@@ -19,7 +19,7 @@ $results[] = array("/page/what", array("what", "info", "information", "howto", "
 $results[] = array("/page/network-map", array("netmap", "map", "traffic", "network", "internet"));
 
 foreach ($services["per_service"] as $k => $v) {
-   $results[] = array("/page/servicedetails/?id=$k", array($v["name"]));
+   $results[] = array("/page/servicedetails?id=$k", array($v["name"]));
 }
 
 $bestscore = 0;
