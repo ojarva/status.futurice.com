@@ -1,6 +1,6 @@
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
-<ShortName>status.futurice.com</ShortName>
-<Description>Futurice IT status</Description>
+<ShortName>Futurice IT status</ShortName>
+<Description>Futurice IT status - because transparency brings shitloads of good</Description>
 <InputEncoding>UTF-8</InputEncoding>
 <Url type="text/html" method="get" template="http://status.futurice.com/page/search?q={searchTerms}"/>
 <moz:SearchForm>http://status.futurice.com/</moz:SearchForm>
