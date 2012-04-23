@@ -6,6 +6,19 @@ function rmP(host, plugin) {
 	getData(host, plugin, 'del');
 }
 
+// From http://stackoverflow.com/a/901144/592174
+function getParameterByName(name)
+{
+  name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+  var regexS = "[\\?&]" + name + "=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(window.location.search);
+  if(results == null)
+    return "";
+  else
+    return decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
 var xmlHttp
 
 function getData(obj, id, action) {
@@ -16,7 +29,7 @@ function getData(obj, id, action) {
 	}
 
 	var url="plugin.php";
-	url=url+"?h="+obj+"&p="+id+"&a="+action;
+	url=url+"?h="+obj+"&p="+id+"&a="+action+"&tz="+getParameterByName("tz");
 	xmlHttp.onreadystatechange=function(){setData(id)}
 	xmlHttp.open("GET",url,true);
 	xmlHttp.send(null);

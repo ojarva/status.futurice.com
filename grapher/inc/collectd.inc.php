@@ -164,6 +164,10 @@ function build_url($base, $items, $s=NULL) {
 	if (!isset($items['s']))
 		$base .= '&s='.$s;
 
+	if (isset($_GET["tz"])) {
+		$base .= "&tz=".$_GET["tz"];
+	}
+
 	return $base;
 }
 

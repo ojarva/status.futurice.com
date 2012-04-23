@@ -35,8 +35,14 @@ ob_start();
 
 html_start();
 
+if (isset($_GET["tz"])) {
+	$tz = $_GET["tz"];
+} else {
+	$tz = "EEST";
+}
+
 printf('<h2><a href="%s">%s</a></h2>'."\n",
-	$CONFIG['weburl'].'host?h='.htmlentities($host), $host
+	$CONFIG['weburl'].'host?h='.htmlentities($host).'&tz='.$tz, $host
 );
 
 $term = array(

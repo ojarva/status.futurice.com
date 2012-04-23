@@ -4,6 +4,15 @@ require_once("../lib/redis.php");
 require_once 'conf/common.inc.php';
 require_once 'inc/functions.inc.php';
 
+$tz = "EEST";
+if (isset($_GET["tz"])) {
+    $tz = substr($_GET["tz"], 0, 4);
+}
+$tz = timezone_name_from_abbr($tz);
+if ($tz === FALSE) {
+    $tz = "Europe/Helsinki";
+}
+
 $get_cleaned = array();
 $valid_params = array("p", "pi", "t", "h", "s", "x", "y");
 foreach ($valid_params as $v) {
@@ -18,7 +27,7 @@ $heigth = empty($_GET['y']) ? $CONFIG['heigth'] : $_GET['y'];
 
 
 $requesthash = sha1(serialize($get_cleaned));
-$rediskey = "cache:grapher:graph:$plugin:${width}x${heigth}:$requesthash";
+$rediskey = "cache:grapher:graph:$plugin:${width}x${heigth}:$requesthash:$tz";
 $cached = $redis->get($rediskey);
 if ($cached) {
    Header("Content-Type: image/png");

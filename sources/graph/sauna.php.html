@@ -58,6 +58,15 @@
 <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;range&quot;</span><span class="hl opt">])) {</span>
     <span class="hl kwc">$range</span> <span class="hl opt">=</span> <span class="hl kwd">min</span><span class="hl opt">(</span><span class="hl num">9000</span><span class="hl opt">,</span> <span class="hl kwd">max</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl kwd">intval</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;range&quot;</span><span class="hl opt">])));</span>
 <span class="hl opt">}</span>
+<span class="hl kwc">$tz</span> <span class="hl opt">=</span> <span class="hl str">&quot;EEST&quot;</span><span class="hl opt">;</span>
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;tz&quot;</span><span class="hl opt">])) {</span>
+    <span class="hl kwc">$tz</span> <span class="hl opt">=</span> <span class="hl kwd">substr</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;tz&quot;</span><span class="hl opt">],</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl num">4</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+<span class="hl kwc">$tz</span> <span class="hl opt">=</span> <span class="hl kwd">timezone_name_from_abbr</span><span class="hl opt">(</span><span class="hl kwc">$tz</span><span class="hl opt">);</span>
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$tz</span> <span class="hl opt">===</span> FALSE<span class="hl opt">) {</span>
+    <span class="hl kwc">$tz</span> <span class="hl opt">=</span> <span class="hl str">&quot;Europe/Helsinki&quot;</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
 <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;mode&quot;</span><span class="hl opt">])) {</span>
     <span class="hl kwc">$mode</span> <span class="hl opt">=</span> <span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;mode&quot;</span><span class="hl opt">];</span>
     <span class="hl kwa">if</span> <span class="hl opt">(!</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$modes</span><span class="hl opt">[</span><span class="hl kwc">$mode</span><span class="hl opt">])) {</span>
@@ -65,21 +74,22 @@
     <span class="hl opt">}</span>
     <span class="hl kwc">$modestring</span> <span class="hl opt">=</span> <span class="hl kwc">$modes</span><span class="hl opt">[</span><span class="hl kwc">$mode</span><span class="hl opt">];</span>
 <span class="hl opt">}</span>
+
 <span class="hl kwd">http_cache_etag</span><span class="hl opt">();</span>
-<span class="hl kwc">$cachekey</span> <span class="hl opt">=</span> <span class="hl str">&quot;cache:sauna.png:$width:$height:$range:$mode&quot;</span><span class="hl opt">;</span>
+<span class="hl kwc">$cachekey</span> <span class="hl opt">=</span> <span class="hl str">&quot;cache:sauna.png:$width:$height:$range:$mode:$tz&quot;</span><span class="hl opt">;</span>
 <span class="hl kwc">$data</span> <span class="hl opt">=</span> <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">(</span><span class="hl kwc">$cachekey</span><span class="hl opt">);</span>
+
 <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwc">$data</span><span class="hl opt">) {</span>
     <span class="hl kwd">http_send_data</span><span class="hl opt">(</span><span class="hl kwc">$data</span><span class="hl opt">);</span>
 <span class="hl opt">}</span> <span class="hl kwa">else</span> <span class="hl opt">{</span>
     <span class="hl kwd">ob_start</span><span class="hl opt">();</span>
-    <span class="hl kwd">system</span><span class="hl opt">(</span><span class="hl str">'rrdtool graph - --end now --start end-'</span><span class="hl opt">.</span><span class="hl kwc">$range</span><span class="hl opt">.</span><span class="hl str">'h --slope-mode -r '</span><span class="hl opt">.</span>
+    <span class="hl kwd">passthru</span><span class="hl opt">(</span><span class="hl str">'TZ='</span><span class="hl opt">.</span><span class="hl kwc">$tz</span><span class="hl opt">.</span><span class="hl str">' rrdtool graph - --end now --start end-'</span><span class="hl opt">.</span><span class="hl kwc">$range</span><span class="hl opt">.</span><span class="hl str">'h --slope-mode -r '</span><span class="hl opt">.</span>
        <span class="hl str">'--font TITLE:16:Helvetica --font WATERMARK:3:Helvetica --font AXIS:9:Helvetica --font UNIT:10:Helvetica '</span><span class="hl opt">.</span>
        <span class="hl str">'-c &quot;GRID#FFFFFF&quot; -c &quot;MGRID#FFFFFF&quot; -c &quot;ARROW#000000&quot; -c &quot;SHADEA#FFFFFF&quot; -c &quot;SHADEB#FFFFFF&quot; -c &quot;FRAME#FFFFFF&quot; -c &quot;BACK#FFFFFF&quot; '</span><span class="hl opt">.</span>
        <span class="hl str">'--full-size-mode --width '</span><span class="hl opt">.</span><span class="hl kwc">$width</span><span class="hl opt">.</span><span class="hl str">' --height '</span><span class="hl opt">.</span><span class="hl kwc">$height</span><span class="hl opt">.</span><span class="hl str">' '</span><span class="hl opt">.</span>
        <span class="hl str">'&quot;DEF:temperatureraw='</span><span class="hl opt">.</span><span class="hl kwc">$filename</span><span class="hl opt">.</span><span class="hl str">':temperature:AVERAGE&quot; '</span><span class="hl opt">.</span>
        <span class="hl str">'&quot;CDEF:temperature=temperatureraw,24,110,LIMIT&quot; '</span><span class="hl opt">.</span>
        <span class="hl kwc">$modestring</span><span class="hl opt">);</span>
-
     <span class="hl kwc">$data</span> <span class="hl opt">=</span> <span class="hl kwd">ob_get_clean</span><span class="hl opt">();</span>
     <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">setex</span><span class="hl opt">(</span><span class="hl kwc">$cachekey</span><span class="hl opt">,</span> <span class="hl num">60</span><span class="hl opt">,</span> <span class="hl kwc">$data</span><span class="hl opt">);</span>
     <span class="hl kwd">http_send_data</span><span class="hl opt">(</span><span class="hl kwc">$data</span><span class="hl opt">);</span>

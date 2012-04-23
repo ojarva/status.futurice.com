@@ -36,7 +36,7 @@ function fetch_data() {
         "?p=apache&pi=foo&t=apache_requests",
         "?p=memory&pi=&t=memory"
     ];
-    var commonparameters = "&h=status.futurice.com&s=86400";
+    var commonparameters = "&h=status.futurice.com&s=86400&tz="+moment().format("z");
     $.each(graphs, function(index, value) {
         value = "/grapher/graph"+value+commonparameters;
         var hash = value.hashCode();

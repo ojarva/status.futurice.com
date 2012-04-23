@@ -144,6 +144,10 @@ class Type_Default {
 	}
 
 	function rrd_graph($debug=false) {
+		global $tz;
+		if (!isset($tz)) {
+			$tz = "Europe/Helsinki";
+		}
 		if (!$this->colors)
 			$this->rainbow_colors();
 
@@ -155,7 +159,7 @@ class Type_Default {
 				header("Expires: " . date(DATE_RFC822,strtotime($this->cache." seconds")));
 			header("content-type: image/png");
 			$graphdata = implode(' ', $graphdata);
-			echo `$graphdata`;
+			passthru("TZ=$tz ".$graphdata);
 		} else {
 			print '<pre>';
 			print_r($graphdata);

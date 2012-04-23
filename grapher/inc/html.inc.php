@@ -10,6 +10,12 @@ require_once 'inc/collectd.inc.php';
 function html_start() {
 	global $CONFIG;
 
+	if (isset($_GET["tz"])) {
+		$tz = $_GET["tz"];
+	} else {
+		$tz = "EEST";
+	}
+
 	$path = htmlentities(breadcrumbs());
 
 	echo <<<EOT
@@ -49,7 +55,7 @@ function html_start() {
           <div class="nav-collapse">
             <ul class="nav">
 		<li><a href="/">Home</a></li>
-		<li><a href="/grapher/host.php?h=status.futurice.com">Graphs frontpage</a></li>
+		<li><a href="/grapher/host.php?h=status.futurice.com&tz={$tz}">Graphs frontpage</a></li>
            </ul>
 
           </div><!--/.nav-collapse -->
