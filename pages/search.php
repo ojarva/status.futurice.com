@@ -4,34 +4,27 @@ if (!isset($_GET["q"])) {
  exit();
 }
 
-
 // similar_text is O(n^3) -> prevent (accidental) DoS with long query strings.
 $q = substr($_GET["q"], 0, 30);
 
-$services = json_decode($redis->get("data:services.json"), true);
-
-$results = array();
-$results[] = array("/page/printers", array("printers", "printing", "scanner", "paper", "papers", "consumables"));
-$results[] = array("/page/it-tickets", array("tickets", "requests"));
-$results[] = array("/page/services", array("status", "services"));
-$results[] = array("/page/sauna", array("sauna", "temperature", "helsinki sauna", "helsinki office sauna", "sauna at helsinki office"));
-$results[] = array("/page/what", array("what", "info", "information", "howto", "source", "code"));
-$results[] = array("/page/network-map", array("netmap", "map", "traffic", "network", "internet"));
-
-foreach ($services["per_service"] as $k => $v) {
-   $results[] = array("/page/servicedetails?id=$k", array($v["name"]));
-}
+require_once("lib/search_terms.php");
 
 $bestscore = 0;
 $besturl = false;
+
 foreach ($results as $v) {
     foreach ($v[1] as $keyword) {
-        $score = similar_text($keyword, $q);
-        if ($score > $bestscore) {
+        if ($q == $keyword) {
+            $bestscore = 9999;
             $besturl = $v[0];
-            $bestscore = $score;
-            if (metaphone($q, 6) == metaphone($keyword, 6)) {
-                $bestscore += 4;
+        } else {
+            $score = similar_text($keyword, $q);
+            if ($score > $bestscore) {
+                $besturl = $v[0];
+                $bestscore = $score;
+                if (metaphone($q, 6) == metaphone($keyword, 6)) {
+                    $bestscore += 4;
+                }
             }
         }
     }
@@ -40,7 +33,19 @@ foreach ($results as $v) {
 if ($bestscore > 2) {
     Header("Location: http://status.futurice.com$besturl");
     exit();
-}?>
+}
+
+
+?>
+
+<script type="text/javascript">
+var typeahead_data = <?php echo json_encode($typeahead_keywords); ?>;
+
+$(document).ready(function() {
+    $("#searchbox").typeahead({source: typeahead_data});
+});
+
+</script>
 
 <div class="row">
 	<div class="span12">
@@ -58,7 +63,7 @@ if ($bestscore > 2) {
 <div class="row">
 	<div class="span12">
 		<form class="well form-search" action="?" method="get">
-			<input type="text" class="input-medium search-query" placeholder="Type search query" name="q">
+			<input type="text" class="input-medium search-query" placeholder="Type search query" name="q" autocomplete="off" id="searchbox">
 			<button type="submit" class="btn">Search</button>
 		</form>
 	</div>
