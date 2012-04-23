@@ -1,4 +1,4 @@
-<?
+<?php
 $password = "your_randomly_generated_password";
 
 /* Only files in this array are allowed. Make sure web server user
