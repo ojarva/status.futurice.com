@@ -91,7 +91,9 @@
 <span class="hl kwc">$ret</span><span class="hl opt">[</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">process_json</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">,</span> <span class="hl kwc">$last_data</span><span class="hl opt">);</span>
 <span class="hl kwc">$ret</span><span class="hl opt">[</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">] =</span> <span class="hl str">&quot;success&quot;</span><span class="hl opt">;</span>
 
-<span class="hl kwa">echo</span> <span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwc">$ret</span><span class="hl opt">);</span>
+<span class="hl kwd">http_cache_etag</span><span class="hl opt">();</span>
+<span class="hl kwd">http_send_content_type</span><span class="hl opt">(</span><span class="hl str">&quot;application/json&quot;</span><span class="hl opt">);</span>
+<span class="hl kwd">http_send_data</span><span class="hl opt">(</span><span class="hl kwd">json_encode</span><span class="hl opt">(</span><span class="hl kwc">$ret</span><span class="hl opt">));</span>
 
 <span class="hl slc">// Update statistics</span>
 <span class="hl kwc">$redis</span><span class="hl opt">-&gt;</span><span class="hl kwd">incr</span><span class="hl opt">(</span><span class="hl str">&quot;stats:web:json:processed&quot;</span><span class="hl opt">);</span>

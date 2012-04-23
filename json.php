@@ -83,7 +83,9 @@ $ret["twitter"] = process_json("data:twitter.json", $last_data);
 $ret["data"] = process_json($filename, $last_data);
 $ret["status"] = "success";
 
-echo json_encode($ret);
+http_cache_etag();
+http_send_content_type("application/json");
+http_send_data(json_encode($ret));
 
 // Update statistics
 $redis->incr("stats:web:json:processed");
