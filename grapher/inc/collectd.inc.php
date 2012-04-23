@@ -135,9 +135,9 @@ function graphs_from_plugin($host, $plugin) {
 
 		printf('<a href="%s%s"><img src="%s%s"></a>'."\n",
 			$CONFIG['weburl'],
-			build_url('detail.php', $items, $time),
+			build_url('detail', $items, $time),
 			$CONFIG['weburl'],
-			build_url('graph.php', $items, $time)
+			build_url('graph', $items, $time)
 		);
 	}
 }

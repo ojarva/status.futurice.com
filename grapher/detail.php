@@ -36,7 +36,7 @@ ob_start();
 html_start();
 
 printf('<h2><a href="%s">%s</a></h2>'."\n",
-	$CONFIG['weburl'].'host.php?h='.htmlentities($host), $host
+	$CONFIG['weburl'].'host?h='.htmlentities($host), $host
 );
 
 $term = array(
@@ -54,7 +54,7 @@ print "<ul>\n";
 foreach($term as $key => $s) {
 	$args['s'] = $s;
 	printf('<li><a href="%s%s">%s</a></li>'."\n",
-		$CONFIG['weburl'], build_url('detail.php', $args), $key);
+		$CONFIG['weburl'], build_url('detail', $args), $key);
 }
 print "</ul>\n";
 
@@ -66,7 +66,7 @@ if(!$plugins) {
 }
 
 # show graph
-printf('<img src="%s%s">'."\n", $CONFIG['weburl'], build_url('graph.php', $_GET));
+printf('<img src="%s%s">'."\n", $CONFIG['weburl'], build_url('graph', $_GET));
 
 html_end();
 
