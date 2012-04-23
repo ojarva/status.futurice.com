@@ -48,7 +48,8 @@ function redraw_graph() {
     var height = Math.min(300, width);
     $elem.attr("width", width);
     $elem.attr("height", height);
-    var url = $elem.data("src")+"?newtimestamp="+(new Date()).getTime()+"&width="+$elem.attr("width")+"&height="+$elem.attr("height")+"&range="+$elem.data("range")+"&mode="+$elem.data("graphmode");
+    var tz = moment().format("z");
+    var url = $elem.data("src")+"?newtimestamp="+(new Date()).getTime()+"&width="+$elem.attr("width")+"&height="+$elem.attr("height")+"&range="+$elem.data("range")+"&mode="+$elem.data("graphmode")+"&tz="+tz;
     $("#temperature_graph").attr("src", url);
 
 }
