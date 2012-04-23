@@ -207,7 +207,7 @@ function animate_change($elem, data, continueold) {
                 return;
             }
             var settings = element.data("pagerefresh_settings");
-            var source = new EventSource("/sse.php?file="+settings.filewatch);
+            var source = new EventSource("/get/sse?file="+settings.filewatch);
             settings.thiselem.data("sserunning", true);
 
             source.addEventListener('message', function(e) {
@@ -312,7 +312,7 @@ function animate_change($elem, data, continueold) {
             $(settings.spinner_id).show();
             $(settings.update_button_id).addClass("disabled");
 
-            var url = "/json.php?filename="+settings.filewatch+"&last_data="+get_last_data_timestamp(settings.filewatch);
+            var url = "/get/json?filename="+settings.filewatch+"&last_data="+get_last_data_timestamp(settings.filewatch);
             $.get(url, function(data) {
                 if (data.status == "success") {
                     if (data.twitter) {

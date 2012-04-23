@@ -38,10 +38,10 @@ function fetch_data() {
     ];
     var commonparameters = "&h=status.futurice.com&s=86400";
     $.each(graphs, function(index, value) {
-        value = "/grapher/graph.php"+value+commonparameters;
+        value = "/grapher/graph"+value+commonparameters;
         var hash = value.hashCode();
         if ($("#"+hash).length == 0) {
-            $("#graphs").append("<li class='span6'><a class='thumbnail' href='/grapher/detail.php"+value+"'><img id='"+hash+"' src='"+value+"'></a></li>");
+            $("#graphs").append("<li class='span6'><a class='thumbnail' href='/grapher/detail"+value+"'><img id='"+hash+"' src='"+value+"'></a></li>");
         } else {
             $("#"+hash).attr("src", value+"&newtimestamp="+(new Date()).getTime());
         }
