@@ -73,7 +73,7 @@ number."><span class="badge badge-info" id="unique_7d"><span class="loading-inli
 		<p>We try to print as few pages as possible, but sometimes it can't be avoided. So we have few
 energy efficient printers around our offices.</p>
 		<p><a class="btn" href="/page/printers">View printers &raquo;</a> 
-<a href="/page/what" class="btn btn-info" rel="popover" data-original-title="How and why" data-content="There is no printer that doesn't have any problems ever. With this, employees and IT team can see status of printers immediately. Data is fetched using SNMP and sent to this server for viewing.">How and why</a>
+<a href="/page/what" class="btn btn-info" rel="popover" data-original-title="How and why" data-content="Every printer have problems from time to time. With this, employees and IT team can see status of printers immediately. Data is fetched using SNMP and sent to this server for viewing.">How and why</a>
 		</p>
 
 	</div>
