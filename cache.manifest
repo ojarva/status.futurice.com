@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# version: 1336556980
+# version: 1337091355
 
 /
 /page/main
@@ -41,6 +41,13 @@ CACHE MANIFEST
 /img/carousel/17.jpg
 /img/carousel/18.jpg
 /img/carousel/19.jpg
+
+/font/fontawesome-webfont.eot
+/font/fontawesome-webfont.svg
+/font/fontawesome-webfont.svgz
+/font/fontawesome-webfont.ttf
+/font/fontawesome-webfont.woff
+
 
 FALLBACK:
 /data/twitter.json /data/twitter_fallback.json

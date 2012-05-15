@@ -64,14 +64,18 @@ function fetch_data() {
                 daystatus = "";
             for (var a in ts.dates) {
                 color = "";
+                icon = "";
                 popover_content = "";
                 da = ts.dates[a];
                 if (da.u > 0.999) {
-                    color = "green";
+                    icon = "icon-ok-sign";
+                    color = "33cc33";
                 } else if (da.u > 0.98) {
-                    color = "yellow";
+                    icon = "icon-info-sign";
+                    color = "ffcc33";
                 } else {
-                    color = "red";
+                    icon = "icon-exclamation-sign";
+                    color = "ff3300";
                 }
                 if (da.u == 1) {
                     popover_content = "Uptime: 100% - perfect record.";
@@ -79,10 +83,11 @@ function fetch_data() {
                     popover_content = 'Uptime: '+Math.floor(100000*da.u)/1000+'%<br> Downtime: '+da.down+' seconds<br>Total uptime: '+da.up+' seconds.';
                 }
                 if (da.totalup == 0) {
-                    color = "grey";
+                    icon = "icon-question-sign";
+                    color = "000000";
                     popover_content = "No data available. Either test was paused or it was created after this date.";
                 }
-                daystatus += '<td class="check-day" rel="popover" data-original-title="More information" data-content="'+popover_content+'"><span class="serviceicon '+color+'">'+color+'</span></td>';
+                daystatus += '<td class="check-day" rel="popover" data-original-title="More information" data-content="'+popover_content+'"><i class="'+icon+' icon-large" style="color: #'+color+'"></span></td>';
             }
 
             if (ts.status == "up" && notifications_enabled) {
@@ -136,8 +141,22 @@ function fetch_data() {
             }
 
             popover_content = "";
-            $("#checks-overview-tbody").append('<tr><td class="check-status check-popover" rel="popover" data-service-id="'+service+'" data-original-title="'+ts.name+'" data-content="'+popover_content+'"><span class="serviceicon status '+ts['status']+'"></span></td><td class="check-name"><a href="/page/service-details?id='+service+'">'+ts["name"]+'</a></td><td style="width:50px" class="response-sparkline" id="full_table_'+service+'_sparkline" data-check-id="'+service+'"></td>'+daystatus+'</tr>');
-            $("#checks-summary-tbody").append('<tr><td class="check-name"><a href="/page/service-details?id='+service+'">'+ts["name"]+'</a></td><td class="check-status check-popover" data-service-id="'+service+'" rel="popover" data-original-title="'+ts.name+'" data-content="'+popover_content+'"><span class="serviceicon status '+ts['status']+'"></span></td><td style="width:50px" class="response-sparkline" id="summary_table_'+service+'_sparkline" data-check-id="'+service+'"></td><td style="width:50px" class="uptime-sparkline" id="summary_table_'+service+'_uptime_sparkline" data-check-id="'+service+'"></td></tr>');
+
+
+            if (ts["status"] == "up") {
+                status_icon = "icon-ok-sign";
+                status_icon_color = "33cc33";
+            }
+            if (ts["status"] == "down") {
+                status_icon = "icon-exclamation-sign";
+                status_icon_color = "ff3300";
+            }
+            if (ts["status"] == "paused") {
+                status_icon = "icon-question-sign";
+                status_icon_color = "000000";
+            }
+            $("#checks-overview-tbody").append('<tr><td class="check-status check-popover" rel="popover" data-service-id="'+service+'" data-original-title="'+ts.name+'" data-content="'+popover_content+'"><i class="icon-'+status_icon+' icon-large" style="color: #'+status_icon_color+'"></i></td><td class="check-name"><a href="/page/service-details?id='+service+'">'+ts["name"]+'</a></td><td style="width:50px" class="response-sparkline" id="full_table_'+service+'_sparkline" data-check-id="'+service+'"></td>'+daystatus+'</tr>');
+            $("#checks-summary-tbody").append('<tr><td class="check-name"><a href="/page/service-details?id='+service+'">'+ts["name"]+'</a></td><td class="check-status check-popover" data-service-id="'+service+'" rel="popover" data-original-title="'+ts.name+'" data-content="'+popover_content+'"><i class="'+status_icon+' icon-large" style="color: #'+status_icon_color+'"></i></td><td style="width:50px" class="response-sparkline" id="summary_table_'+service+'_sparkline" data-check-id="'+service+'"></td><td style="width:50px" class="uptime-sparkline" id="summary_table_'+service+'_uptime_sparkline" data-check-id="'+service+'"></td></tr>');
         }
         if (broken_services == 0) {
             $("#status-text").html("Everything is running normally");

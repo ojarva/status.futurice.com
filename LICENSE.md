@@ -117,6 +117,13 @@ Bootstrap
 ---------
 http://www.apache.org/licenses/LICENSE-2.0
 
+Font Awesome
+------------
+
+http://fortawesome.github.com/Font-Awesome/
+
+License: http://creativecommons.org/licenses/by/3.0/
+
 
 Glyphicons free
 ---------------

@@ -167,6 +167,7 @@ to time it's nice and sometimes even useful.</p>
 			<li><a href="http://developer.yahoo.com/yui/compressor/">yui-compressor</a></li>
 			<li><a href="http://handdrawing.olawolska.com/">Hand drawing icons set by Aleksandra Wolska</a></li>
 			<li><a href="https://github.com/nrk/predis">Predis</a></li>
+			<li><a href="http://fortawesome.github.com/Font-Awesome/">Font Awesome</a> for icons</li>
 		</ul>
                 <p>And using following tutorials/documents:</p>
 		<ul>
