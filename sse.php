@@ -49,7 +49,8 @@ if ($redis->get($filename) === FALSE) {
 $redis->incr("stats:web:sse:started");
 stat_update("web:sse:started");
 
-$follow_files = array(array("filename" => "data:twitter.json", "event" => "changeevent", "redis" => true),
+//array("filename" => "data:twitter.json", "event" => "changeevent", "redis" => true),
+$follow_files = array(
                       array("filename" => "cache.manifest", "event" => "manifestchange", "redis" => false),
                       array("filename" => $filename, "event" => "changeevent", "redis" => true));
 
@@ -99,7 +100,8 @@ function process_pubsub($redis, $chan, $msg) {
 // Another one is required for updating statistics etc.
 $pubredis = getRedis();
 $pubsub = $pubredis->pubSub();
-$pubsub->subscribe("pubsub:data:twitter.json", "pubsub:cache.manifest", "pubsub:".$filename);
+//$pubsub->subscribe("pubsub:data:twitter.json", "pubsub:cache.manifest", "pubsub:".$filename);
+$pubsub->subscribe("pubsub:cache.manifest", "pubsub:".$filename);
 
 $counter = 1800;
 while ($counter > 0) {
