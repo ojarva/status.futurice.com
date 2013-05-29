@@ -1,16 +1,15 @@
 CACHE MANIFEST
-# version: 1337153110
+# version: 1363266022
 
 /
 /page/main
 /page/what
 /page/network-map
 /page/it-tickets
+/page/careers-tickets
 /page/printers
 /page/misc-stats
 /page/sauna
-
-/js/services.min.js
 
 /js/combined.min.js
 /js/combined.raphael.min.js
@@ -22,26 +21,6 @@ CACHE MANIFEST
 /img/ui-images.png
 /favicon.ico
 
-/img/carousel/01.jpg
-/img/carousel/02.jpg
-/img/carousel/03.jpg
-/img/carousel/04.jpg
-/img/carousel/05.jpg
-/img/carousel/06.jpg
-/img/carousel/07.jpg
-/img/carousel/08.jpg
-/img/carousel/09.jpg
-/img/carousel/10.jpg
-/img/carousel/11.jpg
-/img/carousel/12.jpg
-/img/carousel/13.jpg
-/img/carousel/14.jpg
-/img/carousel/15.jpg
-/img/carousel/16.jpg
-/img/carousel/17.jpg
-/img/carousel/18.jpg
-/img/carousel/19.jpg
-
 /font/fontawesome-webfont.eot
 /font/fontawesome-webfont.svg
 /font/fontawesome-webfont.svgz
@@ -50,7 +29,6 @@ CACHE MANIFEST
 
 
 FALLBACK:
-/data/twitter.json /data/twitter_fallback.json
 /data/netmap.png /data/netmap_fallback.png
 
 NETWORK:
