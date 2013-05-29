@@ -75,7 +75,7 @@ if ($data) {
     http_send_data($data);
 } else {
     ob_start();
-    passthru('TZ='.$tz.' rrdtool graph - --end now --start end-'.$range.'h --slope-mode -r '.
+    passthru('TZ='.$tz.' rrdtool graph - --end now --start end-'.$range.'h --slope-mode -u 100 -l 0 '.
        '--font TITLE:16:Helvetica --font WATERMARK:3:Helvetica --font AXIS:9:Helvetica --font UNIT:10:Helvetica '.
        '-c "GRID#FFFFFF" -c "MGRID#FFFFFF" -c "ARROW#000000" -c "SHADEA#FFFFFF" -c "SHADEB#FFFFFF" -c "FRAME#FFFFFF" -c "BACK#FFFFFF" '.
        '--full-size-mode --width '.$width.' --height '.$height.' '.

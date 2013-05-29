@@ -13,7 +13,7 @@ if (isset($_GET["title"])) {
  $extra = '-t "'.$title.'"';
 }
 
-system('rrdtool graph - --end now --start end-7d -u 100 -l 0 -r -v "Percentage" -c "SHADEA#FFFFFF" -c "SHADEB#FFFFFF" -c "FRAME#FFFFFF" -c "BACK#FFFFFF" '.$extra.' --width 400'.
+system('rrdtool graph - --end now --start end-7d --upper-limit 100 -l 0  -v "Percentage" -c "SHADEA#FFFFFF" -c "SHADEB#FFFFFF" -c "FRAME#FFFFFF" -c "BACK#FFFFFF" '.$extra.' --width 400'.
        ' "DEF:value1=/home/ubuntu/graphs/'.$filename.'.rrd:value:AVERAGE" '.
        ' "CDEF:value1green=value1,50,100,LIMIT" '.
        ' "CDEF:value1yellow=value1,20,50,LIMIT" '.
