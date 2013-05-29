@@ -137,6 +137,9 @@ class PingdomConnection(object):
         """Get a list of Pingdom checks, optionally filtered by check name"""
         limit = int(kwargs.get("limit", 25000))
         offset = int(kwargs.get("offset", 0))
+        response2 = PingdomRequest(self, 'reports.public').fetch()
+        result2 = response2.content
+        public_reports = set([item['checkid'] for item in result2['public']])
         response = PingdomRequest(self, 'checks?limit=%s&offset=%s' % (limit, offset)).fetch()
         result = response.content
         pingdom_checks = []
@@ -145,8 +148,13 @@ class PingdomConnection(object):
                 pingdom_checks += [PingdomCheck(r) for r in result['checks'] if r['name'] == check_name]
         else:
             pingdom_checks += [PingdomCheck(r) for r in result['checks']]
+
+        results_final = []
+        for item in pingdom_checks:
+            if item.id in public_reports:
+                 results_final.append(item)
             
-        return pingdom_checks
+        return results_final
 
     def get_performance(self, checkid, **kwargs):
         starttime = int(kwargs.get("timefrom", 0))
