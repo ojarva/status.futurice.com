@@ -43,6 +43,7 @@
     <span class="hl opt">}</span>
 <span class="hl opt">}</span>
 <span class="hl kwa">function</span> <span class="hl kwd">callback</span><span class="hl opt">(</span><span class="hl kwc">$buffer</span><span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwc">$buffer</span><span class="hl opt">;</span>
     <span class="hl kwc">$search</span> <span class="hl opt">=</span> <span class="hl kwa">array</span><span class="hl opt">(</span>
         <span class="hl str">'/\&gt;[^\S ]+/s'</span><span class="hl opt">,</span> <span class="hl slc">//strip whitespaces after tags, except space</span>
         <span class="hl str">'/[^\S ]+\&lt;/s'</span><span class="hl opt">,</span> <span class="hl slc">//strip whitespaces before tags, except space</span>
@@ -157,6 +158,19 @@
   <span class="hl opt">})();</span>
 
 <span class="hl opt">&lt;/</span>script<span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;!--</span> Piwik <span class="hl opt">--&gt;</span> 
+<span class="hl opt">&lt;</span>script type<span class="hl opt">=</span><span class="hl str">&quot;text/javascript&quot;</span><span class="hl opt">&gt;</span>
+<span class="hl kwa">var</span> pkBaseURL <span class="hl opt">= ((</span><span class="hl str">&quot;https:&quot;</span> <span class="hl opt">==</span> document<span class="hl opt">.</span>location<span class="hl opt">.</span>protocol<span class="hl opt">)</span> ? <span class="hl str">&quot;https://analytics.futurice.com/piwik/&quot;</span> <span class="hl opt">:</span> <span class="hl str">&quot;http://analytics.futurice.com/piwik/&quot;</span><span class="hl opt">);</span>
+document<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span><span class="hl kwd">unescape</span><span class="hl opt">(</span><span class="hl str">&quot;%3Cscript src='&quot;</span> + pkBaseURL + <span class="hl str">&quot;piwik.js' type='text/javascript'%3E%3C/script%3E&quot;</span><span class="hl opt">));</span>
+<span class="hl opt">&lt;/</span>script<span class="hl opt">&gt;&lt;</span>script type<span class="hl opt">=</span><span class="hl str">&quot;text/javascript&quot;</span><span class="hl opt">&gt;</span>
+<span class="hl kwa">try</span> <span class="hl opt">{</span>
+<span class="hl kwa">var</span> piwikTracker <span class="hl opt">=</span> Piwik<span class="hl opt">.</span><span class="hl kwd">getTracker</span><span class="hl opt">(</span>pkBaseURL + <span class="hl str">&quot;piwik.php&quot;</span><span class="hl opt">,</span> <span class="hl num">13</span><span class="hl opt">);</span>
+piwikTracker<span class="hl opt">.</span><span class="hl kwd">trackPageView</span><span class="hl opt">();</span>
+piwikTracker<span class="hl opt">.</span><span class="hl kwd">enableLinkTracking</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span> err <span class="hl opt">) {}</span>
+<span class="hl opt">&lt;/</span>script<span class="hl opt">&gt;&lt;</span>noscript<span class="hl opt">&gt;&lt;</span>p<span class="hl opt">&gt;&lt;</span>img src<span class="hl opt">=</span><span class="hl str">&quot;http://analytics.futurice.com/piwik/piwik.php?idsite=13&quot;</span> style<span class="hl opt">=</span><span class="hl str">&quot;border:0&quot;</span> alt<span class="hl opt">=</span><span class="hl str">&quot;&quot;</span> <span class="hl opt">/&gt;&lt;/</span>p<span class="hl opt">&gt;&lt;/</span>noscript<span class="hl opt">&gt;</span>
+<span class="hl opt">&lt;!--</span> End Piwik Tracking Code <span class="hl opt">--&gt;</span>
+
   <span class="hl opt">&lt;/</span>body<span class="hl opt">&gt;</span>
 <span class="hl opt">&lt;/</span>html<span class="hl opt">&gt;</span>
 <span class="hl opt">&lt;</span>?php

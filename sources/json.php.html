@@ -18,10 +18,11 @@
              <span class="hl str">&quot;status_message&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">,</span>
              <span class="hl str">&quot;data&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;file_timestamp&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">,</span>
                              <span class="hl str">&quot;content_timestamp&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">,</span>
-                             <span class="hl str">&quot;content&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">),</span>
-             <span class="hl str">&quot;twitter&quot;</span> <span class="hl opt">=&gt;</span> <span class="hl kwa">array</span><span class="hl opt">(</span><span class="hl str">&quot;file_timestamp&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">,</span>
-                                <span class="hl str">&quot;content_timestamp&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">,</span>
-                                <span class="hl str">&quot;content&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">)</span>
+                             <span class="hl str">&quot;content&quot;</span> <span class="hl opt">=&gt;</span> false<span class="hl opt">)</span>
+<span class="hl com">/*,</span>
+<span class="hl com">             &quot;twitter&quot; =&gt; array(&quot;file_timestamp&quot; =&gt; false,</span>
+<span class="hl com">                                &quot;content_timestamp&quot; =&gt; false,</span>
+<span class="hl com">                                &quot;content&quot; =&gt; false)*/</span>
 <span class="hl opt">);</span>
 
 <span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwa">isset</span><span class="hl opt">(</span><span class="hl kwc">$_GET</span><span class="hl opt">[</span><span class="hl str">&quot;filename&quot;</span><span class="hl opt">])) {</span>
@@ -87,7 +88,7 @@
 <span class="hl opt">}</span>
 
 <span class="hl slc">// Populate data</span>
-<span class="hl kwc">$ret</span><span class="hl opt">[</span><span class="hl str">&quot;twitter&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">process_json</span><span class="hl opt">(</span><span class="hl str">&quot;data:twitter.json&quot;</span><span class="hl opt">,</span> <span class="hl kwc">$last_data</span><span class="hl opt">);</span>
+<span class="hl slc">//$ret[&quot;twitter&quot;] = process_json(&quot;data:twitter.json&quot;, $last_data);</span>
 <span class="hl kwc">$ret</span><span class="hl opt">[</span><span class="hl str">&quot;data&quot;</span><span class="hl opt">] =</span> <span class="hl kwd">process_json</span><span class="hl opt">(</span><span class="hl kwc">$filename</span><span class="hl opt">,</span> <span class="hl kwc">$last_data</span><span class="hl opt">);</span>
 <span class="hl kwc">$ret</span><span class="hl opt">[</span><span class="hl str">&quot;status&quot;</span><span class="hl opt">] =</span> <span class="hl str">&quot;success&quot;</span><span class="hl opt">;</span>
 
