@@ -154,7 +154,7 @@ jQuery.fn.urlize = function() {
 
 function update_twitter() {
     var data = $("body").data("pagerefresh-twitter").content;
-    $("#twitter_footer").html("<blockquote class='hidden-phone hidden-tablet'><p id='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-retweet'></i> @futurice "+data.status_ago+"</a></small></blockquote><blockquote class='hidden-desktop'><a href='http://twitter.com/futurice'>@futurice</a></blockquote>");
+    $("#twitter_footer").html("<blockquote class='hidden-phone hidden-tablet'><p class='twitter_status'>"+data["status"]+"</p><small><a href='http://twitter.com/futurice'><i class='icon-large icon-twitter-sign'></i> @futurice "+data.status_ago+"</a></small></blockquote><blockquote class='hidden-desktop'><a href='http://twitter.com/futurice'><i class='icon-large icon-twitter-sign'></i> @futurice</a></blockquote>");
     $("#twitter_status").urlize();
 }
 

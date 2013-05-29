@@ -137,11 +137,11 @@ function animate_change($elem, data, continueold) {
                     settings.thiselem.pagerefresh("autofill");
                     settings.thiselem.pagerefresh("fetch_done", $("body").data("pagerefresh-data").content_timestamp*1000);
                 }
-                twitter = get_last_data("twitter.json");
+                /*twitter = get_last_data("twitter.json");
                 if (twitter && twitter.content) {
                     $("body").data("pagerefresh-twitter", twitter);
                     eval(settings.refresh_twitter_callback);
-                }
+                }*/
             }
 
 
@@ -315,11 +315,11 @@ function animate_change($elem, data, continueold) {
             var url = "/get/json?filename="+settings.filewatch+"&last_data="+get_last_data_timestamp(settings.filewatch);
             $.get(url, function(data) {
                 if (data.status == "success") {
-                    if (data.twitter) {
+                    /*if (data.twitter) {
                         $("body").data("pagerefresh-twitter", data.twitter);
                         set_last_data("twitter.json", data.twitter);
                         eval(settings.refresh_twitter_callback);
-                    }
+                    }*/
                     if (data.data) {
                         $("body").data("pagerefresh-data", data.data);
                         set_last_data(settings.filewatch, data.data);
