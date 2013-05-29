@@ -10,10 +10,11 @@ $ret = array("message_timestamp" => time(),
              "status_message" => false,
              "data" => array("file_timestamp" => false,
                              "content_timestamp" => false,
-                             "content" => false),
+                             "content" => false)
+/*,
              "twitter" => array("file_timestamp" => false,
                                 "content_timestamp" => false,
-                                "content" => false)
+                                "content" => false)*/
 );
 
 if (isset($_GET["filename"])) {
@@ -79,7 +80,7 @@ function process_json($filename, $last_data) {
 }
 
 // Populate data
-$ret["twitter"] = process_json("data:twitter.json", $last_data);
+//$ret["twitter"] = process_json("data:twitter.json", $last_data);
 $ret["data"] = process_json($filename, $last_data);
 $ret["status"] = "success";
 
