@@ -1,6 +1,6 @@
 
 <div class="hero-unit">
-<h1>What and why?</h1>
+<h1 class="hidden-phone">What and why?</h1>
 
 <p>Many things can be improved only by taking very small. And many things require great amount of work, money and 
 goodwill. Also, many small things bring in much greater advantages. If this site inspires even few others to 
@@ -32,7 +32,7 @@ experiment.</p>
 $images = glob("img/carousel/full/*.jpg");
 if ($images != false && count($images) > 0) {
 ?>
-<div class="row">
+<div class="row hidden-phone">
 	<div class="span12">
 		<div id="carousel" class="carousel">
 			<div class="carousel-inner">

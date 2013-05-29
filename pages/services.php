@@ -1,5 +1,7 @@
 <script src="/js/combined.raphael.min.js"></script>
-<script type="text/javascript" src="/js/services.min.js"></script>
+<script type="text/javascript">
+<?php readfile("js/services.min.js"); ?>
+</script>
 
 <h1>Overview of service status <span id="update_data"></span> <button id="notification_permissions" class="btn btn-info">Show notifications</button></h1>
 
@@ -14,17 +16,17 @@
 <h2 id="outages_today"><span class="loading-inline-gif"></span></h2>
 </div>
 
-<div class="span2">
+<div class="span2 hidden-phone">
 <h2><small>Networks uptime</small></h2>
 <h2 id="networks"><span class="loading-inline-gif"></span></h2>
 </div>
 
-<div class="span3">
+<div class="span3 hidden-phone">
 <h2><small>Virtualization platforms</small></h2>
 <h2 id="virtualization_platforms"><span class="loading-inline-gif"></span></h2>
 </div>
 
-<div class="span2">
+<div class="span2 hidden-phone">
 <h2><small>Websites</small></h2>
 <h2 id="websites"><span class="loading-inline-gif"></span></h2>
 </div>

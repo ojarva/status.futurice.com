@@ -33,23 +33,23 @@
 	</div>
 </div>
 
-<div class="row" style="padding-top:2em">
+<div class="row hidden-phone" style="padding-top:2em">
 	<div class="span12">
 		<h2>Response times</h2>
 	</div>
 </div>
-<div class="row">
+<div class="row hidden-phone">
 	<div class="span12">
 	 	<div id="response_graph"><img src="/img/loading.gif"></div>
 	</div>
 </div>
 
-<div class="row">
+<div class="row hidden-phone">
 	<div class="span12">
 		<h2>Uptime</h2>
 	</div>
 </div>
-<div class="row">
+<div class="row hidden-phone">
 	<div class="span12">
 		<div id="uptime_graph"><img src="/img/loading.gif"></div>
 	</div>

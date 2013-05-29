@@ -26,7 +26,7 @@
 
 <h1>IT tickets <span id="update_data"></span></h1>
 
-<div class="row">
+<div class="row hidden-phone">
 	<div class="span12">
 		<div class="btn-group" data-toggle="buttons-radio">
 			<button rel="popover" data-original-title="What?" data-content="This includes all tickets, also automatically generated warnings, information messages and errors." data-placement="bottom"  data-name="all" id="dots_all" class="btn dots-btn">All tickets by creation time</button>
@@ -37,7 +37,7 @@
 		</div>
 	</div>
 </div>
-<div class="row">
+<div class="row hidden-phone">
 <div class="span12">
         <div id="name2" class="hidden">
             <div id="legend2">&nbsp;</div>
