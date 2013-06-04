@@ -29,7 +29,21 @@ function fetch_data() {
     } */
 
     //TODO: Draw graphs
-}
+
+    var actives = parseInt(today["count_14_day_actives"]);
+    var inactives = parseInt(today["num_accounts"]) - actives;
+    $.jqplot('holder', [[['Active',actives], ['Inactive',inactives]]], {
+                                                seriesDefaults: {renderer: jQuery.jqplot.PieRenderer,
+                                                    rendererOptions: {showDataLabels: true},
+                                                    shadow: false,
+                                                },
+                                                legend: { show:true, location: 'e' },
+                                                grid: {shadow: false,
+                                                    background: '#ffffff',
+                                                    borderWidth: 0.0},
+                                                title: 'Accounts'
+    });
+};
 
 $(document).ready(function () {
     $("#update_data").pagerefresh({"short_timeout": 1*60*60, "long_timeout": 1*60*60, "filewatch": "gapps.json"});
