@@ -35,7 +35,7 @@ function fetch_data() {
     $.jqplot('holder', [[['Active',actives], ['Inactive',inactives]]], {
                                                 seriesDefaults: {renderer: jQuery.jqplot.PieRenderer,
                                                     rendererOptions: {showDataLabels: true},
-                                                    shadow: false,
+                                                    shadow: false
                                                 },
                                                 legend: { show:true, location: 'e' },
                                                 grid: {shadow: false,
@@ -43,6 +43,7 @@ function fetch_data() {
                                                     borderWidth: 0.0},
                                                 title: 'Accounts'
     });
+    $(".jqplot-table-legend-swatch").css('width','10px').css('height','10px')
 };
 
 $(document).ready(function () {
