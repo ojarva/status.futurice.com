@@ -32,7 +32,7 @@
 
 <div class="row" style="padding-top:1em">
 <div class="span6">
-<div id="holder"></div>
+<div id="holder" style="width:220px;height:220px"></div>
 
 </div>
 </div>
