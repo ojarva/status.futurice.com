@@ -3,7 +3,7 @@ import hashlib
 import json
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
-import local_settings
+import gapps_settings
 #Import the Google Apps Manager
 from gam import *
 
@@ -112,11 +112,11 @@ class Gappstats:
         data = {"gapps": items, "timestamp": time.time()}
         jsonfile="gapps.json"
         json.dump(data, open(jsonfile, "w"))
-        send(local_settings.UPLOAD_DESTINATION, jsonfile)
+        send(gapps_settings.UPLOAD_DESTINATION, jsonfile)
         
 def send(what, filename):
-    datagen, headers = multipart_encode({"data": open(filename, "rb"), "password": local_settings.UPLOAD_PASSWORD, "what": what})
-    request = urllib2.Request(local_settings.UPLOAD_URL, datagen, headers)
+    datagen, headers = multipart_encode({"data": open(filename, "rb"), "password": gapps_settings.UPLOAD_PASSWORD, "what": what})
+    request = urllib2.Request(gapps_settings.UPLOAD_URL, datagen, headers)
     urllib2.urlopen(request).read()
     
 def main():
